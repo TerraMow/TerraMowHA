@@ -18,7 +18,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.LAWN_MOWER]
+PLATFORMS: list[Platform] = [Platform.LAWN_MOWER, Platform.SENSOR]
 
 @dataclass
 class TerraMowBasicData:

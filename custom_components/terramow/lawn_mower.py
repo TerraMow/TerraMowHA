@@ -10,6 +10,7 @@ from homeassistant.components.lawn_mower.const import LawnMowerActivity, LawnMow
 from homeassistant.core import HomeAssistant, ServiceResponse, SupportsResponse
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from . import TerraMowConfigEntry, TerraMowBasicData
 from .const import MQTT_PORT, MQTT_USERNAME, DOMAIN
@@ -121,6 +122,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.mqtt_client = None
         self._stop_event = threading.Event()  # 用于停止重连循环
         self.callbacks = {}  # 存储 dp_id 和对应的回调函数
+        self.basic_data.lawn_mower = self
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -138,6 +140,19 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("LawnMowerActivity.RETURNING not available in this HA version")
 
         _LOGGER.info("TerraMowLawnMowerEntity created with host %s", self.host)
+
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                ('TerraMowLanwMower', self.basic_data.host)
+            },
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model='TerraMow S1200'
+        )
 
     def _can_accept_command(self):
         """Check if control commands can be accepted"""
@@ -215,7 +230,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def register_all_callbacks(self):
         """Register all callbacks for data points."""
         self.register_callback(107, self.on_mission_status)
-        self.register_callback(108, self.on_battery_status)
 
     def update_activity_from_state(self):
         """Update activity based on current mission state."""
@@ -282,15 +296,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.has_error = data.get("has_error", self.has_error)
 
         self.update_activity_from_state()
-
-    async def on_battery_status(self, payload: str):
-        """Handle battery status updates."""
-        try:
-            data = json.loads(payload)
-            _LOGGER.info(f"Received battery status: {data}")
-        except json.JSONDecodeError:
-            _LOGGER.error(f"Invalid JSON payload: {payload}")
-            return
 
     def mqtt_loop(self):
         """MQTT main loop with auto-reconnect."""
