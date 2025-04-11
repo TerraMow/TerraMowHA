@@ -94,7 +94,7 @@ class BatterySensor(SensorEntity):
             data = json.loads(payload)
             self._attr_extra_state_attributes = {
                 'state':  data.get('state', ''),
-                'temperature':  data.get('tempreture', ''),
+                'temperature':  data.get('tempreture', '').replace('TEMPRETURE', 'TEMPERATURE'),
                 'charger_connected':  data.get('charger_connected', ''),
                 'is_switch_on':  data.get('is_switch_on', '')
             }
