@@ -23,8 +23,8 @@ Data Point Definition
 | ID | Name | Data Direction | Description |
 |-------|------|------|------|
 | 8 | [Battery Level](#battery-level) | Robot→HA | Battery percentage |
+| 107 | [Task Status](#task-status) | Robot→HA | Task status information (main task, sub-task, running state, etc.) |
 | 108 | [Battery Status](#battery-status) | Robot→HA | Battery status information (charging state, temperature, etc.) |
-| 109 | [Task Status](#task-status) | Robot→HA | Task status information (main task, sub-task, running state, etc.) |
 | 113 | [Current Operation Data](#current-operation-data) | Robot→HA | Current operation data (area, progress, etc.) |
 | 117 | [Map Status](#map-status) | Robot→HA | Map status (ID, state, count, etc.) |
 | 124 | [Operation Statistics](#operation-statistics) | Robot→HA | Operation statistics (total duration, area, count) |
@@ -72,7 +72,7 @@ Data Point Definition
 
 ## Task Status
 
-- **ID**: 109
+- **ID**: 107
 - Data Direction: Robot→HA
 - Field Description:
 
