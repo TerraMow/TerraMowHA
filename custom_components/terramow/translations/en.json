@@ -17,5 +17,151 @@
                 }
             }
         }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Lawn Mower"
+            }
+        },
+        "sensor": {
+            "battery": {
+                "name": "Battery"
+            },
+            "map_status": {
+                "name": "Map Status",
+                "state": {
+                    "MAP_STATE_EMPTY": "No Map",
+                    "MAP_STATE_INCOMPLETE": "Map Incomplete",
+                    "MAP_STATE_COMPLETE": "Map Complete"
+                }
+            },
+            "map_area": {
+                "name": "Map Area"
+            },
+            "mow_height": {
+                "name": "Mow Height"
+            },
+            "mow_speed": {
+                "name": "Mow Speed",
+                "state": {
+                    "MOW_SPEED_TYPE_LOW": "Low",
+                    "MOW_SPEED_TYPE_MEDIUM": "Medium",
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High"
+                }
+            },
+            "clean_mode": {
+                "name": "Operation Mode",
+                "state": {
+                    "MAP_CLEAN_INFO_MODE_GLOBAL": "Global Operation",
+                    "MAP_CLEAN_INFO_MODE_SELECT_REGION": "Select Region Operation",
+                    "MAP_CLEAN_INFO_MODE_DRAW_REGION": "Draw Region Operation",
+                    "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Move to Target Point"
+                }
+            },
+            "total_mowing_time": {
+                "name": "Total Mowing Time"
+            },
+            "current_session_area": {
+                "name": "Current Session Area"
+            },
+            "current_session_time": {
+                "name": "Current Session Time"
+            },
+            "remaining_blade_time": {
+                "name": "Remaining Blade Time"
+            },
+            "remaining_base_station_time": {
+                "name": "Remaining Base Station Time"
+            },
+            "next_scheduled_start": {
+                "name": "Next Scheduled Start"
+            },
+            "version_compatibility": {
+                "name": "Version Compatibility",
+                "state": {
+                    "compatible": "Compatible",
+                    "upgrade_required": "Upgrade Required",
+                    "downgrade_recommended": "Downgrade Recommended",
+                    "incompatible": "Incompatible",
+                    "unknown": "Unknown"
+                }
+            },
+            "main_direction_status": {
+                "name": "Main Direction Status",
+                "state": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction",
+                    "unavailable": "Unavailable",
+                    "no_config": "No Configuration"
+                }
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Region Select"
+            },
+            "mow_speed_setting": {
+                "name": "Mow Speed Setting",
+                "state": {
+                    "MOW_SPEED_TYPE_LOW": "Low Speed",
+                    "MOW_SPEED_TYPE_MEDIUM": "Medium Speed",
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High Speed"
+                }
+            },
+            "blade_speed": {
+                "name": "Blade Speed Setting",
+                "state": {
+                    "BLADE_DISK_SPEED_TYPE_LOW": "Low Speed",
+                    "BLADE_DISK_SPEED_TYPE_MEDIUM": "Medium Speed",
+                    "BLADE_DISK_SPEED_TYPE_HIGH": "High Speed"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Main Direction Mode",
+                "state": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
+                },
+                "options": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Mowing Height Setting"
+            },
+            "edge_cutting_distance": {
+                "name": "Edge Cutting Distance"
+            },
+            "mowing_spacing": {
+                "name": "Mowing Spacing Setting"
+            },
+            "main_direction_single_angle": {
+                "name": "Single Direction Angle"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Auto Rotate Angle Interval"
+            },
+            "multiple_direction_angle1": {
+                "name": "First Direction Angle"
+            },
+            "multiple_direction_angle2": {
+                "name": "Second Direction Angle"
+            }
+        }
+    },
+    "state": {
+        "unknown": "Unknown",
+        "no_regions_available": "No regions available",
+        "all_regions": "All regions",
+        "changing_mode": "Changing Mode",
+        "active": "Active",
+        "pending": "Pending Confirmation"
     }
 }

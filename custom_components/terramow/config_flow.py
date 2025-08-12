@@ -8,7 +8,7 @@ from typing import Any
 import paho.mqtt.client as mqtt_client
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow as BaseConfigFlow
 # 移除 ConfigFlowResult 导入
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
@@ -51,7 +51,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         _LOGGER.exception("Unexpected error: %s", err)
         raise CannotConnect from err
 
-class ConfigFlow(ConfigFlow, domain=DOMAIN):
+class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
     """Handle a config flow for TerraMow."""
 
     VERSION = 1

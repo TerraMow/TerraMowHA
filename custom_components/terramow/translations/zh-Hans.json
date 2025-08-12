@@ -1,0 +1,167 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "设备已配置"
+        },
+        "error": {
+            "cannot_connect": "连接失败",
+            "invalid_auth": "认证失败",
+            "unknown": "未知错误"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "主机",
+                    "password": "密码",
+                    "username": "用户名"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "割草机"
+            }
+        },
+        "sensor": {
+            "battery": {
+                "name": "电池"
+            },
+            "map_status": {
+                "name": "地图状态",
+                "state": {
+                    "MAP_STATE_EMPTY": "无地图",
+                    "MAP_STATE_INCOMPLETE": "地图未完成",
+                    "MAP_STATE_COMPLETE": "地图已完成"
+                }
+            },
+            "map_area": {
+                "name": "地图面积"
+            },
+            "mow_height": {
+                "name": "割草高度"
+            },
+            "mow_speed": {
+                "name": "割草速度",
+                "state": {
+                    "MOW_SPEED_TYPE_LOW": "低速",
+                    "MOW_SPEED_TYPE_MEDIUM": "中速",
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速"
+                }
+            },
+            "clean_mode": {
+                "name": "作业模式",
+                "state": {
+                    "MAP_CLEAN_INFO_MODE_GLOBAL": "全局作业",
+                    "MAP_CLEAN_INFO_MODE_SELECT_REGION": "选区作业",
+                    "MAP_CLEAN_INFO_MODE_DRAW_REGION": "划区作业",
+                    "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "移动到目标点"
+                }
+            },
+            "total_mowing_time": {
+                "name": "总割草时间"
+            },
+            "current_session_area": {
+                "name": "当前会话面积"
+            },
+            "current_session_time": {
+                "name": "当前会话时间"
+            },
+            "remaining_blade_time": {
+                "name": "刀盘剩余时间"
+            },
+            "remaining_base_station_time": {
+                "name": "基站清洁倒计时"
+            },
+            "next_scheduled_start": {
+                "name": "下次计划开始"
+            },
+            "version_compatibility": {
+                "name": "版本兼容性",
+                "state": {
+                    "compatible": "兼容",
+                    "upgrade_required": "需要升级",
+                    "downgrade_recommended": "建议降级",
+                    "incompatible": "不兼容",
+                    "unknown": "未知"
+                }
+            },
+            "main_direction_status": {
+                "name": "主方向状态",
+                "state": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "单主方向",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "多主方向",
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "自动旋转主方向",
+                    "unavailable": "不可用",
+                    "no_config": "无配置"
+                }
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "区域选择"
+            },
+            "mow_speed_setting": {
+                "name": "割草速度设置",
+                "state": {
+                    "MOW_SPEED_TYPE_LOW": "低速",
+                    "MOW_SPEED_TYPE_MEDIUM": "中速",
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速"
+                }
+            },
+            "blade_speed": {
+                "name": "刀盘转速设置",
+                "state": {
+                    "BLADE_DISK_SPEED_TYPE_LOW": "低速",
+                    "BLADE_DISK_SPEED_TYPE_MEDIUM": "中速",
+                    "BLADE_DISK_SPEED_TYPE_HIGH": "高速"
+                }
+            },
+            "main_direction_mode": {
+                "name": "主方向模式",
+                "state": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "单主方向",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "多主方向", 
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "自动旋转主方向"
+                },
+                "options": {
+                    "MAIN_DIRECTION_MODE_SINGLE": "单主方向",
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "多主方向", 
+                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "自动旋转主方向"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "割草高度设置"
+            },
+            "edge_cutting_distance": {
+                "name": "边缘割草距离"
+            },
+            "mowing_spacing": {
+                "name": "割草间距设置"
+            },
+            "main_direction_single_angle": {
+                "name": "单主方向角度"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "自动旋转角度间隔"
+            },
+            "multiple_direction_angle1": {
+                "name": "第一主方向角度"
+            },
+            "multiple_direction_angle2": {
+                "name": "第二主方向角度"
+            }
+        }
+    },
+    "state": {
+        "unknown": "未知",
+        "no_regions_available": "无区域可选",
+        "all_regions": "全部区域",
+        "changing_mode": "正在切换模式",
+        "active": "活跃",
+        "pending": "等待确认"
+    }
+}

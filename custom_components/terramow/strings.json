@@ -17,5 +17,58 @@
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
     }
+  },
+  "entity": {
+    "lawn_mower": {
+      "lawn_mower": {
+        "name": "Lawn Mower"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "map_status": {
+        "name": "Map Status",
+        "state": {
+          "MAP_STATE_EMPTY": "No Map",
+          "MAP_STATE_INCOMPLETE": "Map Incomplete",
+          "MAP_STATE_COMPLETE": "Map Complete"
+        }
+      },
+      "map_area": {
+        "name": "Map Area"
+      },
+      "mow_height": {
+        "name": "Mow Height"
+      },
+      "mow_speed": {
+        "name": "Mow Speed",
+        "state": {
+          "MOW_SPEED_TYPE_SLOW": "Slow",
+          "MOW_SPEED_TYPE_MEDIUM": "Medium",
+          "MOW_SPEED_TYPE_FAST": "Fast"
+        }
+      },
+      "clean_mode": {
+        "name": "Operation Mode",
+        "state": {
+          "MAP_CLEAN_INFO_MODE_GLOBAL": "Global Operation",
+          "MAP_CLEAN_INFO_MODE_SELECT_REGION": "Select Region Operation",
+          "MAP_CLEAN_INFO_MODE_DRAW_REGION": "Draw Region Operation",
+          "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Move to Target Point"
+        }
+      }
+    },
+    "select": {
+      "region_select": {
+        "name": "Region Select"
+      }
+    }
+  },
+  "state": {
+    "unknown": "Unknown",
+    "no_regions_available": "No regions available",
+    "all_regions": "All regions"
   }
 }
