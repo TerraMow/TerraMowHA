@@ -60,7 +60,7 @@ class TerraMowChargingSensor(BinarySensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
 
     @property

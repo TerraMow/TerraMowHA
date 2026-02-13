@@ -62,7 +62,7 @@ class TerraMowMapSensorBase(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     async def _on_map_info(self, map_info: dict[str, Any]) -> None:
@@ -97,7 +97,7 @@ class TerraMowMapStatusSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property

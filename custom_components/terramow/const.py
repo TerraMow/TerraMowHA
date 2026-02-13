@@ -8,6 +8,9 @@ MQTT_USERNAME = "terramow"
 
 # MQTT主题
 MAP_INFO_TOPIC = "map/current/info"
+MAP_META_TOPIC = "map/current/meta"
+PATH_META_TOPIC = "path/current/meta"
+POSE_TOPIC = "pose/current"
 MODEL_NAME_TOPIC = "model/name"
 
 # 版本兼容性相关常量

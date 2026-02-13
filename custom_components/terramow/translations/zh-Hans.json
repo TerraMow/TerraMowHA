@@ -59,6 +59,9 @@
                     "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "移动到目标点"
                 }
             },
+            "pose": {
+                "name": "姿态"
+            },
             "total_mowing_time": {
                 "name": "总割草时间"
             },
