@@ -252,7 +252,7 @@ Data Point 定义
   | mow_height | 对象 | - | 割草高度设置 |
   | mow_height.value | 整数 | 毫米 | 割草高度值 |
   | mow_speed | 对象 | - | 割草速度设置 |
-  | mow_speed.speed_type | 字符串 | - | 割草速度类型：<br>"MOW_SPEED_TYPE_LOW" - 低速<br>"MOW_SPEED_TYPE_MEDIUM" - 中速（默认值）<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - 自适应高速 |
+  | mow_speed.speed_type | 字符串 | - | 割草速度类型：<br>"MOW_SPEED_TYPE_LOW" - 低速<br>"MOW_SPEED_TYPE_MEDIUM" - 中速（默认值）<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - 自适应高速<br>"MOW_SPEED_TYPE_AUTO" - 自动模式（根据刀盘负载实时调整割草速度） |
   | edge_cutting_distance | 对象 | - | 沿边割草距离设置 |
   | edge_cutting_distance.value | 整数 | 毫米 | 沿边割草距离值 |
   | main_direction_angle_config | 对象 | - | 主方向角度配置 |
@@ -303,6 +303,7 @@ Data Point 定义
   - 可以从HA下发该协议给机器人以修改对应的参数设置，且可以仅发送其中一个字段，例如只发送`mow_height`字段，则只会修改割草高度。
   - 修改割草间距或主方向角度配置将会重置作业进度
   - 当机器人上报该协议时才包含`current_mow_spacing`和`main_direction_angle_config.current_angle`字段
+  - 对于未来固件新增的`mow_speed.speed_type`枚举值，HA插件会保留原始字符串并上报到实体属性，避免状态信息丢失。
 
 ## 地图状态
 

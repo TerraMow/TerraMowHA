@@ -10,6 +10,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 from . import TerraMowBasicData, DOMAIN
+from .const import (
+    DEFAULT_BLADE_DISK_SPEED_TYPE,
+    MIN_MOW_SPEED_VERSION_FOR_AUTO,
+    MOW_SPEED_TYPE_ADAPTIVE_HIGH,
+    MOW_SPEED_TYPE_AUTO,
+    MOW_SPEED_TYPE_LOW,
+    MOW_SPEED_TYPE_MEDIUM,
+    MOW_SPEED_TYPES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -223,12 +232,12 @@ class MowSpeedSelect(SelectEntity):
     _attr_icon = "mdi:speedometer"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_translation_key = "mow_speed_setting"
-    
-    # 割草速度选项
-    _attr_options = [
-        "MOW_SPEED_TYPE_LOW",
-        "MOW_SPEED_TYPE_MEDIUM", 
-        "MOW_SPEED_TYPE_ADAPTIVE_HIGH"
+
+    # 固件不支持 AUTO 时仅展示前三挡
+    _BASE_OPTIONS = [
+        MOW_SPEED_TYPE_LOW,
+        MOW_SPEED_TYPE_MEDIUM,
+        MOW_SPEED_TYPE_ADAPTIVE_HIGH,
     ]
     
     def __init__(
@@ -240,7 +249,55 @@ class MowSpeedSelect(SelectEntity):
         self.basic_data = basic_data
         self.host = basic_data.host
         self.hass = hass
-        self._current_option = "MOW_SPEED_TYPE_MEDIUM"  # 默认中速
+        self._current_option = MOW_SPEED_TYPE_MEDIUM  # 默认中速
+        self._unknown_speed_type: str | None = None
+
+    def _get_mow_speed_feature_version(self) -> int | None:
+        """获取固件割草速度功能版本号。"""
+        firmware_info = self.basic_data.firmware_version or {}
+        module_info = firmware_info.get("module", {})
+        version = module_info.get("mow_speed")
+
+        if isinstance(version, bool):
+            return None
+        if isinstance(version, int):
+            return version
+        if isinstance(version, str):
+            try:
+                return int(version)
+            except ValueError:
+                return None
+        return None
+
+    def _get_device_speed_type(self) -> str | None:
+        """获取设备当前上报的割草速度枚举。"""
+        if not hasattr(self.basic_data, "lawn_mower") or not self.basic_data.lawn_mower:
+            return None
+
+        global_params = self.basic_data.lawn_mower.global_params
+        if not global_params:
+            return None
+
+        mow_speed = global_params.get("mow_speed", {})
+        speed_type = mow_speed.get("speed_type")
+        if isinstance(speed_type, str) and speed_type:
+            return speed_type
+        return None
+
+    def _is_auto_supported_by_firmware(self) -> bool:
+        """判断固件版本是否支持 AUTO 档位。"""
+        feature_version = self._get_mow_speed_feature_version()
+        return (
+            feature_version is not None
+            and feature_version >= MIN_MOW_SPEED_VERSION_FOR_AUTO
+        )
+
+    def _should_expose_auto_option(self) -> bool:
+        """判断当前是否应暴露 AUTO 选项。"""
+        if self._is_auto_supported_by_firmware():
+            return True
+        # 兼容兜底：若设备已上报 AUTO，则允许展示和选择该选项
+        return self._get_device_speed_type() == MOW_SPEED_TYPE_AUTO
     
     @property
     def device_info(self) -> DeviceInfo:
@@ -256,6 +313,14 @@ class MowSpeedSelect(SelectEntity):
     def unique_id(self):
         """Return a unique ID for this entity."""
         return f"lawn_mower.terramow@{self.host}.mow_speed_setting"
+
+    @property
+    def options(self) -> list[str]:
+        """Return a set of selectable options."""
+        options = self._BASE_OPTIONS.copy()
+        if self._should_expose_auto_option():
+            options.append(MOW_SPEED_TYPE_AUTO)
+        return options
     
     @property
     def current_option(self) -> str | None:
@@ -269,16 +334,40 @@ class MowSpeedSelect(SelectEntity):
         
         mow_speed = global_params.get('mow_speed', {})
         speed_type = mow_speed.get('speed_type')
-        
-        if speed_type and speed_type in self._attr_options:
+        if not speed_type:
+            self._unknown_speed_type = None
+            self._current_option = None
+            return None
+
+        if speed_type in MOW_SPEED_TYPES:
+            self._unknown_speed_type = None
             self._current_option = speed_type
-            
-        return self._current_option
+            return self._current_option
+
+        if speed_type != self._unknown_speed_type:
+            _LOGGER.warning(
+                "Unknown mow speed type from device: %s. Expose raw value in attributes.",
+                speed_type,
+            )
+            self._unknown_speed_type = speed_type
+
+        self._current_option = None
+        return None
     
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if option not in self._attr_options:
+        if option not in MOW_SPEED_TYPES:
             _LOGGER.error("Invalid mow speed option: %s", option)
+            return
+
+        if option == MOW_SPEED_TYPE_AUTO and not self._should_expose_auto_option():
+            feature_version = self._get_mow_speed_feature_version()
+            _LOGGER.warning(
+                "Rejecting mow speed AUTO because firmware mow_speed version is %s (requires >= %d).",
+                feature_version if feature_version is not None else "unknown",
+                MIN_MOW_SPEED_VERSION_FOR_AUTO,
+            )
+            self.async_write_ha_state()
             return
             
         if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
@@ -295,18 +384,30 @@ class MowSpeedSelect(SelectEntity):
         _LOGGER.info("Setting mow speed to %s", option)
         self.basic_data.lawn_mower.publish_data_point(155, command)
         self._current_option = option
+        self._unknown_speed_type = None
         self.async_write_ha_state()
     
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return entity specific state attributes."""
-        return {
-            'available_speeds': {
-                'MOW_SPEED_TYPE_LOW': 'Low Speed',
-                'MOW_SPEED_TYPE_MEDIUM': 'Medium Speed (Default)',
-                'MOW_SPEED_TYPE_ADAPTIVE_HIGH': 'Adaptive High Speed'
-            }
+        feature_version = self._get_mow_speed_feature_version()
+        auto_speed_supported = self._should_expose_auto_option()
+        available_speeds: dict[str, str] = {
+            MOW_SPEED_TYPE_LOW: 'Low Speed',
+            MOW_SPEED_TYPE_MEDIUM: 'Medium Speed (Default)',
+            MOW_SPEED_TYPE_ADAPTIVE_HIGH: 'Adaptive High Speed',
         }
+        if auto_speed_supported:
+            available_speeds[MOW_SPEED_TYPE_AUTO] = 'Auto (Load Adaptive)'
+
+        attrs: dict[str, Any] = {
+            'available_speeds': available_speeds,
+            'auto_speed_supported': auto_speed_supported,
+            'mow_speed_feature_version': feature_version if feature_version is not None else "unknown",
+        }
+        if self._unknown_speed_type:
+            attrs['unknown_speed_type'] = self._unknown_speed_type
+        return attrs
 
 
 class BladeSpeedSelect(SelectEntity):
@@ -333,7 +434,7 @@ class BladeSpeedSelect(SelectEntity):
         self.basic_data = basic_data
         self.host = basic_data.host
         self.hass = hass
-        self._current_option = "BLADE_DISK_SPEED_TYPE_MEDIUM"  # 默认高速
+        self._current_option = DEFAULT_BLADE_DISK_SPEED_TYPE  # 默认中速
     
     @property
     def device_info(self) -> DeviceInfo:
@@ -396,8 +497,8 @@ class BladeSpeedSelect(SelectEntity):
         return {
             'available_speeds': {
                 'BLADE_DISK_SPEED_TYPE_LOW': 'Low Speed',
-                'BLADE_DISK_SPEED_TYPE_MEDIUM': 'Medium Speed', 
-                'BLADE_DISK_SPEED_TYPE_HIGH': 'High Speed (Default)'
+                'BLADE_DISK_SPEED_TYPE_MEDIUM': 'Medium Speed (Default)',
+                'BLADE_DISK_SPEED_TYPE_HIGH': 'High Speed'
             }
         }
 

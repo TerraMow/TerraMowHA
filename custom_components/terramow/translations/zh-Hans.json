@@ -47,7 +47,8 @@
                 "state": {
                     "MOW_SPEED_TYPE_LOW": "低速",
                     "MOW_SPEED_TYPE_MEDIUM": "中速",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速"
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速",
+                    "MOW_SPEED_TYPE_AUTO": "自动模式"
                 }
             },
             "clean_mode": {
@@ -115,7 +116,8 @@
                 "state": {
                     "MOW_SPEED_TYPE_LOW": "低速",
                     "MOW_SPEED_TYPE_MEDIUM": "中速",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速"
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "自适应高速",
+                    "MOW_SPEED_TYPE_AUTO": "自动模式"
                 }
             },
             "blade_speed": {

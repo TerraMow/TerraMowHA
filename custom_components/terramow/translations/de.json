@@ -47,7 +47,8 @@
                 "state": {
                     "MOW_SPEED_TYPE_LOW": "Fein",
                     "MOW_SPEED_TYPE_MEDIUM": "Standard",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell"
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell",
+                    "MOW_SPEED_TYPE_AUTO": "Automatik"
                 }
             },
             "clean_mode": {
@@ -115,7 +116,8 @@
                 "state": {
                     "MOW_SPEED_TYPE_LOW": "Fein",
                     "MOW_SPEED_TYPE_MEDIUM": "Standard",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell"
+                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell",
+                    "MOW_SPEED_TYPE_AUTO": "Automatik"
                 }
             },
             "blade_speed": {

@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/TerraMow/TerraMowHA/issues",
   "iot_class": "local_push",
   "requirements": ["paho-mqtt>=1.6.1"],
-  "version": "0.2.4",
+  "version": "0.2.5",
   "homeassistant": "2023.9.3"
 }
