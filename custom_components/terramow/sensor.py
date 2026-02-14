@@ -28,6 +28,7 @@ from . import TerraMowBasicData, DOMAIN
 from .const import (
     BLADE_MAINTENANCE_CYCLE_MINUTES,
     BASE_STATION_MAINTENANCE_CYCLE_MINUTES,
+    MOW_SPEED_TYPES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -499,7 +500,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "mow_speed"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = ["MOW_SPEED_TYPE_LOW", "MOW_SPEED_TYPE_MEDIUM", "MOW_SPEED_TYPE_ADAPTIVE_HIGH"]
+    _attr_options = MOW_SPEED_TYPES.copy()
     
     def __init__(
         self,
@@ -510,6 +511,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
         self.basic_data = basic_data
         self.host = basic_data.host
         self.hass = hass
+        self._unknown_speed_type: str | None = None
     
     @property
     def device_info(self) -> DeviceInfo:
@@ -538,7 +540,22 @@ class TerraMowMowSpeedSensor(SensorEntity):
             
         mow_speed = global_params.get('mow_speed', {})
         speed_type = mow_speed.get('speed_type')
-        return speed_type
+        if not speed_type:
+            self._unknown_speed_type = None
+            return None
+
+        if speed_type in self._attr_options:
+            self._unknown_speed_type = None
+            return speed_type
+
+        if speed_type != self._unknown_speed_type:
+            _LOGGER.warning(
+                "Unknown mow speed type from device: %s. Expose raw value in attributes.",
+                speed_type,
+            )
+            self._unknown_speed_type = speed_type
+
+        return None
     
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -566,6 +583,9 @@ class TerraMowMowSpeedSensor(SensorEntity):
         blade_disk_speed = global_params.get('blade_disk_speed', {})
         if 'speed_type' in blade_disk_speed:
             attrs['blade_disk_speed'] = blade_disk_speed['speed_type']
+
+        if self._unknown_speed_type:
+            attrs['unknown_mow_speed_type'] = self._unknown_speed_type
         
         return attrs
 

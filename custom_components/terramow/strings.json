@@ -45,9 +45,10 @@
       "mow_speed": {
         "name": "Mow Speed",
         "state": {
-          "MOW_SPEED_TYPE_SLOW": "Slow",
+          "MOW_SPEED_TYPE_LOW": "Low",
           "MOW_SPEED_TYPE_MEDIUM": "Medium",
-          "MOW_SPEED_TYPE_FAST": "Fast"
+          "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High",
+          "MOW_SPEED_TYPE_AUTO": "Auto"
         }
       },
       "clean_mode": {
@@ -68,6 +69,15 @@
     "select": {
       "region_select": {
         "name": "Region Select"
+      },
+      "mow_speed_setting": {
+        "name": "Mow Speed Setting",
+        "state": {
+          "MOW_SPEED_TYPE_LOW": "Low Speed",
+          "MOW_SPEED_TYPE_MEDIUM": "Medium Speed",
+          "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High Speed",
+          "MOW_SPEED_TYPE_AUTO": "Auto Speed"
+        }
       }
     }
   },
