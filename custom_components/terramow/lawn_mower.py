@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt_client
 import logging
 import time
 import re
+import gzip
 import json
 import random
 from typing import Callable, Any
@@ -27,6 +28,7 @@ from .const import (
     MAP_INFO_TOPIC,
     MAP_META_TOPIC,
     PATH_META_TOPIC,
+    PATH_HISTORY_META_TOPIC,
     POSE_TOPIC,
 )
 
@@ -136,29 +138,41 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.callbacks: dict[int, list[Callable]] = {}  # 存储 dp_id 和对应的回调函数列表
         self.map_callbacks: list[Callable] = []  # 存储地图信息回调函数
         self.pose_callbacks: list[Callable] = []  # 存储姿态回调函数
+        self.path_callbacks: list[Callable] = []  # 存储路径数据回调函数
+        self.history_path_callbacks: list[Callable] = []  # 存储历史路径数据回调函数
         self._map_info: dict[str, Any] = {}  # 存储当前地图信息
         self._map_meta: dict[str, Any] = {}  # 存储地图元信息
         self._path_meta: dict[str, Any] = {}  # 存储路径元信息
+        self._history_path_meta: dict[str, Any] = {}  # 存储历史路径元信息
         self._map_data: dict[str, Any] = {}  # 存储HTTP拉取的地图数据
         self._path_data: dict[str, Any] = {}  # 存储HTTP拉取的路径数据
+        self._history_path_data: dict[str, Any] = {}  # 存储HTTP拉取的历史路径数据
         self._pose: dict[str, Any] = {}  # 存储实时姿态
         self._pending_map_meta: dict[str, Any] | None = None
         self._pending_path_meta: dict[str, Any] | None = None
+        self._pending_history_path_meta: dict[str, Any] | None = None
         self._map_retry_meta: dict[str, Any] | None = None
         self._path_retry_meta: dict[str, Any] | None = None
+        self._history_path_retry_meta: dict[str, Any] | None = None
         self._map_retry_count = 0
         self._path_retry_count = 0
+        self._history_path_retry_count = 0
         self._map_retry_task: asyncio.Task | None = None
         self._path_retry_task: asyncio.Task | None = None
+        self._history_path_retry_task: asyncio.Task | None = None
         self._map_no_seq_last_fetch = 0.0
         self._path_no_seq_last_fetch = 0.0
+        self._history_path_no_seq_last_fetch = 0.0
         self._no_seq_min_interval = 5.0
         self._map_seq = -1
         self._path_seq = -1
+        self._history_path_seq = -1
         self._map_etag: str | None = None
         self._path_etag: str | None = None
+        self._history_path_etag: str | None = None
         self._fetching_map = False
         self._fetching_path = False
+        self._fetching_history_path = False
         self._global_params: dict[str, Any] = {}  # 存储dp_155全局作业参数
         self._map_status: dict[str, Any] = {}  # 存储dp_117地图状态
         self._current_work_data: dict[str, Any] = {}  # 存储dp_113当前作业数据
@@ -544,8 +558,15 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             # 订阅地图/路径元数据与姿态
             client.subscribe(MAP_META_TOPIC)
             client.subscribe(PATH_META_TOPIC)
+            client.subscribe(PATH_HISTORY_META_TOPIC)
             client.subscribe(POSE_TOPIC)
-            _LOGGER.info("Subscribed to %s/%s/%s topic", MAP_META_TOPIC, PATH_META_TOPIC, POSE_TOPIC)
+            _LOGGER.info(
+                "Subscribed to %s/%s/%s/%s topic",
+                MAP_META_TOPIC,
+                PATH_META_TOPIC,
+                PATH_HISTORY_META_TOPIC,
+                POSE_TOPIC,
+            )
             
             # 订阅设备型号主题
             client.subscribe(MODEL_NAME_TOPIC)
@@ -600,6 +621,18 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 _LOGGER.error("Failed to parse path meta JSON: %s", payload[:200])
             except Exception as e:
                 _LOGGER.error("Error handling path meta: %s", e)
+            return
+
+        # 处理历史路径元信息
+        if topic == PATH_HISTORY_META_TOPIC:
+            try:
+                meta = json.loads(payload)
+                self._history_path_meta = meta
+                self.hass.add_job(self._async_handle_history_path_meta, meta)
+            except json.JSONDecodeError:
+                _LOGGER.error("Failed to parse history path meta JSON: %s", payload[:200])
+            except Exception as e:
+                _LOGGER.error("Error handling history path meta: %s", e)
             return
 
         # 处理实时姿态
@@ -676,6 +709,24 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.info("Pose callback registered")
         if self._pose:
             self.hass.add_job(callback, self._pose)
+
+    def register_path_callback(self, callback: Callable):
+        """Register a callback function for path data updates."""
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function.")
+        self.path_callbacks.append(callback)
+        _LOGGER.info("Path callback registered")
+        if self._path_data:
+            self.hass.add_job(callback, self._path_data)
+
+    def register_history_path_callback(self, callback: Callable):
+        """Register a callback function for history path data updates."""
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function.")
+        self.history_path_callbacks.append(callback)
+        _LOGGER.info("History path callback registered")
+        if self._history_path_data:
+            self.hass.add_job(callback, self._history_path_data)
 
     def _update_map_info(self, map_info: dict[str, Any]) -> None:
         """Update map info and notify callbacks."""
@@ -762,10 +813,19 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             self._path_retry_task.cancel()
         self._path_retry_task = None
 
+    def _reset_history_path_retry(self) -> None:
+        """清理历史路径拉取重试状态"""
+        self._history_path_retry_meta = None
+        self._history_path_retry_count = 0
+        if self._history_path_retry_task and not self._history_path_retry_task.done():
+            self._history_path_retry_task.cancel()
+        self._history_path_retry_task = None
+
     def _reset_pending_meta(self) -> None:
         """清理 pending meta"""
         self._pending_map_meta = None
         self._pending_path_meta = None
+        self._pending_history_path_meta = None
 
     def _schedule_map_retry(self, meta: dict[str, Any]) -> None:
         """安排地图拉取重试"""
@@ -784,6 +844,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         delay = self._get_retry_delay(self._path_retry_count)
         self._path_retry_count += 1
         self._path_retry_task = self.hass.async_create_task(self._async_retry_path(delay))
+
+    def _schedule_history_path_retry(self, meta: dict[str, Any]) -> None:
+        """安排历史路径拉取重试"""
+        self._history_path_retry_meta = meta
+        if self._history_path_retry_task and not self._history_path_retry_task.done():
+            return
+        delay = self._get_retry_delay(self._history_path_retry_count)
+        self._history_path_retry_count += 1
+        self._history_path_retry_task = self.hass.async_create_task(
+            self._async_retry_history_path(delay)
+        )
 
     async def _async_retry_map(self, delay: float) -> None:
         """延迟重试地图拉取"""
@@ -806,6 +877,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         meta = self._path_retry_meta
         if meta:
             await self._async_handle_path_meta(meta)
+
+    async def _async_retry_history_path(self, delay: float) -> None:
+        """延迟重试历史路径拉取"""
+        try:
+            await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            return
+        self._history_path_retry_task = None
+        meta = self._history_path_retry_meta
+        if meta:
+            await self._async_handle_history_path_meta(meta)
 
     def _handle_map_info(self, payload: str):
         """Handle map info message."""
@@ -895,6 +977,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 self._path_etag = etag
             if data is not None:
                 self._path_data = data
+                for callback in self.path_callbacks:
+                    self.hass.async_create_task(callback(data))
             if not ok:
                 self._schedule_path_retry(meta)
         except Exception as e:
@@ -908,6 +992,52 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 pending_seq = self._get_meta_seq(pending_meta, "path", warn=False)
                 if pending_seq == -1 or pending_seq > self._path_seq:
                     self.hass.async_create_task(self._async_handle_path_meta(pending_meta))
+
+    async def _async_handle_history_path_meta(self, meta: dict[str, Any]) -> None:
+        """Handle history path meta message and fetch history path data via HTTP."""
+        seq = self._get_meta_seq(meta, "history path")
+
+        if seq != -1 and seq <= self._history_path_seq:
+            return
+        if seq != -1 and seq > self._history_path_seq:
+            self._reset_history_path_retry()
+        if seq == -1:
+            now = time.monotonic()
+            if (now - self._history_path_no_seq_last_fetch) < self._no_seq_min_interval:
+                return
+        if self._fetching_history_path:
+            if self._should_replace_pending(self._pending_history_path_meta, seq, "history path"):
+                self._pending_history_path_meta = meta
+            return
+
+        self._fetching_history_path = True
+        try:
+            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._history_path_etag)
+            if ok:
+                if seq != -1:
+                    self._history_path_seq = seq
+                else:
+                    self._history_path_no_seq_last_fetch = time.monotonic()
+                self._reset_history_path_retry()
+            if etag:
+                self._history_path_etag = etag
+            if data is not None:
+                self._history_path_data = data
+                for callback in self.history_path_callbacks:
+                    self.hass.async_create_task(callback(data))
+            if not ok:
+                self._schedule_history_path_retry(meta)
+        except Exception as e:
+            _LOGGER.error("Failed to fetch history path data: %s", e)
+            self._schedule_history_path_retry(meta)
+        finally:
+            self._fetching_history_path = False
+            pending_meta = self._pending_history_path_meta
+            self._pending_history_path_meta = None
+            if pending_meta:
+                pending_seq = self._get_meta_seq(pending_meta, "history path", warn=False)
+                if pending_seq == -1 or pending_seq > self._history_path_seq:
+                    self.hass.async_create_task(self._async_handle_history_path_meta(pending_meta))
 
     async def _async_fetch_json(
         self,
@@ -935,8 +1065,12 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 _LOGGER.error("HTTP fetch failed: %s status=%d", url, resp.status)
                 return None, etag, False, False
             new_etag = resp.headers.get("ETag") or etag
-            text = await resp.text()
-            data = await self.hass.async_add_executor_job(json.loads, text)
+            raw = await resp.read()
+            # 手动处理 gzip 压缩：协议要求 Content-Encoding: gzip
+            if raw[:2] == b'\x1f\x8b':
+                raw = await self.hass.async_add_executor_job(gzip.decompress, raw)
+            text = raw.decode("utf-8")
+            data = json.loads(text)
             return data, new_etag, True, False
 
     async def _async_update_device_model(self, model_name: str):
@@ -982,6 +1116,21 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def map_info(self) -> dict:
         """Get current map info."""
         return self._map_info
+
+    @property
+    def map_data(self) -> dict:
+        """Get HTTP-fetched map data."""
+        return self._map_data
+
+    @property
+    def path_data(self) -> dict:
+        """Get HTTP-fetched path data."""
+        return self._path_data
+
+    @property
+    def history_path_data(self) -> dict:
+        """Get HTTP-fetched history path data."""
+        return self._history_path_data
 
     @property
     def pose(self) -> dict:
@@ -1154,6 +1303,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._stop_event.set()
         self._reset_map_retry()
         self._reset_path_retry()
+        self._reset_history_path_retry()
         self._reset_pending_meta()
         if self.mqtt_client:
             self.mqtt_client.disconnect()

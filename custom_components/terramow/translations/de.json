@@ -102,6 +102,11 @@
                 }
             }
         },
+        "camera": {
+            "map_camera": {
+                "name": "Karte"
+            }
+        },
         "binary_sensor": {
             "charging_state": {
                 "name": "Ladestatus"

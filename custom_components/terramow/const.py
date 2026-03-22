@@ -10,12 +10,13 @@ MQTT_USERNAME = "terramow"
 MAP_INFO_TOPIC = "map/current/info"
 MAP_META_TOPIC = "map/current/meta"
 PATH_META_TOPIC = "path/current/meta"
+PATH_HISTORY_META_TOPIC = "path/history/meta"
 POSE_TOPIC = "pose/current"
 MODEL_NAME_TOPIC = "model/name"
 
 # 版本兼容性相关常量
-# 当前插件支持的HA版本号
-CURRENT_HA_VERSION = 2
+# 当前插件要求的固件 home_assistant 兼容版本
+CURRENT_HA_VERSION = 3
 
 # 最低要求的固件overall版本号
 MIN_REQUIRED_OVERALL_VERSION = 25

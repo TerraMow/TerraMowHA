@@ -102,6 +102,11 @@
                 }
             }
         },
+        "camera": {
+            "map_camera": {
+                "name": "地图"
+            }
+        },
         "binary_sensor": {
             "charging_state": {
                 "name": "充电状态"

@@ -9,6 +9,10 @@ This document provides development information about the TerraMow Home Assistant
 
 - [Communication Method](#communication-method)
 - [MQTT Topics Definition](#mqtt-topics-definition)
+- [Special Topics](#special-topics)
+- [Map Information](#map-information)
+- [Map and Path Capabilities (HA v3+)](#map-and-path-capabilities-ha-v3)
+- [Device Model](#device-model)
 
 <!-- /code_chunk_output -->
 
@@ -38,14 +42,16 @@ For specific Data Point definitions, please refer to [Data Point Definition](./d
 In addition to Data Point related topics, TerraMow also provides some special-purpose MQTT topics.
 
 > **Version Compatibility Note**  
-> The following special topic features require device-side HA compatibility version 2 or higher to function properly.  
-> If your device version is below this requirement, these features will not be available.
+> Special topic features require different minimum device-side HA compatibility versions.  
+> `map/current/info` and `model/name` require version 2 or higher, while the current map and path capabilities require version 3 or higher.  
+> If the device version is below the required version for a given capability, that capability is not available.
 
 ### Special Topics Index
 
 | Topic | MQTT Topic | Data Direction | Description | Min Version |
 |-------|------------|----------------|-------------|-------------|
 | [Map Information](#map-information) | map/current/info | Robot→HA | Complete map information (published only when changes occur) | HA v2+ |
+| [Map and Path Capabilities (HA v3+)](#map-and-path-capabilities-ha-v3) | `map/current/meta`<br>`path/current/meta`<br>`path/history/meta` | Robot→HA (MQTT metadata)<br>HA→Robot (HTTP body retrieval) | Current map, current path, and history path | HA v3+ |
 | [Device Model](#device-model) | model/name | Robot→HA | Device commercial model name | HA v2+ |
 
 ### Map Information
@@ -230,6 +236,20 @@ move_to_target_point object contains:
   "regions": []
 }
 ```
+
+### Map and Path Capabilities (HA v3+)
+
+> **Version Requirement**: Requires device-side HA compatibility version ≥ 3
+
+For the current formal map and path capabilities, refer to [Map and Path Capabilities](./developers/map_path.md).
+
+The integration exposes the following formal entry points:
+
+- Current map: `map/current/meta` + `/ha/map/current.json.gz`
+- Current path: `path/current/meta` + `/ha/path/current.json.gz`
+- History path: `path/history/meta` + `/ha/path/history.json.gz`
+
+The existing `map/current/info` section remains for backward compatibility. New integrations should use the dedicated map and path capability document as the primary reference.
 
 ### Device Model
 
