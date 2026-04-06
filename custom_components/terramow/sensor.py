@@ -85,7 +85,7 @@ class BatterySensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
 
     @property
@@ -156,7 +156,7 @@ class TotalMowingTimeSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -205,7 +205,7 @@ class CurrentSessionAreaSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -281,7 +281,7 @@ class CurrentSessionTimeSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -330,7 +330,7 @@ class RemainingBladeTimeSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -400,7 +400,7 @@ class RemainingBaseStationTimeSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -470,7 +470,7 @@ class TerraMowMowHeightSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -520,7 +520,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -616,7 +616,7 @@ class NextScheduledStartSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -698,7 +698,7 @@ class VersionCompatibilitySensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
 
     @property
@@ -734,6 +734,70 @@ class VersionCompatibilitySensor(SensorEntity):
         
         return attributes
 
+
+class TerraMowPoseSensor(SensorEntity):
+    """实时姿态传感器（2Hz）"""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:crosshairs-gps"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "pose"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+        self._pose: dict[str, Any] = {}
+
+        if hasattr(basic_data, 'lawn_mower') and basic_data.lawn_mower:
+            basic_data.lawn_mower.register_pose_callback(self._on_pose)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.pose"
+
+    async def _on_pose(self, pose: dict[str, Any]) -> None:
+        """处理姿态更新"""
+        self._pose = pose
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the sensor value (yaw)."""
+        if not self._pose:
+            return None
+        yaw = self._pose.get('yaw')
+        return float(yaw) if yaw is not None else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra attributes."""
+        if not self._pose:
+            return {}
+        return {
+            'x': self._pose.get('x'),
+            'y': self._pose.get('y'),
+            'yaw': self._pose.get('yaw'),
+            'timestamp_ms': self._pose.get('timestamp_ms'),
+            'frame': self._pose.get('frame'),
+        }
+
     @property
     def available(self):
         """Return True if entity is available."""
@@ -757,6 +821,7 @@ async def async_setup_entry(
     entities = [
         # 基本传感器
         BatterySensor(basic_data, hass),
+        TerraMowPoseSensor(basic_data, hass),
         
         # 地图相关传感器
         TerraMowMapStatusSensor(basic_data, hass),
@@ -815,7 +880,7 @@ class MainDirectionStatusSensor(SensorEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property

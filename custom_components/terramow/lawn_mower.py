@@ -1,8 +1,10 @@
 import threading
+import asyncio
 import paho.mqtt.client as mqtt_client
 import logging
 import time
 import re
+import gzip
 import json
 import random
 from typing import Callable, Any
@@ -12,10 +14,23 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from . import TerraMowBasicData
 from homeassistant.config_entries import ConfigEntry
-from .const import MQTT_PORT, MQTT_USERNAME, DOMAIN, COMPATIBILITY_INFO_DP, CompatibilityStatus, MODEL_NAME_TOPIC
+from .const import (
+    MQTT_PORT,
+    MQTT_USERNAME,
+    DOMAIN,
+    COMPATIBILITY_INFO_DP,
+    CompatibilityStatus,
+    MODEL_NAME_TOPIC,
+    MAP_INFO_TOPIC,
+    MAP_META_TOPIC,
+    PATH_META_TOPIC,
+    PATH_HISTORY_META_TOPIC,
+    POSE_TOPIC,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,7 +137,42 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._stop_event = threading.Event()  # 用于停止重连循环
         self.callbacks: dict[int, list[Callable]] = {}  # 存储 dp_id 和对应的回调函数列表
         self.map_callbacks: list[Callable] = []  # 存储地图信息回调函数
+        self.pose_callbacks: list[Callable] = []  # 存储姿态回调函数
+        self.path_callbacks: list[Callable] = []  # 存储路径数据回调函数
+        self.history_path_callbacks: list[Callable] = []  # 存储历史路径数据回调函数
         self._map_info: dict[str, Any] = {}  # 存储当前地图信息
+        self._map_meta: dict[str, Any] = {}  # 存储地图元信息
+        self._path_meta: dict[str, Any] = {}  # 存储路径元信息
+        self._history_path_meta: dict[str, Any] = {}  # 存储历史路径元信息
+        self._map_data: dict[str, Any] = {}  # 存储HTTP拉取的地图数据
+        self._path_data: dict[str, Any] = {}  # 存储HTTP拉取的路径数据
+        self._history_path_data: dict[str, Any] = {}  # 存储HTTP拉取的历史路径数据
+        self._pose: dict[str, Any] = {}  # 存储实时姿态
+        self._pending_map_meta: dict[str, Any] | None = None
+        self._pending_path_meta: dict[str, Any] | None = None
+        self._pending_history_path_meta: dict[str, Any] | None = None
+        self._map_retry_meta: dict[str, Any] | None = None
+        self._path_retry_meta: dict[str, Any] | None = None
+        self._history_path_retry_meta: dict[str, Any] | None = None
+        self._map_retry_count = 0
+        self._path_retry_count = 0
+        self._history_path_retry_count = 0
+        self._map_retry_task: asyncio.Task | None = None
+        self._path_retry_task: asyncio.Task | None = None
+        self._history_path_retry_task: asyncio.Task | None = None
+        self._map_no_seq_last_fetch = 0.0
+        self._path_no_seq_last_fetch = 0.0
+        self._history_path_no_seq_last_fetch = 0.0
+        self._no_seq_min_interval = 5.0
+        self._map_seq = -1
+        self._path_seq = -1
+        self._history_path_seq = -1
+        self._map_etag: str | None = None
+        self._path_etag: str | None = None
+        self._history_path_etag: str | None = None
+        self._fetching_map = False
+        self._fetching_path = False
+        self._fetching_history_path = False
         self._global_params: dict[str, Any] = {}  # 存储dp_155全局作业参数
         self._map_status: dict[str, Any] = {}  # 存储dp_117地图状态
         self._current_work_data: dict[str, Any] = {}  # 存储dp_113当前作业数据
@@ -162,9 +212,18 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self._device_model
+            model=self.device_model
         )
 
+    @property
+    def device_model(self) -> str:
+        """返回设备型号"""
+        return self._device_model
+
+    @device_model.setter
+    def device_model(self, model_name: str) -> None:
+        """更新设备型号"""
+        self._device_model = model_name
     def _can_accept_command(self):
         """Check if control commands can be accepted"""
         now = time.monotonic()
@@ -492,9 +551,22 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             for dp_id in range(201):
                 topic = f"data_point/{dp_id}/robot"
                 client.subscribe(topic)
-            # 订阅地图信息主题
-            client.subscribe("map/current/info")
-            _LOGGER.info("Subscribed to map/current/info topic")
+            # 订阅地图信息主题（旧固件兼容）
+            client.subscribe(MAP_INFO_TOPIC)
+            _LOGGER.info("Subscribed to %s topic", MAP_INFO_TOPIC)
+
+            # 订阅地图/路径元数据与姿态
+            client.subscribe(MAP_META_TOPIC)
+            client.subscribe(PATH_META_TOPIC)
+            client.subscribe(PATH_HISTORY_META_TOPIC)
+            client.subscribe(POSE_TOPIC)
+            _LOGGER.info(
+                "Subscribed to %s/%s/%s/%s topic",
+                MAP_META_TOPIC,
+                PATH_META_TOPIC,
+                PATH_HISTORY_META_TOPIC,
+                POSE_TOPIC,
+            )
             
             # 订阅设备型号主题
             client.subscribe(MODEL_NAME_TOPIC)
@@ -524,10 +596,60 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         topic = msg.topic
         payload = msg.payload.decode()
 
-        _LOGGER.debug("Received MQTT message: topic=%s, payload=%s", topic, payload)
+        if topic != POSE_TOPIC:
+            _LOGGER.debug("Received MQTT message: topic=%s, payload=%s", topic, payload)
+
+        # 处理地图元信息
+        if topic == MAP_META_TOPIC:
+            try:
+                meta = json.loads(payload)
+                self._map_meta = meta
+                self.hass.add_job(self._async_handle_map_meta, meta)
+            except json.JSONDecodeError:
+                _LOGGER.error("Failed to parse map meta JSON: %s", payload[:200])
+            except Exception as e:
+                _LOGGER.error("Error handling map meta: %s", e)
+            return
+
+        # 处理路径元信息
+        if topic == PATH_META_TOPIC:
+            try:
+                meta = json.loads(payload)
+                self._path_meta = meta
+                self.hass.add_job(self._async_handle_path_meta, meta)
+            except json.JSONDecodeError:
+                _LOGGER.error("Failed to parse path meta JSON: %s", payload[:200])
+            except Exception as e:
+                _LOGGER.error("Error handling path meta: %s", e)
+            return
+
+        # 处理历史路径元信息
+        if topic == PATH_HISTORY_META_TOPIC:
+            try:
+                meta = json.loads(payload)
+                self._history_path_meta = meta
+                self.hass.add_job(self._async_handle_history_path_meta, meta)
+            except json.JSONDecodeError:
+                _LOGGER.error("Failed to parse history path meta JSON: %s", payload[:200])
+            except Exception as e:
+                _LOGGER.error("Error handling history path meta: %s", e)
+            return
+
+        # 处理实时姿态
+        if topic == POSE_TOPIC:
+            try:
+                pose = json.loads(payload)
+                self._pose = pose
+                for callback in self.pose_callbacks:
+                    self.hass.add_job(callback, pose)
+            except json.JSONDecodeError:
+                _LOGGER.error("Failed to parse pose JSON: %s", payload[:200])
+            except Exception as e:
+                _LOGGER.error("Error handling pose: %s", e)
+            return
 
         # 处理地图信息主题
-        if topic == "map/current/info":
+        if topic == MAP_INFO_TOPIC:
             _LOGGER.info("Received map info message, size: %d bytes", len(payload))
             self._handle_map_info(payload)
             return
@@ -579,22 +701,377 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if self._map_info:
             self.hass.add_job(callback, self._map_info)
 
+    def register_pose_callback(self, callback: Callable):
+        """Register a callback function for pose updates."""
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function.")
+        self.pose_callbacks.append(callback)
+        _LOGGER.info("Pose callback registered")
+        if self._pose:
+            self.hass.add_job(callback, self._pose)
+
+    def register_path_callback(self, callback: Callable):
+        """Register a callback function for path data updates."""
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function.")
+        self.path_callbacks.append(callback)
+        _LOGGER.info("Path callback registered")
+        if self._path_data:
+            self.hass.add_job(callback, self._path_data)
+
+    def register_history_path_callback(self, callback: Callable):
+        """Register a callback function for history path data updates."""
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function.")
+        self.history_path_callbacks.append(callback)
+        _LOGGER.info("History path callback registered")
+        if self._history_path_data:
+            self.hass.add_job(callback, self._history_path_data)
+
+    def _update_map_info(self, map_info: dict[str, Any]) -> None:
+        """Update map info and notify callbacks."""
+        self._map_info = map_info
+        _LOGGER.info("Map info updated: id=%s, name=%s, state=%s",
+                     map_info.get('id'), map_info.get('name'), map_info.get('map_state'))
+        for callback in self.map_callbacks:
+            self.hass.add_job(callback, map_info)
+
+    def _get_map_field(self, data: dict[str, Any], *keys: str) -> Any | None:
+        """从可能的字段名中取值"""
+        for key in keys:
+            if key in data:
+                return data.get(key)
+        return None
+
+    def _build_map_info_from_map_data(self, map_data: dict[str, Any]) -> dict[str, Any] | None:
+        """根据 HTTP map 数据构建/补全 map_info"""
+        if not isinstance(map_data, dict):
+            return None
+        base = dict(self._map_info) if self._map_info else {}
+        current_id = base.get("id")
+        new_id = self._get_map_field(map_data, "id", "map_id", "mapId")
+        if new_id is not None and new_id != current_id:
+            base = {}
+        mapped = {
+            "id": new_id,
+            "name": self._get_map_field(map_data, "name", "map_name", "mapName"),
+            "map_state": self._get_map_field(map_data, "map_state", "mapState", "state"),
+            "regions": map_data.get("regions"),
+            "clean_info": self._get_map_field(map_data, "clean_info", "cleanInfo"),
+            "total_area": self._get_map_field(map_data, "total_area", "totalArea"),
+            "sub_regions": self._get_map_field(map_data, "sub_regions", "subRegions"),
+        }
+        for key, value in mapped.items():
+            if value is not None:
+                base[key] = value
+        if not base:
+            return None
+        if "map_state" not in base:
+            base["map_state"] = "unknown"
+        return base
+
+    def _get_meta_seq(self, meta: dict[str, Any], label: str, warn: bool = True) -> int:
+        """解析 meta 中的 seq"""
+        try:
+            return int(meta.get("seq", -1))
+        except (ValueError, TypeError):
+            if warn:
+                _LOGGER.warning("Invalid %s meta seq: %s", label, meta.get("seq"))
+            return -1
+
+    def _should_replace_pending(self, pending_meta: dict[str, Any] | None, seq: int, label: str) -> bool:
+        """是否用新的 meta 替换缓存的 pending meta"""
+        if pending_meta is None:
+            return True
+        pending_seq = self._get_meta_seq(pending_meta, label, warn=False)
+        if seq == -1:
+            return pending_seq == -1
+        if pending_seq == -1:
+            return True
+        return seq > pending_seq
+
+    def _get_retry_delay(self, count: int) -> float:
+        """获取重试延迟（秒）"""
+        delays = [2.0, 5.0, 10.0, 30.0]
+        if count < len(delays):
+            return delays[count]
+        return delays[-1]
+
+    def _reset_map_retry(self) -> None:
+        """清理地图拉取重试状态"""
+        self._map_retry_meta = None
+        self._map_retry_count = 0
+        if self._map_retry_task and not self._map_retry_task.done():
+            self._map_retry_task.cancel()
+        self._map_retry_task = None
+
+    def _reset_path_retry(self) -> None:
+        """清理路径拉取重试状态"""
+        self._path_retry_meta = None
+        self._path_retry_count = 0
+        if self._path_retry_task and not self._path_retry_task.done():
+            self._path_retry_task.cancel()
+        self._path_retry_task = None
+
+    def _reset_history_path_retry(self) -> None:
+        """清理历史路径拉取重试状态"""
+        self._history_path_retry_meta = None
+        self._history_path_retry_count = 0
+        if self._history_path_retry_task and not self._history_path_retry_task.done():
+            self._history_path_retry_task.cancel()
+        self._history_path_retry_task = None
+
+    def _reset_pending_meta(self) -> None:
+        """清理 pending meta"""
+        self._pending_map_meta = None
+        self._pending_path_meta = None
+        self._pending_history_path_meta = None
+
+    def _schedule_map_retry(self, meta: dict[str, Any]) -> None:
+        """安排地图拉取重试"""
+        self._map_retry_meta = meta
+        if self._map_retry_task and not self._map_retry_task.done():
+            return
+        delay = self._get_retry_delay(self._map_retry_count)
+        self._map_retry_count += 1
+        self._map_retry_task = self.hass.async_create_task(self._async_retry_map(delay))
+
+    def _schedule_path_retry(self, meta: dict[str, Any]) -> None:
+        """安排路径拉取重试"""
+        self._path_retry_meta = meta
+        if self._path_retry_task and not self._path_retry_task.done():
+            return
+        delay = self._get_retry_delay(self._path_retry_count)
+        self._path_retry_count += 1
+        self._path_retry_task = self.hass.async_create_task(self._async_retry_path(delay))
+
+    def _schedule_history_path_retry(self, meta: dict[str, Any]) -> None:
+        """安排历史路径拉取重试"""
+        self._history_path_retry_meta = meta
+        if self._history_path_retry_task and not self._history_path_retry_task.done():
+            return
+        delay = self._get_retry_delay(self._history_path_retry_count)
+        self._history_path_retry_count += 1
+        self._history_path_retry_task = self.hass.async_create_task(
+            self._async_retry_history_path(delay)
+        )
+
+    async def _async_retry_map(self, delay: float) -> None:
+        """延迟重试地图拉取"""
+        try:
+            await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            return
+        self._map_retry_task = None
+        meta = self._map_retry_meta
+        if meta:
+            await self._async_handle_map_meta(meta)
+
+    async def _async_retry_path(self, delay: float) -> None:
+        """延迟重试路径拉取"""
+        try:
+            await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            return
+        self._path_retry_task = None
+        meta = self._path_retry_meta
+        if meta:
+            await self._async_handle_path_meta(meta)
+
+    async def _async_retry_history_path(self, delay: float) -> None:
+        """延迟重试历史路径拉取"""
+        try:
+            await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            return
+        self._history_path_retry_task = None
+        meta = self._history_path_retry_meta
+        if meta:
+            await self._async_handle_history_path_meta(meta)
+
     def _handle_map_info(self, payload: str):
         """Handle map info message."""
         try:
             map_info = json.loads(payload)
-            self._map_info = map_info
-            _LOGGER.info("Map info updated: id=%s, name=%s, state=%s", 
-                        map_info.get('id'), map_info.get('name'), map_info.get('map_state'))
-
-            # 通知所有地图回调
-            for callback in self.map_callbacks:
-                self.hass.add_job(callback, map_info)
+            self._update_map_info(map_info)
 
         except json.JSONDecodeError:
             _LOGGER.error("Failed to parse map info JSON: %s", payload[:200])
         except Exception as e:
             _LOGGER.error("Error handling map info: %s", e)
+
+    async def _async_handle_map_meta(self, meta: dict[str, Any]) -> None:
+        """Handle map meta message and fetch map data via HTTP."""
+        seq = self._get_meta_seq(meta, "map")
+
+        if seq != -1 and seq <= self._map_seq:
+            return
+        if seq != -1 and seq > self._map_seq:
+            self._reset_map_retry()
+        if seq == -1:
+            now = time.monotonic()
+            if (now - self._map_no_seq_last_fetch) < self._no_seq_min_interval:
+                return
+        if self._fetching_map:
+            if self._should_replace_pending(self._pending_map_meta, seq, "map"):
+                self._pending_map_meta = meta
+            return
+
+        self._fetching_map = True
+        try:
+            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._map_etag)
+            if ok:
+                if seq != -1:
+                    self._map_seq = seq
+                else:
+                    self._map_no_seq_last_fetch = time.monotonic()
+                self._reset_map_retry()
+            if etag:
+                self._map_etag = etag
+            if data is not None:
+                self._map_data = data
+                map_info = self._build_map_info_from_map_data(data)
+                if map_info is not None:
+                    self._update_map_info(map_info)
+            if not ok:
+                self._schedule_map_retry(meta)
+        except Exception as e:
+            _LOGGER.error("Failed to fetch map data: %s", e)
+            self._schedule_map_retry(meta)
+        finally:
+            self._fetching_map = False
+            pending_meta = self._pending_map_meta
+            self._pending_map_meta = None
+            if pending_meta:
+                pending_seq = self._get_meta_seq(pending_meta, "map", warn=False)
+                if pending_seq == -1 or pending_seq > self._map_seq:
+                    self.hass.async_create_task(self._async_handle_map_meta(pending_meta))
+
+    async def _async_handle_path_meta(self, meta: dict[str, Any]) -> None:
+        """Handle path meta message and fetch path data via HTTP."""
+        seq = self._get_meta_seq(meta, "path")
+
+        if seq != -1 and seq <= self._path_seq:
+            return
+        if seq != -1 and seq > self._path_seq:
+            self._reset_path_retry()
+        if seq == -1:
+            now = time.monotonic()
+            if (now - self._path_no_seq_last_fetch) < self._no_seq_min_interval:
+                return
+        if self._fetching_path:
+            if self._should_replace_pending(self._pending_path_meta, seq, "path"):
+                self._pending_path_meta = meta
+            return
+
+        self._fetching_path = True
+        try:
+            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._path_etag)
+            if ok:
+                if seq != -1:
+                    self._path_seq = seq
+                else:
+                    self._path_no_seq_last_fetch = time.monotonic()
+                self._reset_path_retry()
+            if etag:
+                self._path_etag = etag
+            if data is not None:
+                self._path_data = data
+                for callback in self.path_callbacks:
+                    self.hass.async_create_task(callback(data))
+            if not ok:
+                self._schedule_path_retry(meta)
+        except Exception as e:
+            _LOGGER.error("Failed to fetch path data: %s", e)
+            self._schedule_path_retry(meta)
+        finally:
+            self._fetching_path = False
+            pending_meta = self._pending_path_meta
+            self._pending_path_meta = None
+            if pending_meta:
+                pending_seq = self._get_meta_seq(pending_meta, "path", warn=False)
+                if pending_seq == -1 or pending_seq > self._path_seq:
+                    self.hass.async_create_task(self._async_handle_path_meta(pending_meta))
+
+    async def _async_handle_history_path_meta(self, meta: dict[str, Any]) -> None:
+        """Handle history path meta message and fetch history path data via HTTP."""
+        seq = self._get_meta_seq(meta, "history path")
+
+        if seq != -1 and seq <= self._history_path_seq:
+            return
+        if seq != -1 and seq > self._history_path_seq:
+            self._reset_history_path_retry()
+        if seq == -1:
+            now = time.monotonic()
+            if (now - self._history_path_no_seq_last_fetch) < self._no_seq_min_interval:
+                return
+        if self._fetching_history_path:
+            if self._should_replace_pending(self._pending_history_path_meta, seq, "history path"):
+                self._pending_history_path_meta = meta
+            return
+
+        self._fetching_history_path = True
+        try:
+            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._history_path_etag)
+            if ok:
+                if seq != -1:
+                    self._history_path_seq = seq
+                else:
+                    self._history_path_no_seq_last_fetch = time.monotonic()
+                self._reset_history_path_retry()
+            if etag:
+                self._history_path_etag = etag
+            if data is not None:
+                self._history_path_data = data
+                for callback in self.history_path_callbacks:
+                    self.hass.async_create_task(callback(data))
+            if not ok:
+                self._schedule_history_path_retry(meta)
+        except Exception as e:
+            _LOGGER.error("Failed to fetch history path data: %s", e)
+            self._schedule_history_path_retry(meta)
+        finally:
+            self._fetching_history_path = False
+            pending_meta = self._pending_history_path_meta
+            self._pending_history_path_meta = None
+            if pending_meta:
+                pending_seq = self._get_meta_seq(pending_meta, "history path", warn=False)
+                if pending_seq == -1 or pending_seq > self._history_path_seq:
+                    self.hass.async_create_task(self._async_handle_history_path_meta(pending_meta))
+
+    async def _async_fetch_json(
+        self,
+        meta: dict[str, Any],
+        etag: str | None,
+    ) -> tuple[dict[str, Any] | None, str | None, bool, bool]:
+        """Fetch JSON data via HTTP using meta info."""
+        http_port = meta.get("http_port")
+        http_path = meta.get("http_path")
+        token = meta.get("token")
+        if not http_port or not http_path or not token:
+            _LOGGER.warning("Incomplete meta for HTTP fetch: %s", meta)
+            return None, etag, False, False
+
+        url = f"http://{self.host}:{http_port}{http_path}"
+        headers = {"Authorization": f"Bearer {token}"}
+        if etag:
+            headers["If-None-Match"] = etag
+
+        session = async_get_clientsession(self.hass)
+        async with session.get(url, headers=headers, timeout=10) as resp:
+            if resp.status == 304:
+                return None, etag, True, True
+            if resp.status >= 400:
+                _LOGGER.error("HTTP fetch failed: %s status=%d", url, resp.status)
+                return None, etag, False, False
+            new_etag = resp.headers.get("ETag") or etag
+            raw = await resp.read()
+            # 手动处理 gzip 压缩：协议要求 Content-Encoding: gzip
+            if raw[:2] == b'\x1f\x8b':
+                raw = await self.hass.async_add_executor_job(gzip.decompress, raw)
+            text = raw.decode("utf-8")
+            data = json.loads(text)
+            return data, new_etag, True, False
 
     async def _async_update_device_model(self, model_name: str):
         """异步更新设备注册表中的模型信息."""
@@ -621,8 +1098,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             # payload 直接是型号名称字符串
             model_name = payload.strip()
             if model_name:
-                old_model = self._device_model
-                self._device_model = model_name
+                old_model = self.device_model
+                self.device_model = model_name
                 _LOGGER.info("Device model updated: %s -> %s", old_model, model_name)
                 
                 # 使用 hass.add_job 调度异步设备注册表更新操作到主事件循环
@@ -639,6 +1116,26 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def map_info(self) -> dict:
         """Get current map info."""
         return self._map_info
+
+    @property
+    def map_data(self) -> dict:
+        """Get HTTP-fetched map data."""
+        return self._map_data
+
+    @property
+    def path_data(self) -> dict:
+        """Get HTTP-fetched path data."""
+        return self._path_data
+
+    @property
+    def history_path_data(self) -> dict:
+        """Get HTTP-fetched history path data."""
+        return self._history_path_data
+
+    @property
+    def pose(self) -> dict:
+        """Get current pose data."""
+        return self._pose
 
     @property
     def global_params(self) -> dict:
@@ -804,6 +1301,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Clean up resources when the entity is removed."""
         _LOGGER.info("Stopping MQTT client")
         self._stop_event.set()
+        self._reset_map_retry()
+        self._reset_path_retry()
+        self._reset_history_path_retry()
+        self._reset_pending_meta()
         if self.mqtt_client:
             self.mqtt_client.disconnect()
 

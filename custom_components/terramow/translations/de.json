@@ -60,6 +60,9 @@
                     "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Zum Zielpunkt bewegen"
                 }
             },
+            "pose": {
+                "name": "Pose"
+            },
             "total_mowing_time": {
                 "name": "Gesamte Mähzeit"
             },
@@ -97,6 +100,11 @@
                     "unavailable": "Nicht verfügbar",
                     "no_config": "Keine Konfiguration"
                 }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Karte"
             }
         },
         "binary_sensor": {

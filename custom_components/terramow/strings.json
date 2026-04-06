@@ -59,6 +59,14 @@
           "MAP_CLEAN_INFO_MODE_DRAW_REGION": "Draw Region Operation",
           "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Move to Target Point"
         }
+      },
+      "pose": {
+        "name": "Pose"
+      }
+    },
+    "camera": {
+      "map_camera": {
+        "name": "Map"
       }
     },
     "binary_sensor": {

@@ -60,6 +60,9 @@
                     "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "移动到目标点"
                 }
             },
+            "pose": {
+                "name": "姿态"
+            },
             "total_mowing_time": {
                 "name": "总割草时间"
             },
@@ -97,6 +100,11 @@
                     "unavailable": "不可用",
                     "no_config": "无配置"
                 }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "地图"
             }
         },
         "binary_sensor": {

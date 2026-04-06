@@ -77,7 +77,7 @@ class TerraMowZoneSelect(SelectEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -306,7 +306,7 @@ class MowSpeedSelect(SelectEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -443,7 +443,7 @@ class BladeSpeedSelect(SelectEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
@@ -550,7 +550,7 @@ class MainDirectionModeSelect(SelectEntity):
             identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
             name='TerraMow',
             manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower._device_model # Use dynamically updated model
+            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
         )
     
     @property
