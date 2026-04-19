@@ -88,6 +88,8 @@ COLOR_BADGE_BLUE = (68, 117, 235, 255)
 COLOR_BADGE_ORANGE = (255, 120, 70, 255)
 COLOR_BADGE_GRAY = (108, 114, 124, 255)
 
+COLOR_TRANSPARENT = (255, 255, 255, 0)
+
 COLOR_PLACEHOLDER_BG = (200, 200, 200, 255)
 COLOR_HATCH = (255, 120, 70, 88)
 BATTERY_STATUS_DP = 108
@@ -816,6 +818,8 @@ class TerraMowMapCamera(Camera):
         self._pose: dict[str, Any] = {}
 
         self._static_image: Image.Image | None = None
+        self._robot_image: Image.Image | None = None
+        self._robot_image_mask: Image.Image | None = None
         self._transformer: CoordinateTransformer | None = None
         self._cached_png: bytes | None = None
         self._last_pose_state_update = 0.0
@@ -1560,7 +1564,7 @@ class TerraMowMapCamera(Camera):
             self._draw_target(draw, transformer.to_pixel(scene["move_target_point"][0], scene["move_target_point"][1]))
 
         if scene["station_pose"] is not None:
-            self._draw_station(draw, scene["station_pose"])
+            self._draw_station(image, scene["station_pose"])
 
         if scene["origin"] is not None:
             self._draw_origin(draw, transformer.to_pixel(scene["origin"][0], scene["origin"][1]))
@@ -1887,12 +1891,21 @@ class TerraMowMapCamera(Camera):
             18,
         )
 
-    def _draw_station(self, draw: ImageDraw.ImageDraw, pose: dict[str, float]) -> None:
+    def _draw_station(self, image: Image.Image, pose: dict[str, float]) -> None:
         """绘制基站。"""
         transformer = self._transformer
         if transformer is None:
             return
-        x, y = transformer.to_pixel(pose["x"], pose["y"])
+
+        x = 20
+        y = 20
+
+        w = 40
+        h = 40
+
+        station = Image.new('RGBA', (w, h), COLOR_TRANSPARENT)
+        draw = ImageDraw.Draw(station, 'RGBA')
+
         draw.rounded_rectangle(
             [x - 14, y - 18, x + 14, y + 18],
             radius=10,
@@ -1906,13 +1919,30 @@ class TerraMowMapCamera(Camera):
             width=1,
         )
         draw.ellipse([x - 4, y - 13, x + 4, y - 5], fill=COLOR_STATION_LED)
-        theta = _coerce_angle_radians(pose.get("theta"), milli_radian=True)
-        if theta is not None:
-            tip_x = x + int(round(20 * math.cos(theta)))
-            tip_y = y + int(round(20 * math.sin(theta)))
-            draw.line([(x, y), (tip_x, tip_y)], fill=COLOR_STATION_BODY, width=3)
 
-    def _draw_robot(self, draw: ImageDraw.ImageDraw) -> None:
+        station_mask = station.copy()
+        draw_mask = ImageDraw.Draw(station_mask)
+        draw_mask.rounded_rectangle(
+            [x - 14, y - 18, x + 14, y + 18],
+            radius=10,
+            fill=COLOR_STATION_BODY,
+        )
+
+        theta = _coerce_angle_radians(pose.get("theta"), milli_radian=True)
+        deg = theta * 180 / math.pi
+        deg = deg - 90
+
+        station_rotated = station.rotate(-deg, expand=True, fillcolor=COLOR_TRANSPARENT)
+        station_mask_rotated = station_mask.rotate(-deg, expand=True, fillcolor=COLOR_TRANSPARENT)
+
+        cx, cy = transformer.to_pixel(pose["x"], pose["y"])
+        
+        image.paste(station_rotated,
+                  (cx - station_rotated.width // 2, cy - station_rotated.height // 2),
+                  station_mask_rotated)        
+
+
+    def _draw_robot(self, image: Image.Image) -> None:
         """绘制实时机器人位置。"""
         transformer = self._transformer
         if transformer is None:
@@ -1924,21 +1954,43 @@ class TerraMowMapCamera(Camera):
 
         x = display_pose["x"]
         y = display_pose["y"]
-        px, py = transformer.to_pixel(x, y)
-        draw.ellipse([px - 16, py - 20, px + 16, py + 20], fill=COLOR_ROBOT_BODY)
-        draw.ellipse([px - 12, py - 15, px + 12, py + 4], fill=COLOR_ROBOT_TOP)
-        draw.rectangle([px - 14, py + 5, px + 14, py + 12], fill=COLOR_ROBOT_DETAIL)
+
+        if (self._robot_image is None):
+
+            px = 20
+            py = 20
+
+            w = 40
+            h = 40
+            
+            self._robot_image = Image.new('RGBA', (w, h), COLOR_TRANSPARENT)
+            draw = ImageDraw.Draw(self._robot_image, 'RGBA')
+
+            draw.ellipse([px - 16, py - 20, px + 16, py + 20], fill=COLOR_ROBOT_BODY)
+            draw.ellipse([px - 12, py - 15, px + 12, py + 4], fill=COLOR_ROBOT_TOP)
+            draw.rectangle([px - 14, py + 5, px + 14, py + 12], fill=COLOR_ROBOT_DETAIL)
+
+            self._robot_image_mask = self._robot_image.copy()
+            draw_mask = ImageDraw.Draw(self._robot_image_mask)
+            draw_mask.ellipse([px - 16, py - 20, px + 16, py + 20], fill=COLOR_ROBOT_BODY)
+
 
         yaw = display_pose.get("yaw")
-        if yaw is not None:
-            tip_x = px + int(round(24 * math.cos(yaw)))
-            tip_y = py + int(round(24 * math.sin(yaw)))
-            draw.line([(px, py), (tip_x, tip_y)], fill=COLOR_ROBOT_DIR, width=4)
-            left_x = tip_x - int(round(6 * math.cos(yaw - math.pi / 6)))
-            left_y = tip_y - int(round(6 * math.sin(yaw - math.pi / 6)))
-            right_x = tip_x - int(round(6 * math.cos(yaw + math.pi / 6)))
-            right_y = tip_y - int(round(6 * math.sin(yaw + math.pi / 6)))
-            draw.polygon([(tip_x, tip_y), (left_x, left_y), (right_x, right_y)], fill=COLOR_ROBOT_DIR)
+        if yaw is None:
+            yaw = 0
+
+        cx, cy = transformer.to_pixel(x, y)
+
+        deg = yaw * 180 / math.pi
+        deg = deg - 90
+
+        robot_rotated = self._robot_image.rotate(-deg, expand=True, fillcolor=COLOR_TRANSPARENT)
+        robot_mask_rotated = self._robot_image_mask.rotate(-deg, expand=True, fillcolor=COLOR_TRANSPARENT)
+
+        image.paste(robot_rotated,
+                  (cx - robot_rotated.width // 2, cy - robot_rotated.height // 2),
+                  robot_mask_rotated)
+
 
     def _draw_map_chips(self, draw: ImageDraw.ImageDraw, scene: dict[str, Any]) -> None:
         """绘制地图上方摘要标签。"""
@@ -2062,8 +2114,7 @@ class TerraMowMapCamera(Camera):
             return _render_placeholder()
 
         image = self._static_image.copy()
-        draw = ImageDraw.Draw(image, "RGBA")
-        self._draw_robot(draw)
+        self._draw_robot(image)
 
         buffer = io.BytesIO()
         image.convert("RGB").save(buffer, format="PNG")
