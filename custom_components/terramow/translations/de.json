@@ -100,6 +100,14 @@
                     "unavailable": "Nicht verfügbar",
                     "no_config": "Keine Konfiguration"
                 }
+            },
+            "power_mode": {
+                "name": "Energiemodus",
+                "state": {
+                    "POWER_MODE_RUNNING": "In Betrieb",
+                    "POWER_MODE_STANDBY": "Bereitschaft",
+                    "POWER_MODE_HIBERNATE": "Ruhezustand"
+                }
             }
         },
         "camera": {
@@ -110,6 +118,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Ladestatus"
+            },
+            "navigation_located": {
+                "name": "Navigation lokalisiert"
+            },
+            "firmware_upgrading": {
+                "name": "Firmware-Aktualisierung"
             }
         },
         "select": {

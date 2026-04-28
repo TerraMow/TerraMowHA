@@ -100,6 +100,14 @@
                     "unavailable": "Unavailable",
                     "no_config": "No Configuration"
                 }
+            },
+            "power_mode": {
+                "name": "Power Mode",
+                "state": {
+                    "POWER_MODE_RUNNING": "Running",
+                    "POWER_MODE_STANDBY": "Standby",
+                    "POWER_MODE_HIBERNATE": "Hibernate"
+                }
             }
         },
         "camera": {
@@ -110,6 +118,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Charging State"
+            },
+            "navigation_located": {
+                "name": "Navigation Located"
+            },
+            "firmware_upgrading": {
+                "name": "Firmware Upgrading"
             }
         },
         "select": {

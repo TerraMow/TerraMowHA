@@ -849,9 +849,67 @@ async def async_setup_entry(
         
         # 主方向状态传感器
         MainDirectionStatusSensor(basic_data, hass),
+
+        # 电源模式传感器 (dp_107)
+        PowerModeSensor(basic_data, hass),
     ]
     
     async_add_entities(entities)
+
+
+class PowerModeSensor(SensorEntity):
+    """Power mode sensor - uses dp_107 data."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [
+        "POWER_MODE_RUNNING",
+        "POWER_MODE_STANDBY",
+        "POWER_MODE_HIBERNATE",
+    ]
+    _attr_translation_key = "power_mode"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.power_mode"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the current power mode."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        power_mode = self.basic_data.lawn_mower.power_mode
+        if power_mode in self._attr_options:
+            return power_mode
+        return None
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self.basic_data.lawn_mower is not None
 
 
 class MainDirectionStatusSensor(SensorEntity):
