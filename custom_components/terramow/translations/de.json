@@ -66,11 +66,26 @@
             "total_mowing_time": {
                 "name": "Gesamte Mähzeit"
             },
+            "total_mowing_jobs": {
+                "name": "Gesamtanzahl Mäheinsätze"
+            },
             "current_session_area": {
                 "name": "Fläche der aktuellen Sitzung"
             },
             "current_session_time": {
                 "name": "Dauer der aktuellen Sitzung"
+            },
+            "current_job_type": {
+                "name": "Aktueller Auftragstyp",
+                "state": {
+                    "MAP_AREA_TYPE_NONE": "Kein",
+                    "MAP_AREA_TYPE_BUILD_MAP": "Karte erstellen",
+                    "MAP_AREA_TYPE_CLEANING": "Mähen",
+                    "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING": "Karte erstellen und Mähen",
+                    "MAP_AREA_TYPE_SELECT_REGION_CLEANING": "Zone mähen",
+                    "MAP_AREA_TYPE_DRAW_REGION_CLEANING": "Bereich mähen",
+                    "MAP_AREA_TYPE_EDGE_TRIM_CLEANING": "Kantenmähen"
+                }
             },
             "remaining_blade_time": {
                 "name": "Verbleibende Laufzeit der Klingen"
