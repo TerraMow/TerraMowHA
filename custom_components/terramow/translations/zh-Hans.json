@@ -112,6 +112,11 @@
                 "name": "充电状态"
             }
         },
+        "button": {
+            "edge_trim": {
+                "name": "沿边修剪"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "分区选择"

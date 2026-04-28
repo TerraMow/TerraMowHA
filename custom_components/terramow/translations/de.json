@@ -112,6 +112,11 @@
                 "name": "Ladestatus"
             }
         },
+        "button": {
+            "edge_trim": {
+                "name": "Kantenschnitt"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "Zonenauswahl"

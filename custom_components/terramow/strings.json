@@ -74,6 +74,11 @@
         "name": "Charging State"
       }
     },
+    "button": {
+      "edge_trim": {
+        "name": "Edge Trim"
+      }
+    },
     "select": {
       "region_select": {
         "name": "Region Select"
