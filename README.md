@@ -43,7 +43,7 @@ The following parameters are required:
 
 ### Requirements
 
-- Home Assistant 2023.9.3 or later (tested with 2025.1.1)
+- Home Assistant 2024.4 or later (tested with 2025.1.1)
 - TerraMow firmware version 6.6.0 or later
 - TerraMow APP version 1.6.0 or later
 
