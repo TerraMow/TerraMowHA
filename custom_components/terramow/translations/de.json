@@ -178,5 +178,17 @@
         "changing_mode": "Ändere den Modus",
         "active": "Aktiv",
         "pending": "Warte auf Bestätigung"
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Mähen ausgewählter Zonen starten",
+            "description": "Startet das Mähen für die angegebenen Teilbereich-IDs.",
+            "fields": {
+                "region_ids": {
+                    "name": "Zonen-IDs",
+                    "description": "Liste der Teilbereich-IDs, die gemäht werden sollen."
+                }
+            }
+        }
     }
 }
