@@ -21,6 +21,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DOMAIN, TerraMowBasicData
+from .const import (
+    CONF_MAP_RESOLUTION,
+    DEFAULT_MAP_RESOLUTION,
+    MAP_RESOLUTION_OPTIONS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -809,6 +814,7 @@ class TerraMowMapCamera(Camera):
         hass: HomeAssistant,
         *,
         clean_mode: bool = False,
+        output_resolution: int = DEFAULT_MAP_RESOLUTION,
     ) -> None:
         super().__init__()
         self.basic_data = basic_data
@@ -819,6 +825,7 @@ class TerraMowMapCamera(Camera):
         self._map_rect: tuple[int, int, int, int] = (
             (0, 0, IMAGE_WIDTH, IMAGE_HEIGHT) if clean_mode else MAP_RECT
         )
+        self._output_resolution = output_resolution
 
         self._map_data: dict[str, Any] = {}
         self._path_data: dict[str, Any] = {}
@@ -2081,6 +2088,12 @@ class TerraMowMapCamera(Camera):
         draw = ImageDraw.Draw(image, "RGBA")
         self._draw_robot(draw)
 
+        if self._output_resolution != IMAGE_WIDTH:
+            image = image.resize(
+                (self._output_resolution, self._output_resolution),
+                Image.LANCZOS,
+            )
+
         buffer = io.BytesIO()
         if self._clean_mode:
             image.save(buffer, format="PNG")
@@ -2098,9 +2111,16 @@ async def async_setup_entry(
 ) -> None:
     """初始化 camera 平台。"""
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
+    resolution = config_entry.options.get(
+        CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
+    )
+    if resolution not in MAP_RESOLUTION_OPTIONS:
+        resolution = DEFAULT_MAP_RESOLUTION
     async_add_entities(
         [
-            TerraMowMapCamera(basic_data, hass),
-            TerraMowMapCamera(basic_data, hass, clean_mode=True),
+            TerraMowMapCamera(basic_data, hass, output_resolution=resolution),
+            TerraMowMapCamera(
+                basic_data, hass, clean_mode=True, output_resolution=resolution
+            ),
         ]
     )

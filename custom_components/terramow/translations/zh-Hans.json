@@ -18,6 +18,19 @@
             }
         }
     },
+    "options": {
+        "step": {
+            "init": {
+                "title": "TerraMow 选项",
+                "data": {
+                    "map_resolution": "地图输出分辨率 (px)"
+                },
+                "data_description": {
+                    "map_resolution": "地图相机 PNG 的输出边长。更高的值在仪表板嵌入时画面更清晰，但每次渲染会占用更多带宽和 CPU。"
+                }
+            }
+        }
+    },
     "entity": {
         "lawn_mower": {
             "lawn_mower": {

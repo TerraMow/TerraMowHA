@@ -18,6 +18,19 @@
             }
         }
     },
+    "options": {
+        "step": {
+            "init": {
+                "title": "TerraMow Optionen",
+                "data": {
+                    "map_resolution": "Karten-Ausgabeauflösung (px)"
+                },
+                "data_description": {
+                    "map_resolution": "Seitenlänge des Karten-PNGs. Höhere Werte ergeben ein schärferes Bild beim Einbetten in Dashboards, erhöhen aber Bandbreite und CPU-Last pro Render-Zyklus."
+                }
+            }
+        }
+    },
     "entity": {
         "lawn_mower": {
             "lawn_mower": {

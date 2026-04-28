@@ -8,13 +8,24 @@ from typing import Any
 import paho.mqtt.client as mqtt_client
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow as BaseConfigFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow as BaseConfigFlow,
+    OptionsFlow,
+)
 # 移除 ConfigFlowResult 导入
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import MQTT_PORT, MQTT_USERNAME, DOMAIN
+from .const import (
+    CONF_MAP_RESOLUTION,
+    DEFAULT_MAP_RESOLUTION,
+    DOMAIN,
+    MAP_RESOLUTION_OPTIONS,
+    MQTT_PORT,
+    MQTT_USERNAME,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,6 +97,37 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
             data_schema=STEP_USER_DATA_SCHEMA,
             errors=errors
         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return TerraMowOptionsFlow(config_entry)
+
+
+class TerraMowOptionsFlow(OptionsFlow):
+    """Handle TerraMow options."""
+
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current = self._config_entry.options.get(
+            CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_MAP_RESOLUTION,
+                    default=current,
+                ): vol.In(MAP_RESOLUTION_OPTIONS),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
 
 
 class CannotConnect(HomeAssistantError):

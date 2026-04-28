@@ -18,6 +18,19 @@
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "TerraMow options",
+        "data": {
+          "map_resolution": "Map output resolution (px)"
+        },
+        "data_description": {
+          "map_resolution": "Output side length of the map camera PNG. Higher values give a sharper image when embedded in dashboards but increase bandwidth and CPU on each render."
+        }
+      }
+    }
+  },
   "entity": {
     "lawn_mower": {
       "lawn_mower": {
