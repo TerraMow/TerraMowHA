@@ -1,7 +1,9 @@
 {
     "config": {
+        "flow_title": "TerraMow ({host})",
         "abort": {
-            "already_configured": "Das Gerät ist bereits konfiguriert"
+            "already_configured": "Das Gerät ist bereits konfiguriert",
+            "cannot_connect": "Verbindung fehlgeschlagen"
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
@@ -14,6 +16,13 @@
                     "host": "Host",
                     "password": "Passwort",
                     "username": "Benutzername"
+                }
+            },
+            "user_pass": {
+                "title": "TerraMow",
+                "description": "TerraMow unter {host} gefunden. Bitte das MQTT-Passwort eingeben, um die Einrichtung abzuschließen.",
+                "data": {
+                    "password": "Passwort"
                 }
             }
         }

@@ -1,7 +1,9 @@
 {
     "config": {
+        "flow_title": "TerraMow ({host})",
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Device is already configured",
+            "cannot_connect": "Failed to connect"
         },
         "error": {
             "cannot_connect": "Failed to connect",
@@ -14,6 +16,13 @@
                     "host": "Host",
                     "password": "Password",
                     "username": "Username"
+                }
+            },
+            "user_pass": {
+                "title": "TerraMow",
+                "description": "Discovered TerraMow at {host}. Enter the MQTT password to complete setup.",
+                "data": {
+                    "password": "Password"
                 }
             }
         }

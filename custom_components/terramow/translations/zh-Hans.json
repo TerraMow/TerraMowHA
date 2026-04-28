@@ -1,7 +1,9 @@
 {
     "config": {
+        "flow_title": "TerraMow ({host})",
         "abort": {
-            "already_configured": "设备已配置"
+            "already_configured": "设备已配置",
+            "cannot_connect": "连接失败"
         },
         "error": {
             "cannot_connect": "连接失败",
@@ -14,6 +16,13 @@
                     "host": "主机",
                     "password": "密码",
                     "username": "用户名"
+                }
+            },
+            "user_pass": {
+                "title": "TerraMow",
+                "description": "已发现 TerraMow 设备 ({host})。请输入 MQTT 密码以完成配置。",
+                "data": {
+                    "password": "密码"
                 }
             }
         }
