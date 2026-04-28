@@ -27,6 +27,8 @@ async def async_setup_entry(
 
     entities = [
         TerraMowChargingSensor(basic_data, hass),
+        NavigationLocatedSensor(basic_data, hass),
+        FirmwareUpgradingSensor(basic_data, hass),
     ]
 
     async_add_entities(entities)
@@ -78,6 +80,102 @@ class TerraMowChargingSensor(BinarySensorEntity):
         charger_connected = battery_status.get('charger_connected')
 
         return bool(charger_connected) if charger_connected is not None else None
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self.basic_data.lawn_mower is not None
+
+
+class NavigationLocatedSensor(BinarySensorEntity):
+    """Binary sensor for whether the robot is navigation-located."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "navigation_located"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:crosshairs-gps"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = self.basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.navigation_located"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the robot is navigation-located."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        value = self.basic_data.lawn_mower.is_robot_navi_located
+        return bool(value) if value is not None else None
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self.basic_data.lawn_mower is not None
+
+
+class FirmwareUpgradingSensor(BinarySensorEntity):
+    """Binary sensor for whether the robot firmware is upgrading."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = BinarySensorDeviceClass.UPDATE
+    _attr_translation_key = "firmware_upgrading"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = self.basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.firmware_upgrading"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the firmware is upgrading."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        value = self.basic_data.lawn_mower.is_upgrading
+        return bool(value) if value is not None else None
 
     @property
     def available(self):

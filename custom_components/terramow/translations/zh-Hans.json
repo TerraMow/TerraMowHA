@@ -100,6 +100,14 @@
                     "unavailable": "不可用",
                     "no_config": "无配置"
                 }
+            },
+            "power_mode": {
+                "name": "电源模式",
+                "state": {
+                    "POWER_MODE_RUNNING": "运行中",
+                    "POWER_MODE_STANDBY": "待机",
+                    "POWER_MODE_HIBERNATE": "休眠"
+                }
             }
         },
         "camera": {
@@ -110,6 +118,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "充电状态"
+            },
+            "navigation_located": {
+                "name": "导航定位"
+            },
+            "firmware_upgrading": {
+                "name": "固件升级中"
             }
         },
         "select": {

@@ -189,6 +189,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.sub_mission = SubMission.SUB_MISSION_IDLE
         self.mission_state = MissionState.MISSION_STATE_IDLE
         self.has_error = False
+        self._is_robot_navi_located: bool | None = None
+        self._is_upgrading: bool | None = None
+        self._power_mode: str | None = None
 
         self.cmd_seq = random.randint(0, 0xFFFFFFFF)  # 生成随机的指令序号
 
@@ -469,6 +472,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             "power_mode": PowerMode,
             "back_to_station_reason": BackToStationReason
         }
+
+        # Capture raw fields before enum conversion mutates the dict
+        if "is_robot_navi_located" in data:
+            self._is_robot_navi_located = data.get("is_robot_navi_located")
+        if "is_upgrading" in data:
+            self._is_upgrading = data.get("is_upgrading")
+        if "power_mode" in data:
+            self._power_mode = data.get("power_mode")
 
         # Convert enum strings to enum members
         for key, enum_class in enum_mapping.items():
@@ -1176,6 +1187,21 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def battery_status(self) -> dict:
         """Get current battery status from dp_108."""
         return self._battery_status
+
+    @property
+    def is_robot_navi_located(self) -> bool | None:
+        """Get whether the robot is navigation-located (from dp_107)."""
+        return self._is_robot_navi_located
+
+    @property
+    def is_upgrading(self) -> bool | None:
+        """Get whether the robot is upgrading firmware (from dp_107)."""
+        return self._is_upgrading
+
+    @property
+    def power_mode(self) -> str | None:
+        """Get current power mode from dp_107."""
+        return self._power_mode
 
     @property
     def compatibility_status(self) -> str:
