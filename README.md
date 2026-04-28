@@ -5,6 +5,10 @@
     <a href="#english-version"><img src="https://img.shields.io/badge/English-blue?style=for-the-badge" alt="English"/></a>
     <a href="docs/README_zh.md"><img src="https://img.shields.io/badge/中文-red?style=for-the-badge" alt="中文"/></a>
   </p>
+  <p>
+    <a href="https://github.com/TerraMow/TerraMowHA/actions/workflows/validate.yml"><img src="https://github.com/TerraMow/TerraMowHA/actions/workflows/validate.yml/badge.svg" alt="Validate"/></a>
+    <a href="https://github.com/TerraMow/TerraMowHA/actions/workflows/release.yml"><img src="https://github.com/TerraMow/TerraMowHA/actions/workflows/release.yml/badge.svg" alt="Release"/></a>
+  </p>
   <img src="docs/images/terramow_logo.png" alt="TerraMow Logo" width="400">
 </div>
 

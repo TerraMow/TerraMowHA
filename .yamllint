@@ -1,0 +1,13 @@
+---
+extends: default
+
+rules:
+  line-length:
+    max: 140
+    level: warning
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  document-start:
+    present: true
