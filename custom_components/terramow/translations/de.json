@@ -169,6 +169,11 @@
             "multiple_direction_angle2": {
                 "name": "Zweiter Richtungswinkel"
             }
+        },
+        "update": {
+            "firmware": {
+                "name": "Firmware"
+            }
         }
     },
     "state": {
