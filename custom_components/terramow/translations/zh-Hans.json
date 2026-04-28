@@ -28,6 +28,22 @@
             "battery": {
                 "name": "电池"
             },
+            "battery_state": {
+                "name": "电池状态",
+                "state": {
+                    "BATTERY_STATE_DISCHARGE": "放电中",
+                    "BATTERY_STATE_CHARGING": "充电中",
+                    "BATTERY_STATE_CHARGED": "已充满"
+                }
+            },
+            "battery_temperature_state": {
+                "name": "电池温度状态",
+                "state": {
+                    "BATTERY_TEMPRETURE_NORMAL": "正常",
+                    "BATTERY_TEMPRETURE_OVERHEAT": "过热",
+                    "BATTERY_TEMPRETURE_UNDERHEAT": "过冷"
+                }
+            },
             "map_status": {
                 "name": "地图状态",
                 "state": {
@@ -110,6 +126,9 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "充电状态"
+            },
+            "power_switch": {
+                "name": "电源开关"
             }
         },
         "select": {
