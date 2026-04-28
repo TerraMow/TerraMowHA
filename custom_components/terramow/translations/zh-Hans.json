@@ -105,6 +105,9 @@
         "camera": {
             "map_camera": {
                 "name": "地图"
+            },
+            "map_camera_clean": {
+                "name": "地图（纯净）"
             }
         },
         "binary_sensor": {

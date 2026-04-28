@@ -105,6 +105,9 @@
         "camera": {
             "map_camera": {
                 "name": "Map"
+            },
+            "map_camera_clean": {
+                "name": "Map (Clean)"
             }
         },
         "binary_sensor": {
