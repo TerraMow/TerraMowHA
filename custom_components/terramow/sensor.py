@@ -849,8 +849,11 @@ async def async_setup_entry(
         
         # 主方向状态传感器
         MainDirectionStatusSensor(basic_data, hass),
+
+        # 任务状态相关 (dp_107)
+        BackToStationReasonSensor(basic_data, hass),
     ]
-    
+
     async_add_entities(entities)
 
 
@@ -958,6 +961,66 @@ class MainDirectionStatusSensor(SensorEntity):
             'MAIN_DIRECTION_MODE_AUTO_ROTATE': 'Auto Rotate'
         }
         attrs['mode_friendly_name'] = mode_names.get(mode, mode)
-        
+
         return attrs
-    
+
+
+BACK_TO_STATION_REASON_OPTIONS = [
+    "BACK_TO_STATION_REASON_NONE",
+    "BACK_TO_STATION_REASON_LOW_BATTERY",
+    "BACK_TO_STATION_REASON_RAINING",
+    "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT",
+    "BACK_TO_STATION_REASON_WHEEL_OVERHEAT",
+    "BACK_TO_STATION_REASON_NIGHT_TIME",
+]
+
+
+class BackToStationReasonSensor(SensorEntity):
+    """Enum sensor exposing the dp_107 back_to_station_reason field."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:home-import-outline"
+    _attr_translation_key = "back_to_station_reason"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = BACK_TO_STATION_REASON_OPTIONS.copy()
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.back_to_station_reason"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the raw back_to_station_reason enum string."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+        reason = self.basic_data.lawn_mower.back_to_station_reason
+        if reason in self._attr_options:
+            return reason
+        return None
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self.basic_data.lawn_mower is not None

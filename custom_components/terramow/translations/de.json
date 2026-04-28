@@ -100,6 +100,17 @@
                     "unavailable": "Nicht verfügbar",
                     "no_config": "Keine Konfiguration"
                 }
+            },
+            "back_to_station_reason": {
+                "name": "Grund für Rückkehr zur Basis",
+                "state": {
+                    "BACK_TO_STATION_REASON_NONE": "Keiner",
+                    "BACK_TO_STATION_REASON_LOW_BATTERY": "Niedriger Akkustand",
+                    "BACK_TO_STATION_REASON_RAINING": "Regen",
+                    "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT": "Mähmotor überhitzt",
+                    "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "Antriebsmotor überhitzt",
+                    "BACK_TO_STATION_REASON_NIGHT_TIME": "Dunkelheit"
+                }
             }
         },
         "camera": {
@@ -110,6 +121,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Ladestatus"
+            },
+            "problem": {
+                "name": "Problem"
+            },
+            "rain_detected": {
+                "name": "Regen erkannt"
             }
         },
         "select": {
