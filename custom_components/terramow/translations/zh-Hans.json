@@ -112,6 +112,14 @@
                 "name": "充电状态"
             }
         },
+        "button": {
+            "reset_blade_timer": {
+                "name": "重置刀盘计时"
+            },
+            "reset_base_station_timer": {
+                "name": "重置基站计时"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "分区选择"
