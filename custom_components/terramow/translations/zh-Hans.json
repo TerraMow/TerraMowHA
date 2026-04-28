@@ -100,6 +100,17 @@
                     "unavailable": "不可用",
                     "no_config": "无配置"
                 }
+            },
+            "back_to_station_reason": {
+                "name": "回基站原因",
+                "state": {
+                    "BACK_TO_STATION_REASON_NONE": "无",
+                    "BACK_TO_STATION_REASON_LOW_BATTERY": "电量不足",
+                    "BACK_TO_STATION_REASON_RAINING": "下雨",
+                    "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT": "刀盘电机过热",
+                    "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "驱动轮电机过热",
+                    "BACK_TO_STATION_REASON_NIGHT_TIME": "夜间"
+                }
             }
         },
         "camera": {
@@ -110,6 +121,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "充电状态"
+            },
+            "problem": {
+                "name": "故障"
+            },
+            "rain_detected": {
+                "name": "检测到降雨"
             }
         },
         "select": {

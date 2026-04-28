@@ -181,6 +181,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._blade_time: dict[str, Any] = {}  # 存储dp_126刀盘使用时间
         self._schedule_data: dict[str, Any] = {}  # 存储dp_138即将到来的预约
         self._battery_status: dict[str, Any] = {} # Store dp_108 battery status
+        self._task_status: dict[str, Any] = {}  # Store dp_107 task status raw payload
         self._device_model: str = "TerraMow S1200"  # 默认型号名称，保持向后兼容
         self.basic_data.lawn_mower = self
 
@@ -188,7 +189,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.mission = Mission.MISSION_IDLE
         self.sub_mission = SubMission.SUB_MISSION_IDLE
         self.mission_state = MissionState.MISSION_STATE_IDLE
-        self.has_error = False
 
         self.cmd_seq = random.randint(0, 0xFFFFFFFF)  # 生成随机的指令序号
 
@@ -461,6 +461,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.error("Invalid JSON payload: %s", payload)
             return
 
+        # Preserve the raw payload so that downstream entities can read fields
+        # like has_error / back_to_station_reason without enum conversion.
+        self._task_status = dict(data)
+
         # Define a mapping from field names to enum classes
         enum_mapping = {
             "mission": Mission,
@@ -485,16 +489,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         old_mission = self.mission
         old_sub_mission = self.sub_mission
         old_mission_state = self.mission_state
-        old_has_error = self.has_error
 
         self.mission = data.get("mission", self.mission)
         self.sub_mission = data.get("sub_mission", self.sub_mission)
         self.mission_state = data.get("state", self.mission_state)
-        self.has_error = data.get("has_error", self.has_error)
 
-        _LOGGER.debug("Mission state updated: mission=%s->%s, sub_mission=%s->%s, state=%s->%s, error=%s->%s",
+        _LOGGER.debug("Mission state updated: mission=%s->%s, sub_mission=%s->%s, state=%s->%s, has_error=%s, back_to_station_reason=%s",
                      old_mission, self.mission, old_sub_mission, self.sub_mission,
-                     old_mission_state, self.mission_state, old_has_error, self.has_error)
+                     old_mission_state, self.mission_state, self.has_error, self.back_to_station_reason)
 
         self.update_activity_from_state()
 
@@ -1176,6 +1178,21 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def battery_status(self) -> dict:
         """Get current battery status from dp_108."""
         return self._battery_status
+
+    @property
+    def task_status(self) -> dict:
+        """Get current task status raw payload from dp_107."""
+        return self._task_status
+
+    @property
+    def has_error(self) -> bool:
+        """Return whether the robot currently reports a fault (dp_107)."""
+        return bool(self._task_status.get("has_error", False))
+
+    @property
+    def back_to_station_reason(self) -> str | None:
+        """Return the raw back_to_station_reason enum string from dp_107."""
+        return self._task_status.get("back_to_station_reason")
 
     @property
     def compatibility_status(self) -> str:
