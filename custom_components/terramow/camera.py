@@ -21,6 +21,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DOMAIN, TerraMowBasicData
+from .const import (
+    CONF_MAP_RESOLUTION,
+    DEFAULT_MAP_RESOLUTION,
+    MAP_RESOLUTION_OPTIONS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -804,13 +809,25 @@ class TerraMowMapCamera(Camera):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:map"
-    _attr_translation_key = "map_camera"
 
-    def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+        *,
+        clean_mode: bool = False,
+        output_resolution: int = DEFAULT_MAP_RESOLUTION,
+    ) -> None:
         super().__init__()
         self.basic_data = basic_data
         self.host = basic_data.host
         self.hass = hass
+        self._clean_mode = clean_mode
+        self._attr_translation_key = "map_camera_clean" if clean_mode else "map_camera"
+        self._map_rect: tuple[int, int, int, int] = (
+            (0, 0, IMAGE_WIDTH, IMAGE_HEIGHT) if clean_mode else MAP_RECT
+        )
+        self._output_resolution = output_resolution
 
         self._map_data: dict[str, Any] = {}
         self._path_data: dict[str, Any] = {}
@@ -847,7 +864,8 @@ class TerraMowMapCamera(Camera):
 
     @property
     def unique_id(self) -> str:
-        return f"lawn_mower.terramow@{self.host}.map_camera"
+        suffix = "map_camera_clean" if self._clean_mode else "map_camera"
+        return f"lawn_mower.terramow@{self.host}.{suffix}"
 
     @property
     def available(self) -> bool:
@@ -1377,21 +1395,24 @@ class TerraMowMapCamera(Camera):
             self._transformer = None
             return
 
-        image = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), COLOR_APP_BG)
-        self._draw_background(image)
+        bg_color = (0, 0, 0, 0) if self._clean_mode else COLOR_APP_BG
+        image = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), bg_color)
+        if not self._clean_mode:
+            self._draw_background(image)
 
         if scene["all_points"]:
             self._transformer = CoordinateTransformer(
                 scene["all_points"],
-                MAP_RECT,
-                padding=MAP_PADDING,
+                self._map_rect,
+                padding=0 if self._clean_mode else MAP_PADDING,
             )
             self._draw_scene(image, scene)
         else:
             self._transformer = None
             self._draw_empty_map_card(image, scene)
 
-        self._draw_summary_panel(image, scene)
+        if not self._clean_mode:
+            self._draw_summary_panel(image, scene)
         self._static_image = image
 
     def _draw_background(self, image: Image.Image) -> None:
@@ -1420,8 +1441,8 @@ class TerraMowMapCamera(Camera):
         subtitle = "地图元数据已收到，但没有可绘制的空间点"
         title_box = draw.textbbox((0, 0), title, font=title_font)
         body_box = draw.textbbox((0, 0), subtitle, font=body_font)
-        center_x = (MAP_RECT[0] + MAP_RECT[2]) / 2
-        center_y = (MAP_RECT[1] + MAP_RECT[3]) / 2
+        center_x = (self._map_rect[0] + self._map_rect[2]) / 2
+        center_y = (self._map_rect[1] + self._map_rect[3]) / 2
         draw.text(
             (center_x - (title_box[2] - title_box[0]) / 2, center_y - 24),
             title,
@@ -1434,7 +1455,8 @@ class TerraMowMapCamera(Camera):
             fill=COLOR_TEXT_SUBTLE,
             font=body_font,
         )
-        self._draw_map_chips(draw, scene)
+        if not self._clean_mode:
+            self._draw_map_chips(draw, scene)
 
     def _draw_scene(self, image: Image.Image, scene: dict[str, Any]) -> None:
         """绘制完整场景。"""
@@ -1569,7 +1591,8 @@ class TerraMowMapCamera(Camera):
         if scene["origin"] is not None:
             self._draw_origin(draw, transformer.to_pixel(scene["origin"][0], scene["origin"][1]))
 
-        self._draw_map_chips(draw, scene)
+        if not self._clean_mode:
+            self._draw_map_chips(draw, scene)
 
     def _composite_draw(
         self,
@@ -2116,8 +2139,17 @@ class TerraMowMapCamera(Camera):
         image = self._static_image.copy()
         self._draw_robot(image)
 
+        if self._output_resolution != IMAGE_WIDTH:
+            image = image.resize(
+                (self._output_resolution, self._output_resolution),
+                Image.LANCZOS,
+            )
+
         buffer = io.BytesIO()
-        image.convert("RGB").save(buffer, format="PNG")
+        if self._clean_mode:
+            image.save(buffer, format="PNG")
+        else:
+            image.convert("RGB").save(buffer, format="PNG")
         result = buffer.getvalue()
         self._cached_png = result
         return result
@@ -2130,4 +2162,16 @@ async def async_setup_entry(
 ) -> None:
     """初始化 camera 平台。"""
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities([TerraMowMapCamera(basic_data, hass)])
+    resolution = config_entry.options.get(
+        CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
+    )
+    if resolution not in MAP_RESOLUTION_OPTIONS:
+        resolution = DEFAULT_MAP_RESOLUTION
+    async_add_entities(
+        [
+            TerraMowMapCamera(basic_data, hass, output_resolution=resolution),
+            TerraMowMapCamera(
+                basic_data, hass, clean_mode=True, output_resolution=resolution
+            ),
+        ]
+    )
