@@ -1,0 +1,15 @@
+start_select_region:
+  name: Start Select Region Mowing
+  description: Start mowing for the specified sub-region IDs.
+  target:
+    entity:
+      integration: terramow
+      domain: lawn_mower
+  fields:
+    region_ids:
+      name: Region IDs
+      description: List of sub-region IDs to mow.
+      required: true
+      example: "[1, 2]"
+      selector:
+        object:

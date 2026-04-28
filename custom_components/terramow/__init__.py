@@ -6,20 +6,36 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Optional
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     CONF_HOST,
     CONF_PASSWORD,
     Platform,
 )
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv, device_registry as dr, entity_registry as er
 
 from .const import (
-    DOMAIN, 
-    CURRENT_HA_VERSION, 
+    DOMAIN,
+    CURRENT_HA_VERSION,
     MIN_REQUIRED_OVERALL_VERSION,
     CompatibilityStatus
+)
+
+SERVICE_START_SELECT_REGION = "start_select_region"
+ATTR_REGION_IDS = "region_ids"
+
+START_SELECT_REGION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_REGION_IDS): vol.All(
+            cv.ensure_list, [vol.Coerce(int)], vol.Length(min=1)
+        ),
+    }
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -140,7 +156,46 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    _async_register_services(hass)
+
     return True
+
+
+def _async_register_services(hass: HomeAssistant) -> None:
+    """Register integration-level services (idempotent)."""
+    if hass.services.has_service(DOMAIN, SERVICE_START_SELECT_REGION):
+        return
+
+    async def handle_start_select_region(call: ServiceCall) -> None:
+        entity_ids: list[str] = call.data[ATTR_ENTITY_ID]
+        region_ids: list[int] = call.data[ATTR_REGION_IDS]
+
+        registry = er.async_get(hass)
+        domain_data: dict[str, TerraMowBasicData] = hass.data.get(DOMAIN, {})
+
+        targets: list[TerraMowBasicData] = []
+        for entity_id in entity_ids:
+            entry = registry.async_get(entity_id)
+            if entry is None or entry.config_entry_id is None:
+                raise HomeAssistantError(
+                    f"Entity {entity_id} is not a registered TerraMow entity"
+                )
+            basic_data = domain_data.get(entry.config_entry_id)
+            if basic_data is None or basic_data.lawn_mower is None:
+                raise HomeAssistantError(
+                    f"TerraMow lawn mower for {entity_id} is not ready"
+                )
+            targets.append(basic_data)
+
+        for basic_data in targets:
+            basic_data.lawn_mower.start_select_region_clean(region_ids)
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_START_SELECT_REGION,
+        handle_start_select_region,
+        schema=START_SELECT_REGION_SCHEMA,
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -152,5 +207,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN)
+            if hass.services.has_service(DOMAIN, SERVICE_START_SELECT_REGION):
+                hass.services.async_remove(DOMAIN, SERVICE_START_SELECT_REGION)
 
     return unload_ok

@@ -178,5 +178,17 @@
         "changing_mode": "正在切换模式",
         "active": "活跃",
         "pending": "等待确认"
+    },
+    "services": {
+        "start_select_region": {
+            "name": "开始选区作业",
+            "description": "对指定的子区域 ID 开始割草作业。",
+            "fields": {
+                "region_ids": {
+                    "name": "区域 ID 列表",
+                    "description": "需要割草的子区域 ID 列表。"
+                }
+            }
+        }
     }
 }

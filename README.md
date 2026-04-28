@@ -47,6 +47,20 @@ The following parameters are required:
 - TerraMow firmware version 6.6.0 or later
 - TerraMow APP version 1.6.0 or later
 
+### Services
+
+#### `terramow.start_select_region`
+
+Start mowing for a list of selected sub-regions.
+
+```yaml
+service: terramow.start_select_region
+target:
+  entity_id: lawn_mower.terramow
+data:
+  region_ids: [1, 2]
+```
+
 ### Support
 
 Open an issue on [GitHub](https://github.com/TerraMow/TerraMowHA/issues) for support.
