@@ -66,11 +66,26 @@
             "total_mowing_time": {
                 "name": "总割草时间"
             },
+            "total_mowing_jobs": {
+                "name": "总割草次数"
+            },
             "current_session_area": {
                 "name": "当前会话面积"
             },
             "current_session_time": {
                 "name": "当前会话时间"
+            },
+            "current_job_type": {
+                "name": "当前作业类型",
+                "state": {
+                    "MAP_AREA_TYPE_NONE": "无",
+                    "MAP_AREA_TYPE_BUILD_MAP": "建图",
+                    "MAP_AREA_TYPE_CLEANING": "割草",
+                    "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING": "建图并割草",
+                    "MAP_AREA_TYPE_SELECT_REGION_CLEANING": "选区割草",
+                    "MAP_AREA_TYPE_DRAW_REGION_CLEANING": "划区割草",
+                    "MAP_AREA_TYPE_EDGE_TRIM_CLEANING": "沿边割草"
+                }
             },
             "remaining_blade_time": {
                 "name": "刀盘剩余时间"
