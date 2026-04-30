@@ -128,6 +128,117 @@ class BatterySensor(SensorEntity):
         }
 
 
+class BatteryStateSensor(SensorEntity):
+    """Battery state sensor - uses dp_108 data."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:battery-charging"
+    _attr_translation_key = "battery_state"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [
+        "BATTERY_STATE_DISCHARGE",
+        "BATTERY_STATE_CHARGING",
+        "BATTERY_STATE_CHARGED",
+    ]
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.battery_state"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the state of the sensor."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        battery_status = self.basic_data.lawn_mower.battery_status
+        if not battery_status:
+            return None
+
+        state = battery_status.get('state')
+        if state in self._attr_options:
+            return state
+        return None
+
+
+class BatteryTemperatureStateSensor(SensorEntity):
+    """Battery temperature state sensor - uses dp_108 data."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:thermometer"
+    _attr_translation_key = "battery_temperature_state"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [
+        "BATTERY_TEMPRETURE_NORMAL",
+        "BATTERY_TEMPRETURE_OVERHEAT",
+        "BATTERY_TEMPRETURE_UNDERHEAT",
+    ]
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.battery_temperature_state"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the state of the sensor."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        battery_status = self.basic_data.lawn_mower.battery_status
+        if not battery_status:
+            return None
+
+        # Firmware reports the field as 'tempreture' (typo preserved).
+        value = battery_status.get('tempreture')
+        if value in self._attr_options:
+            return value
+        return None
+
+
 class TotalMowingTimeSensor(SensorEntity):
     """Total mowing time sensor - uses dp_124 data"""
     
@@ -821,6 +932,8 @@ async def async_setup_entry(
     entities = [
         # 基本传感器
         BatterySensor(basic_data, hass),
+        BatteryStateSensor(basic_data, hass),
+        BatteryTemperatureStateSensor(basic_data, hass),
         TerraMowPoseSensor(basic_data, hass),
         
         # 地图相关传感器

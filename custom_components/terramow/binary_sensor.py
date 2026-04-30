@@ -27,6 +27,7 @@ async def async_setup_entry(
 
     entities = [
         TerraMowChargingSensor(basic_data, hass),
+        PowerSwitchSensor(basic_data, hass),
         TerraMowProblemSensor(basic_data, hass),
         TerraMowRainSensor(basic_data, hass),
     ]
@@ -80,6 +81,57 @@ class TerraMowChargingSensor(BinarySensorEntity):
         charger_connected = battery_status.get('charger_connected')
 
         return bool(charger_connected) if charger_connected is not None else None
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self.basic_data.lawn_mower is not None
+
+
+class PowerSwitchSensor(BinarySensorEntity):
+    """Binary sensor for the TerraMow power switch state."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "power_switch"
+    _attr_device_class = BinarySensorDeviceClass.POWER
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        """Initialize the power switch sensor."""
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = self.basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.power_switch"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the binary sensor is on."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        battery_status = self.basic_data.lawn_mower.battery_status
+        is_switch_on = battery_status.get('is_switch_on')
+
+        return bool(is_switch_on) if is_switch_on is not None else None
 
     @property
     def available(self):

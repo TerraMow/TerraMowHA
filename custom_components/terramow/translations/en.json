@@ -28,6 +28,22 @@
             "battery": {
                 "name": "Battery"
             },
+            "battery_state": {
+                "name": "Battery State",
+                "state": {
+                    "BATTERY_STATE_DISCHARGE": "Discharging",
+                    "BATTERY_STATE_CHARGING": "Charging",
+                    "BATTERY_STATE_CHARGED": "Fully Charged"
+                }
+            },
+            "battery_temperature_state": {
+                "name": "Battery Temperature State",
+                "state": {
+                    "BATTERY_TEMPRETURE_NORMAL": "Normal",
+                    "BATTERY_TEMPRETURE_OVERHEAT": "Overheat",
+                    "BATTERY_TEMPRETURE_UNDERHEAT": "Underheat"
+                }
+            },
             "map_status": {
                 "name": "Map Status",
                 "state": {
@@ -122,6 +138,9 @@
             "charging_state": {
                 "name": "Charging State"
             },
+            "power_switch": {
+                "name": "Power Switch"
+            },
             "problem": {
                 "name": "Problem"
             },
@@ -162,12 +181,12 @@
                 "name": "Main Direction Mode",
                 "state": {
                     "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
                     "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
                 },
                 "options": {
                     "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
+                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
                     "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
                 }
             }

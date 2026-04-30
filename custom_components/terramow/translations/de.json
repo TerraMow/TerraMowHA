@@ -28,6 +28,22 @@
             "battery": {
                 "name": "Akku"
             },
+            "battery_state": {
+                "name": "Akkustatus",
+                "state": {
+                    "BATTERY_STATE_DISCHARGE": "Entlädt",
+                    "BATTERY_STATE_CHARGING": "Lädt",
+                    "BATTERY_STATE_CHARGED": "Vollständig geladen"
+                }
+            },
+            "battery_temperature_state": {
+                "name": "Akkutemperaturstatus",
+                "state": {
+                    "BATTERY_TEMPRETURE_NORMAL": "Normal",
+                    "BATTERY_TEMPRETURE_OVERHEAT": "Überhitzt",
+                    "BATTERY_TEMPRETURE_UNDERHEAT": "Unterkühlt"
+                }
+            },
             "map_status": {
                 "name": "Kartenstatus",
                 "state": {
@@ -121,6 +137,9 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Ladestatus"
+            },
+            "power_switch": {
+                "name": "Netzschalter"
             },
             "problem": {
                 "name": "Problem"
