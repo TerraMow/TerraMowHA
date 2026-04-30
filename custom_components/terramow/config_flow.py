@@ -9,14 +9,24 @@ from typing import Any
 import paho.mqtt.client as mqtt_client
 import voluptuous as vol
 
-from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlow as BaseConfigFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow as BaseConfigFlow,
+    OptionsFlow,
+)
 # 移除 ConfigFlowResult 导入
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import MQTT_PORT, MQTT_USERNAME, DOMAIN
+from .const import (
+    CONF_MAP_RESOLUTION,
+    DEFAULT_MAP_RESOLUTION,
+    DOMAIN,
+    MAP_RESOLUTION_OPTIONS,
+    MQTT_PORT,
+    MQTT_USERNAME,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,6 +142,37 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
             errors=errors
         )
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return TerraMowOptionsFlow(config_entry)
+
+
+class TerraMowOptionsFlow(OptionsFlow):
+    """Handle TerraMow options."""
+
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current = self._config_entry.options.get(
+            CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_MAP_RESOLUTION,
+                    default=current,
+                ): vol.In(MAP_RESOLUTION_OPTIONS),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
+
     async def async_step_zeroconf(self, discovery_info):
         """Handle a flow initialized by zeroconf discovery."""
         host = getattr(discovery_info, "host", None)
@@ -226,67 +267,6 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=STEP_REAUTH_DATA_SCHEMA,
-            errors=errors,
-        )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> "OptionsFlowHandler":
-        """Return the options flow handler for this entry."""
-        return OptionsFlowHandler(config_entry)
-
-
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle an options flow for TerraMow."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize the options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ):
-        """Manage the TerraMow options (host/password)."""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            try:
-                await validate_input(self.hass, user_input)
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
-            except Exception:
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
-            else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry,
-                    data={**self.config_entry.data, **user_input},
-                )
-                await self.hass.config_entries.async_reload(
-                    self.config_entry.entry_id
-                )
-                return self.async_create_entry(title="", data={})
-
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_HOST,
-                    default=self.config_entry.data.get(CONF_HOST, ""),
-                ): str,
-                vol.Required(
-                    CONF_PASSWORD,
-                    default=self.config_entry.data.get(CONF_PASSWORD, ""),
-                ): str,
-            }
-        )
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=schema,
             errors=errors,
         )
 

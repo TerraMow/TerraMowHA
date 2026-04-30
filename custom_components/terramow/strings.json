@@ -29,23 +29,21 @@
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
     }
   },
   "options": {
     "step": {
       "init": {
+        "title": "TerraMow options",
         "data": {
-          "host": "[%key:common::config_flow::data::host%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "map_resolution": "Map output resolution (px)"
+        },
+        "data_description": {
+          "map_resolution": "Output side length of the map camera PNG. Higher values give a sharper image when embedded in dashboards but increase bandwidth and CPU on each render."
         }
       }
-    },
-    "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]"
     }
   },
   "entity": {
@@ -97,6 +95,9 @@
     "camera": {
       "map_camera": {
         "name": "Map"
+      },
+      "map_camera_clean": {
+        "name": "Map (Clean)"
       }
     },
     "binary_sensor": {

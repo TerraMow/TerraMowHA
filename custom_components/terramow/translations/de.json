@@ -37,15 +37,14 @@
     "options": {
         "step": {
             "init": {
+                "title": "TerraMow Optionen",
                 "data": {
-                    "host": "Host",
-                    "password": "Passwort"
+                    "map_resolution": "Karten-Ausgabeauflösung (px)"
+                },
+                "data_description": {
+                    "map_resolution": "Seitenlänge des Karten-PNGs. Höhere Werte ergeben ein schärferes Bild beim Einbetten in Dashboards, erhöhen aber Bandbreite und CPU-Last pro Render-Zyklus."
                 }
             }
-        },
-        "error": {
-            "cannot_connect": "Verbindung fehlgeschlagen",
-            "invalid_auth": "Ungültige Authentifizierung"
         }
     },
     "entity": {
@@ -185,6 +184,9 @@
         "camera": {
             "map_camera": {
                 "name": "Karte"
+            },
+            "map_camera_clean": {
+                "name": "Karte (Ohne UI)"
             }
         },
         "binary_sensor": {
