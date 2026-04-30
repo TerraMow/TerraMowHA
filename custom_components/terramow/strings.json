@@ -98,5 +98,17 @@
     "unknown": "Unknown",
     "no_regions_available": "No regions available",
     "all_regions": "All regions"
+  },
+  "services": {
+    "start_select_region": {
+      "name": "Start Select Region Mowing",
+      "description": "Start mowing for the specified sub-region IDs.",
+      "fields": {
+        "region_ids": {
+          "name": "Region IDs",
+          "description": "List of sub-region IDs to mow."
+        }
+      }
+    }
   }
 }

@@ -256,5 +256,17 @@
         "changing_mode": "Changing Mode",
         "active": "Active",
         "pending": "Pending Confirmation"
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Start Select Region Mowing",
+            "description": "Start mowing for the specified sub-region IDs.",
+            "fields": {
+                "region_ids": {
+                    "name": "Region IDs",
+                    "description": "List of sub-region IDs to mow."
+                }
+            }
+        }
     }
 }

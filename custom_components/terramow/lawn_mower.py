@@ -1318,6 +1318,22 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         }
         self.publish_data_point(103, command)
 
+    def start_select_region_clean(self, region_ids: list[int]):
+        """Start mowing for the specified sub-region IDs."""
+        if not region_ids:
+            _LOGGER.warning("start_select_region_clean called with empty region_ids")
+            return
+        if not self._can_accept_command():
+            _LOGGER.warning("Request too quick, skip start_select_region_clean command")
+            return
+        command = {
+            'seq': self.get_cmd_seq(),
+            'mode': 'START_MODE_SELECT_REGION_CLEAN',
+            'select_region': {'region_id': list(region_ids)}
+        }
+        _LOGGER.info("START SELECT REGION CLEAN: regions=%s", region_ids)
+        self.publish_data_point(103, command)
+
     def _start_edge_trim(self):
         """Start edge-trim mowing"""
         command = {
