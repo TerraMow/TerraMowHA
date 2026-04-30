@@ -100,6 +100,17 @@
                     "unavailable": "Unavailable",
                     "no_config": "No Configuration"
                 }
+            },
+            "back_to_station_reason": {
+                "name": "Back to Station Reason",
+                "state": {
+                    "BACK_TO_STATION_REASON_NONE": "None",
+                    "BACK_TO_STATION_REASON_LOW_BATTERY": "Low Battery",
+                    "BACK_TO_STATION_REASON_RAINING": "Raining",
+                    "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT": "Mowing Motor Overheating",
+                    "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "Drive Wheel Overheating",
+                    "BACK_TO_STATION_REASON_NIGHT_TIME": "Darkness"
+                }
             }
         },
         "camera": {
@@ -110,6 +121,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Charging State"
+            },
+            "problem": {
+                "name": "Problem"
+            },
+            "rain_detected": {
+                "name": "Rain Detected"
             }
         },
         "select": {
