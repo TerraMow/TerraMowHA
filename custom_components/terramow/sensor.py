@@ -288,6 +288,54 @@ class TotalMowingTimeSensor(SensorEntity):
         return statistics_data.get('duration')
 
 
+class TotalMowingJobsSensor(SensorEntity):
+    """Total mowing jobs sensor - uses dp_124 data"""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:counter"
+    _attr_native_unit_of_measurement = None
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "total_mowing_jobs"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.total_mowing_jobs"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the state of the sensor."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        statistics_data = self.basic_data.lawn_mower.statistics_data
+        if not statistics_data:
+            return None
+
+        return statistics_data.get('clean_times')
+
+
 class CurrentSessionAreaSensor(SensorEntity):
     """Current session mowing area sensor - uses dp_113 data"""
 
@@ -411,6 +459,65 @@ class CurrentSessionTimeSensor(SensorEntity):
             return None
 
         return current_work_data.get('work_duration')
+
+
+class CurrentJobTypeSensor(SensorEntity):
+    """Current job type sensor - uses dp_113 data"""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:format-list-bulleted-type"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [
+        "MAP_AREA_TYPE_NONE",
+        "MAP_AREA_TYPE_BUILD_MAP",
+        "MAP_AREA_TYPE_CLEANING",
+        "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING",
+        "MAP_AREA_TYPE_SELECT_REGION_CLEANING",
+        "MAP_AREA_TYPE_DRAW_REGION_CLEANING",
+        "MAP_AREA_TYPE_EDGE_TRIM_CLEANING",
+    ]
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "current_job_type"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for this entity."""
+        return f"lawn_mower.terramow@{self.host}.current_job_type"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the state of the sensor."""
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+
+        current_work_data = self.basic_data.lawn_mower.current_work_data
+        if not current_work_data:
+            return None
+
+        job_type = current_work_data.get('type')
+        if job_type in self._attr_options:
+            return job_type
+        return None
 
 
 class RemainingBladeTimeSensor(SensorEntity):
@@ -947,8 +1054,10 @@ async def async_setup_entry(
 
         # 统计和会话传感器
         TotalMowingTimeSensor(basic_data, hass),
+        TotalMowingJobsSensor(basic_data, hass),
         CurrentSessionAreaSensor(basic_data, hass),
         CurrentSessionTimeSensor(basic_data, hass),
+CurrentJobTypeSensor(basic_data, hass),
 
         # 维护提醒传感器
         RemainingBladeTimeSensor(basic_data, hass),

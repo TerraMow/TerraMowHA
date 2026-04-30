@@ -82,11 +82,26 @@
             "total_mowing_time": {
                 "name": "Total Mowing Time"
             },
+            "total_mowing_jobs": {
+                "name": "Total Mowing Jobs"
+            },
             "current_session_area": {
                 "name": "Current Session Area"
             },
             "current_session_time": {
                 "name": "Current Session Time"
+            },
+            "current_job_type": {
+                "name": "Current Job Type",
+                "state": {
+                    "MAP_AREA_TYPE_NONE": "None",
+                    "MAP_AREA_TYPE_BUILD_MAP": "Building Map",
+                    "MAP_AREA_TYPE_CLEANING": "Mowing",
+                    "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING": "Building Map and Mowing",
+                    "MAP_AREA_TYPE_SELECT_REGION_CLEANING": "Select Region Mowing",
+                    "MAP_AREA_TYPE_DRAW_REGION_CLEANING": "Draw Region Mowing",
+                    "MAP_AREA_TYPE_EDGE_TRIM_CLEANING": "Edge Trim Mowing"
+                }
             },
             "remaining_blade_time": {
                 "name": "Remaining Blade Time"
