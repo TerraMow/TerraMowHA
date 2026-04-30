@@ -105,7 +105,7 @@ async def async_setup_entry(
     """Set up the TerraMow entity."""
     # 从 hass.data 获取数据而不是 config_entry.runtime_data
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
-    
+
     # 创建实体
     entity = TerraMowLawnMowerEntity(basic_data, hass)
 
@@ -189,6 +189,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.mission = Mission.MISSION_IDLE
         self.sub_mission = SubMission.SUB_MISSION_IDLE
         self.mission_state = MissionState.MISSION_STATE_IDLE
+        self.has_error = False
+        self._is_robot_navi_located: bool | None = None
+        self._is_upgrading: bool | None = None
+        self._power_mode: str | None = None
 
         self.cmd_seq = random.randint(0, 0xFFFFFFFF)  # 生成随机的指令序号
 
@@ -201,7 +205,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
         _LOGGER.info("TerraMowLawnMowerEntity created with host %s", self.host)
         _LOGGER.debug("Initialization params: host=%s, password=%s", self.host, self.password)
-        _LOGGER.debug("Initial state: activity=%s, mission=%s, sub_mission=%s", 
+        _LOGGER.debug("Initial state: activity=%s, mission=%s, sub_mission=%s",
                      self._activity, self.mission, self.sub_mission)
 
 
@@ -285,7 +289,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Start the MQTT client in a separate thread."""
         _LOGGER.info("Starting MQTT client, connecting to %s:%d", self.host, MQTT_PORT)
         _LOGGER.debug("MQTT connection params: username=%s, password=%s", MQTT_USERNAME, self.password)
-        
+
         self.mqtt_client = mqtt_client.Client()
         self.mqtt_client.username_pw_set(MQTT_USERNAME, self.password)
         self.mqtt_client.on_connect = self.on_mqtt_connect
@@ -354,22 +358,22 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             old_params = self._global_params
             self._global_params = data
             _LOGGER.info("Global parameters updated: %s", data)
-            
+
             # 检查主方向模式是否有变化，通知模式选择器
             self._notify_mode_selector_if_changed(old_params, data)
-            
+
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_155: %s", payload)
-    
+
     def _notify_mode_selector_if_changed(self, old_params: dict, new_params: dict) -> None:
         """如果主方向模式有变化，通知模式选择器"""
         try:
             old_mode = old_params.get('main_direction_angle_config', {}).get('mode') if old_params else None
             new_mode = new_params.get('main_direction_angle_config', {}).get('mode')
-            
+
             if new_mode and old_mode != new_mode:
                 _LOGGER.debug("Main direction mode changed from %s to %s, notifying mode selector", old_mode, new_mode)
-                
+
                 # 通过Home Assistant事件通知模式选择器
                 self.hass.bus.fire(f"{DOMAIN}_device_mode_confirmed", {
                     "device_host": self.host,
@@ -377,7 +381,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                     "old_mode": old_mode,
                     "source": "device_feedback"
                 })
-                
+
         except Exception as e:
             _LOGGER.warning("Error notifying mode selector: %s", e)
 
@@ -474,6 +478,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             "back_to_station_reason": BackToStationReason
         }
 
+        # Capture raw fields before enum conversion mutates the dict
+        if "is_robot_navi_located" in data:
+            self._is_robot_navi_located = data.get("is_robot_navi_located")
+        if "is_upgrading" in data:
+            self._is_upgrading = data.get("is_upgrading")
+        if "power_mode" in data:
+            self._power_mode = data.get("power_mode")
+
         # Convert enum strings to enum members
         for key, enum_class in enum_mapping.items():
             if key in data:
@@ -569,14 +581,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 PATH_HISTORY_META_TOPIC,
                 POSE_TOPIC,
             )
-            
+
             # 订阅设备型号主题
             client.subscribe(MODEL_NAME_TOPIC)
             _LOGGER.info("Subscribed to %s topic", MODEL_NAME_TOPIC)
-            
+
             # 主动请求版本兼容性信息
             self._request_compatibility_info()
-            
+
             self.update_activity_from_state()
         else:
             _LOGGER.error(f"MQTT connection failed with code {rc}")
@@ -655,7 +667,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("Received map info message, size: %d bytes", len(payload))
             self._handle_map_info(payload)
             return
-        
+
         # 处理设备型号主题
         if topic == MODEL_NAME_TOPIC:
             _LOGGER.info("Received device model message: %s", payload)
@@ -1080,7 +1092,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         try:
             device_registry = dr.async_get(self.hass)
             device_identifier = ('TerraMowLawnMower', self.basic_data.host)
-            
+
             # 查找设备并更新模型信息
             device_entry = device_registry.async_get_device({device_identifier})
             if device_entry:
@@ -1103,10 +1115,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 old_model = self.device_model
                 self.device_model = model_name
                 _LOGGER.info("Device model updated: %s -> %s", old_model, model_name)
-                
+
                 # 使用 hass.add_job 调度异步设备注册表更新操作到主事件循环
                 self.hass.add_job(self._async_update_device_model, model_name)
-                
+
                 # 触发实体状态更新
                 self.schedule_update_ha_state()
             else:
@@ -1178,6 +1190,21 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def battery_status(self) -> dict:
         """Get current battery status from dp_108."""
         return self._battery_status
+
+    @property
+    def is_robot_navi_located(self) -> bool | None:
+        """Get whether the robot is navigation-located (from dp_107)."""
+        return self._is_robot_navi_located
+
+    @property
+    def is_upgrading(self) -> bool | None:
+        """Get whether the robot is upgrading firmware (from dp_107)."""
+        return self._is_upgrading
+
+    @property
+    def power_mode(self) -> str | None:
+        """Get current power mode from dp_107."""
+        return self._power_mode
 
     @property
     def task_status(self) -> dict:

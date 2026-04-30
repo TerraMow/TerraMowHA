@@ -117,6 +117,14 @@
                     "no_config": "无配置"
                 }
             },
+            "power_mode": {
+                "name": "电源模式",
+                "state": {
+                    "POWER_MODE_RUNNING": "运行中",
+                    "POWER_MODE_STANDBY": "待机",
+                    "POWER_MODE_HIBERNATE": "休眠"
+                }
+            },
             "back_to_station_reason": {
                 "name": "回基站原因",
                 "state": {
@@ -137,6 +145,12 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "充电状态"
+            },
+            "navigation_located": {
+                "name": "导航定位"
+            },
+            "firmware_upgrading": {
+                "name": "固件升级中"
             },
             "power_switch": {
                 "name": "电源开关"
