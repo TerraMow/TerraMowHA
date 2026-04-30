@@ -1,6 +1,5 @@
 from __future__ import annotations
 import logging
-import json
 from typing import Any
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

@@ -4,7 +4,6 @@
         "abort": {
             "already_configured": "Das Gerät ist bereits konfiguriert",
             "cannot_connect": "Verbindung fehlgeschlagen",
-            "already_configured": "Das Gerät ist bereits konfiguriert",
             "reauth_successful": "Erneute Authentifizierung war erfolgreich"
         },
         "error": {
@@ -215,9 +214,7 @@
             },
             "reset_base_station_timer": {
                 "name": "Basisstation-Zähler zurücksetzen"
-            }
-        },
-        "button": {
+            },
             "edge_trim": {
                 "name": "Kantenschnitt"
             }

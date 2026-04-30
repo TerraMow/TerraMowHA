@@ -4,7 +4,6 @@
         "abort": {
             "already_configured": "Device is already configured",
             "cannot_connect": "Failed to connect",
-            "already_configured": "Device is already configured",
             "reauth_successful": "Re-authentication was successful"
         },
         "error": {
@@ -215,9 +214,7 @@
             },
             "reset_base_station_timer": {
                 "name": "Reset Base Station Timer"
-            }
-        },
-        "button": {
+            },
             "edge_trim": {
                 "name": "Edge Trim"
             }

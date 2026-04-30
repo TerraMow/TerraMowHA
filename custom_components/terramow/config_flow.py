@@ -14,7 +14,6 @@ from homeassistant.config_entries import (
     ConfigFlow as BaseConfigFlow,
     OptionsFlow,
 )
-# 移除 ConfigFlowResult 导入
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
@@ -113,7 +112,7 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ):  # 移除返回值类型注解
+    ):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -141,37 +140,6 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
             data_schema=STEP_USER_DATA_SCHEMA,
             errors=errors
         )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return TerraMowOptionsFlow(config_entry)
-
-
-class TerraMowOptionsFlow(OptionsFlow):
-    """Handle TerraMow options."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self._config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ):
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        current = self._config_entry.options.get(
-            CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
-        )
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_MAP_RESOLUTION,
-                    default=current,
-                ): vol.In(MAP_RESOLUTION_OPTIONS),
-            }
-        )
-        return self.async_show_form(step_id="init", data_schema=schema)
 
     async def async_step_zeroconf(self, discovery_info):
         """Handle a flow initialized by zeroconf discovery."""
@@ -269,6 +237,37 @@ class TerraMowOptionsFlow(OptionsFlow):
             data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return TerraMowOptionsFlow(config_entry)
+
+
+class TerraMowOptionsFlow(OptionsFlow):
+    """Handle TerraMow options."""
+
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current = self._config_entry.options.get(
+            CONF_MAP_RESOLUTION, DEFAULT_MAP_RESOLUTION
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_MAP_RESOLUTION,
+                    default=current,
+                ): vol.In(MAP_RESOLUTION_OPTIONS),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
 
 
 class CannotConnect(HomeAssistantError):

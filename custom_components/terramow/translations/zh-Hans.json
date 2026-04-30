@@ -4,7 +4,6 @@
         "abort": {
             "already_configured": "设备已配置",
             "cannot_connect": "连接失败",
-            "already_configured": "设备已配置",
             "reauth_successful": "重新认证成功"
         },
         "error": {
@@ -215,9 +214,7 @@
             },
             "reset_base_station_timer": {
                 "name": "重置基站计时"
-            }
-        },
-        "button": {
+            },
             "edge_trim": {
                 "name": "沿边修剪"
             }

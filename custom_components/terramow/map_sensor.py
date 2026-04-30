@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 from . import TerraMowBasicData, DOMAIN
-# 移除硬编码的映射，使用翻译系统
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

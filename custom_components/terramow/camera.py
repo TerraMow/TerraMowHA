@@ -784,7 +784,6 @@ def _render_placeholder(text: str = "Waiting for map data...") -> bytes:
     title_w = title_box[2] - title_box[0]
     title_h = title_box[3] - title_box[1]
     text_w = text_box[2] - text_box[0]
-    text_h = text_box[3] - text_box[1]
     center_x = IMAGE_WIDTH / 2
     center_y = IMAGE_HEIGHT / 2
     draw.text(

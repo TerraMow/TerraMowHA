@@ -1,6 +1,5 @@
 from __future__ import annotations
 import logging
-import json
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,

@@ -56,6 +56,22 @@
       "battery": {
         "name": "Battery"
       },
+      "battery_state": {
+        "name": "Battery State",
+        "state": {
+          "BATTERY_STATE_DISCHARGE": "Discharging",
+          "BATTERY_STATE_CHARGING": "Charging",
+          "BATTERY_STATE_CHARGED": "Fully Charged"
+        }
+      },
+      "battery_temperature_state": {
+        "name": "Battery Temperature State",
+        "state": {
+          "BATTERY_TEMPRETURE_NORMAL": "Normal",
+          "BATTERY_TEMPRETURE_OVERHEAT": "Overheat",
+          "BATTERY_TEMPRETURE_UNDERHEAT": "Underheat"
+        }
+      },
       "map_status": {
         "name": "Map Status",
         "state": {
@@ -90,6 +106,78 @@
       },
       "pose": {
         "name": "Pose"
+      },
+      "total_mowing_time": {
+        "name": "Total Mowing Time"
+      },
+      "total_mowing_jobs": {
+        "name": "Total Mowing Jobs"
+      },
+      "current_session_area": {
+        "name": "Current Session Area"
+      },
+      "current_session_time": {
+        "name": "Current Session Time"
+      },
+      "current_job_type": {
+        "name": "Current Job Type",
+        "state": {
+          "MAP_AREA_TYPE_NONE": "None",
+          "MAP_AREA_TYPE_BUILD_MAP": "Building Map",
+          "MAP_AREA_TYPE_CLEANING": "Mowing",
+          "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING": "Building Map and Mowing",
+          "MAP_AREA_TYPE_SELECT_REGION_CLEANING": "Select Region Mowing",
+          "MAP_AREA_TYPE_DRAW_REGION_CLEANING": "Draw Region Mowing",
+          "MAP_AREA_TYPE_EDGE_TRIM_CLEANING": "Edge Trim Mowing"
+        }
+      },
+      "remaining_blade_time": {
+        "name": "Remaining Blade Time"
+      },
+      "remaining_base_station_time": {
+        "name": "Remaining Base Station Time"
+      },
+      "next_scheduled_start": {
+        "name": "Next Scheduled Start"
+      },
+      "version_compatibility": {
+        "name": "Version Compatibility",
+        "state": {
+          "compatible": "Compatible",
+          "upgrade_required": "Upgrade Required",
+          "downgrade_recommended": "Downgrade Recommended",
+          "incompatible": "Incompatible",
+          "unknown": "Unknown"
+        }
+      },
+      "main_direction_status": {
+        "name": "Main Direction Status",
+        "state": {
+          "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+          "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
+          "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction",
+          "unavailable": "Unavailable",
+          "no_config": "No Configuration"
+        }
+      },
+      "power_mode": {
+        "name": "Power Mode",
+        "state": {
+          "POWER_MODE_RUNNING": "Running",
+          "POWER_MODE_STANDBY": "Standby",
+          "POWER_MODE_HIBERNATE": "Hibernate"
+        }
+      },
+      "back_to_station_reason": {
+        "name": "Back to Station Reason",
+        "state": {
+          "BACK_TO_STATION_REASON_NONE": "None",
+          "BACK_TO_STATION_REASON_LOW_BATTERY": "Low Battery",
+          "BACK_TO_STATION_REASON_RAINING": "Raining",
+          "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT": "Mowing Motor Overheating",
+          "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "Drive Wheel Overheating",
+          "BACK_TO_STATION_REASON_NIGHT_TIME": "Darkness"
+        }
       }
     },
     "camera": {
@@ -103,16 +191,37 @@
     "binary_sensor": {
       "charging_state": {
         "name": "Charging State"
+      },
+      "navigation_located": {
+        "name": "Navigation Located"
+      },
+      "firmware_upgrading": {
+        "name": "Firmware Upgrading"
+      },
+      "power_switch": {
+        "name": "Power Switch"
+      },
+      "problem": {
+        "name": "Problem"
+      },
+      "rain_detected": {
+        "name": "Rain Detected"
       }
     },
     "button": {
+      "reset_blade_timer": {
+        "name": "Reset Blade Timer"
+      },
+      "reset_base_station_timer": {
+        "name": "Reset Base Station Timer"
+      },
       "edge_trim": {
         "name": "Edge Trim"
       }
     },
     "select": {
       "region_select": {
-        "name": "Region Select"
+        "name": "Zone Select"
       },
       "mow_speed_setting": {
         "name": "Mow Speed Setting",
@@ -121,6 +230,27 @@
           "MOW_SPEED_TYPE_MEDIUM": "Medium Speed",
           "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High Speed",
           "MOW_SPEED_TYPE_AUTO": "Auto Speed"
+        }
+      },
+      "blade_speed": {
+        "name": "Blade Speed Setting",
+        "state": {
+          "BLADE_DISK_SPEED_TYPE_LOW": "Low Speed",
+          "BLADE_DISK_SPEED_TYPE_MEDIUM": "Medium Speed",
+          "BLADE_DISK_SPEED_TYPE_HIGH": "High Speed"
+        }
+      },
+      "main_direction_mode": {
+        "name": "Main Direction Mode",
+        "state": {
+          "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+          "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
+          "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
+        },
+        "options": {
+          "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
+          "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
+          "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
         }
       },
       "high_grass_edge_trim_mode": {
@@ -139,12 +269,43 @@
       "thorough_corner_cutting": {
         "name": "Thorough Corner Cutting"
       }
+    },
+    "number": {
+      "mowing_height": {
+        "name": "Mowing Height Setting"
+      },
+      "edge_cutting_distance": {
+        "name": "Edge Cutting Distance"
+      },
+      "mowing_spacing": {
+        "name": "Mowing Spacing Setting"
+      },
+      "main_direction_single_angle": {
+        "name": "Single Direction Angle"
+      },
+      "main_direction_auto_rotate_interval": {
+        "name": "Auto Rotate Angle Interval"
+      },
+      "multiple_direction_angle1": {
+        "name": "First Direction Angle"
+      },
+      "multiple_direction_angle2": {
+        "name": "Second Direction Angle"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
     }
   },
   "state": {
     "unknown": "Unknown",
-    "no_regions_available": "No regions available",
-    "all_regions": "All regions"
+    "no_zones_available": "No zones available",
+    "all_zones": "All zones",
+    "changing_mode": "Changing Mode",
+    "active": "Active",
+    "pending": "Pending Confirmation"
   },
   "services": {
     "start_select_region": {
