@@ -14,5 +14,12 @@
   "loggers": ["paho.mqtt"],
   "quality_scale": "bronze",
   "requirements": ["paho-mqtt>=1.6.1", "Pillow>=9.0.0"],
+  "homeassistant": "2023.9.3",
+  "zeroconf": [
+    {
+      "type": "_mqtt._tcp.local.",
+      "name": "terramow*"
+    }
+  ]
   "version": "0.4.0"
 }

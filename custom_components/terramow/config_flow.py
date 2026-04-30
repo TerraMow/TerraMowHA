@@ -27,6 +27,12 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     }
 )
 
+STEP_USER_PASS_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
+
 STEP_REAUTH_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PASSWORD): str,
@@ -91,6 +97,10 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self._discovered_host: str | None = None
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ):  # 移除返回值类型注解
@@ -120,6 +130,63 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=STEP_USER_DATA_SCHEMA,
             errors=errors
+        )
+
+    async def async_step_zeroconf(self, discovery_info):
+        """Handle a flow initialized by zeroconf discovery."""
+        host = getattr(discovery_info, "host", None)
+        if host is None and isinstance(discovery_info, dict):
+            host = discovery_info.get("host")
+        if not host:
+            return self.async_abort(reason="cannot_connect")
+
+        _LOGGER.info("Zeroconf discovered TerraMow at %s", host)
+
+        await self.async_set_unique_id(host)
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host})
+
+        self._discovered_host = host
+        self.context["title_placeholders"] = {"host": host}
+
+        return await self.async_step_user_pass()
+
+    async def async_step_user_pass(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Ask the user for the password after zeroconf discovery."""
+        errors: dict[str, str] = {}
+
+        if self._discovered_host is None:
+            return await self.async_step_user(user_input)
+
+        if user_input is not None:
+            data = {
+                CONF_HOST: self._discovered_host,
+                CONF_PASSWORD: user_input[CONF_PASSWORD],
+            }
+            try:
+                info = await validate_input(self.hass, data)
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except InvalidAuth:
+                errors["base"] = "invalid_auth"
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+            else:
+                _LOGGER.info(
+                    'Setting up discovered host "%s"', self._discovered_host
+                )
+                return self.async_create_entry(
+                    title=info["title"],
+                    data=data,
+                )
+
+        return self.async_show_form(
+            step_id="user_pass",
+            data_schema=STEP_USER_PASS_DATA_SCHEMA,
+            description_placeholders={"host": self._discovered_host},
+            errors=errors,
         )
 
     async def async_step_reauth(self, entry_data: dict[str, Any]):
