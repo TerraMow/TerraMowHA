@@ -223,6 +223,22 @@
                     "MAIN_DIRECTION_MODE_MULTIPLE": "Doppelt",
                     "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Automatisch drehend"
                 }
+            },
+            "high_grass_edge_trim_mode": {
+                "name": "Kantenmodus bei hohem Gras",
+                "state": {
+                    "HIGH_GRASS_EDGE_TRIM_STANDARD": "Standard",
+                    "HIGH_GRASS_EDGE_TRIM_INTENSIVE": "Intensiv"
+                },
+                "options": {
+                    "HIGH_GRASS_EDGE_TRIM_STANDARD": "Standard",
+                    "HIGH_GRASS_EDGE_TRIM_INTENSIVE": "Intensiv"
+                }
+            }
+        },
+        "switch": {
+            "thorough_corner_cutting": {
+                "name": "Gründliches Eckenmähen"
             }
         },
         "number": {

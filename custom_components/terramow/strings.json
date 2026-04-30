@@ -91,6 +91,22 @@
           "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High Speed",
           "MOW_SPEED_TYPE_AUTO": "Auto Speed"
         }
+      },
+      "high_grass_edge_trim_mode": {
+        "name": "High Grass Edge Trim Mode",
+        "state": {
+          "HIGH_GRASS_EDGE_TRIM_STANDARD": "Standard",
+          "HIGH_GRASS_EDGE_TRIM_INTENSIVE": "Intensive"
+        },
+        "options": {
+          "HIGH_GRASS_EDGE_TRIM_STANDARD": "Standard",
+          "HIGH_GRASS_EDGE_TRIM_INTENSIVE": "Intensive"
+        }
+      }
+    },
+    "switch": {
+      "thorough_corner_cutting": {
+        "name": "Thorough Corner Cutting"
       }
     }
   },

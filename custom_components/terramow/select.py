@@ -36,8 +36,9 @@ async def async_setup_entry(
         MowSpeedSelect(basic_data, hass),
         BladeSpeedSelect(basic_data, hass),
         MainDirectionModeSelect(basic_data, hass),
+        HighGrassEdgeTrimModeSelect(basic_data, hass),
     ]
-    
+
     async_add_entities(entities)
 
 class TerraMowZoneSelect(SelectEntity):
@@ -755,5 +756,92 @@ class MainDirectionModeSelect(SelectEntity):
                 elif mode == 'MAIN_DIRECTION_MODE_AUTO_ROTATE':
                     auto_config = main_direction_config.get('auto_rotate_mode_config', {})
                     attrs['auto_rotate_interval'] = auto_config.get('angle_interval', 15)
-        
+
         return attrs
+
+
+class HighGrassEdgeTrimModeSelect(SelectEntity):
+    """High grass edge trim mode selector — published via dp_155.
+
+    Note: high_grass_edge_trim_mode is reported under map_info["mow_param"],
+    but the documented data point for global operation parameter writes is
+    dp_155. Until a dedicated DP for the mow_param fields is documented,
+    we publish the selection to dp_155 with the matching sub-dict — adjust
+    if firmware exposes a different DP.
+    """
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:grass"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_translation_key = "high_grass_edge_trim_mode"
+
+    _attr_options = [
+        "HIGH_GRASS_EDGE_TRIM_STANDARD",
+        "HIGH_GRASS_EDGE_TRIM_INTENSIVE",
+    ]
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.host}.high_grass_edge_trim_mode"
+
+    def _get_mow_param(self) -> dict[str, Any] | None:
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            return None
+        map_info = self.basic_data.lawn_mower.map_info
+        if not map_info:
+            return None
+        mow_param = map_info.get('mow_param')
+        if not isinstance(mow_param, dict):
+            return None
+        return mow_param
+
+    @property
+    def current_option(self) -> str | None:
+        mow_param = self._get_mow_param()
+        if mow_param is None:
+            return None
+        trim_cfg = mow_param.get('high_grass_edge_trim_mode')
+        if not isinstance(trim_cfg, dict):
+            return None
+        mode = trim_cfg.get('mode')
+        if mode in self._attr_options:
+            return mode
+        return None
+
+    async def async_select_option(self, option: str) -> None:
+        if option not in self._attr_options:
+            _LOGGER.error("Invalid high grass edge trim mode option: %s", option)
+            return
+
+        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+            _LOGGER.error("Lawn mower not available")
+            return
+
+        command = {
+            'high_grass_edge_trim_mode': {
+                'mode': option,
+            }
+        }
+
+        _LOGGER.info("Setting high grass edge trim mode to %s", option)
+        self.basic_data.lawn_mower.publish_data_point(155, command)
+        self.async_write_ha_state()

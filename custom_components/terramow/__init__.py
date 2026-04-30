@@ -40,7 +40,7 @@ START_SELECT_REGION_SCHEMA = vol.Schema(
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.LAWN_MOWER, Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.NUMBER, Platform.CAMERA, Platform.BUTTON]
+PLATFORMS: list[Platform] = [Platform.LAWN_MOWER, Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.NUMBER, Platform.CAMERA, Platform.BUTTON, Platform.SWITCH]
 
 @dataclass
 class TerraMowBasicData:
@@ -50,19 +50,19 @@ class TerraMowBasicData:
     compatibility_status: str = CompatibilityStatus.COMPATIBLE
     firmware_version: Optional[dict] = None
     compatibility_reason: str = ""  # Store the specific reason for compatibility check failure
-    
+
     def check_version_compatibility(self, compatibility_info: dict) -> str:
         """Check version compatibility and return status."""
         try:
             overall_version = compatibility_info.get("overall", 0)
             module_info = compatibility_info.get("module", {})
             ha_version = module_info.get("home_assistant", 0)
-            
+
             _LOGGER.info(
                 "Version compatibility check: firmware overall=%d, firmware HA version=%d, plugin HA version=%d",
                 overall_version, ha_version, CURRENT_HA_VERSION
             )
-            
+
             # Check if firmware meets minimum requirements
             if overall_version < MIN_REQUIRED_OVERALL_VERSION:
                 _LOGGER.warning(
@@ -71,7 +71,7 @@ class TerraMowBasicData:
                 )
                 self.compatibility_reason = f"overall_version_low:{overall_version}"
                 return CompatibilityStatus.UPGRADE_REQUIRED
-            
+
             # Check HA version compatibility
             if ha_version < CURRENT_HA_VERSION:
                 _LOGGER.warning(
@@ -87,15 +87,15 @@ class TerraMowBasicData:
                 )
                 self.compatibility_reason = f"ha_version_high:{ha_version}"
                 return CompatibilityStatus.DOWNGRADE_RECOMMENDED
-            
+
             _LOGGER.info("Version compatibility check passed")
             self.compatibility_reason = ""  # Clear the reason for failure
             return CompatibilityStatus.COMPATIBLE
-            
+
         except Exception as e:
             _LOGGER.error("Version compatibility check failed: %s", e)
             return CompatibilityStatus.INCOMPATIBLE
-    
+
     def get_compatibility_message(self) -> str:
         """Get user-friendly compatibility status message."""
         if self.compatibility_status == CompatibilityStatus.COMPATIBLE:
