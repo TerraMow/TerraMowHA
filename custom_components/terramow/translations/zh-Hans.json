@@ -185,6 +185,11 @@
                 "name": "重置基站计时"
             }
         },
+        "button": {
+            "edge_trim": {
+                "name": "沿边修剪"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "分区选择"

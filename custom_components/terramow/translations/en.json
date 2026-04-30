@@ -185,6 +185,11 @@
                 "name": "Reset Base Station Timer"
             }
         },
+        "button": {
+            "edge_trim": {
+                "name": "Edge Trim"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "Zone Select"

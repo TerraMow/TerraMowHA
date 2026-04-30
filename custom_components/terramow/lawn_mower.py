@@ -1318,6 +1318,23 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         }
         self.publish_data_point(103, command)
 
+    def _start_edge_trim(self):
+        """Start edge-trim mowing"""
+        command = {
+            'seq': self.get_cmd_seq(),
+            'mode': 'START_MODE_EDGE_TRIM_CLEAN'
+        }
+        self.publish_data_point(103, command)
+
+    def start_edge_trim(self):
+        """Public wrapper to start edge-trim mowing."""
+        if not self._can_accept_command():
+            logging.warning("Request too quick, skip start edge trim command")
+            return
+
+        _LOGGER.info("START EDGE TRIM : Sending edge trim command")
+        self._start_edge_trim()
+
     def _resume_mow(self):
         """Resume mowing"""
         command = {'seq': self.get_cmd_seq()}

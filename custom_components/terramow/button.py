@@ -20,6 +20,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the TerraMow button entities."""
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
+    async_add_entities([EdgeTrimButton(basic_data)])
 
     entities = [
         ResetBladeTimerButton(basic_data, hass),
@@ -28,7 +29,6 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
-
 class TerraMowResetButtonBase(ButtonEntity):
     """Base class for TerraMow reset buttons."""
 
@@ -36,9 +36,9 @@ class TerraMowResetButtonBase(ButtonEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
-        self,
-        basic_data: TerraMowBasicData,
-        hass: HomeAssistant,
+            self,
+            basic_data: TerraMowBasicData,
+            hass: HomeAssistant,
     ) -> None:
         super().__init__()
         self.basic_data = basic_data
@@ -76,7 +76,6 @@ class ResetBladeTimerButton(TerraMowResetButtonBase):
         _LOGGER.info("Resetting blade timer")
         self.basic_data.lawn_mower.publish_data_point(126, {"int_value": 0})
 
-
 class ResetBaseStationTimerButton(TerraMowResetButtonBase):
     """Button to reset the base station usage time."""
 
@@ -91,3 +90,33 @@ class ResetBaseStationTimerButton(TerraMowResetButtonBase):
         """Reset the base station timer by sending 0 to dp_125."""
         _LOGGER.info("Resetting base station timer")
         self.basic_data.lawn_mower.publish_data_point(125, {"int_value": 0})
+
+class EdgeTrimButton(ButtonEntity):
+    """Button that starts the TerraMow in edge-trim mode."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "edge_trim"
+    _attr_icon = "mdi:vector-square"
+
+    def __init__(self, basic_data: TerraMowBasicData) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model,
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.host}.edge_trim"
+
+    async def async_press(self) -> None:
+        """Trigger edge-trim mowing."""
+        self.basic_data.lawn_mower.start_edge_trim()
