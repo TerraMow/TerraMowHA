@@ -951,6 +951,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Handle path meta message and fetch path data via HTTP."""
         seq = self._get_meta_seq(meta, "path")
 
+        # When a new mowing session starts, the device republishes path meta
+        # with seq counted from 0 again. Without this reset, the new meta is
+        # discarded by the seq <= _path_seq guard and the path stays hidden
+        # until the integration is reloaded. Treat a backward seq as a reset.
+        if seq != -1 and self._path_seq != -1 and seq < self._path_seq:
+            _LOGGER.info(
+                "Path seq went backward (%d -> %d); treating as new session",
+                self._path_seq, seq,
+            )
+            self._path_seq = -1
+            self._path_etag = None
         if seq != -1 and seq <= self._path_seq:
             return
         if seq != -1 and seq > self._path_seq:
@@ -997,6 +1008,16 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Handle history path meta message and fetch history path data via HTTP."""
         seq = self._get_meta_seq(meta, "history path")
 
+        # Same session-reset handling as _async_handle_path_meta: a new mowing
+        # session republishes meta with a seq starting from 0, which would
+        # otherwise be dropped by the seq guard.
+        if seq != -1 and self._history_path_seq != -1 and seq < self._history_path_seq:
+            _LOGGER.info(
+                "History path seq went backward (%d -> %d); treating as new session",
+                self._history_path_seq, seq,
+            )
+            self._history_path_seq = -1
+            self._history_path_etag = None
         if seq != -1 and seq <= self._history_path_seq:
             return
         if seq != -1 and seq > self._history_path_seq:
