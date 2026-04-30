@@ -129,6 +129,14 @@
                 "name": "Regen erkannt"
             }
         },
+        "button": {
+            "reset_blade_timer": {
+                "name": "Klingen-Zähler zurücksetzen"
+            },
+            "reset_base_station_timer": {
+                "name": "Basisstation-Zähler zurücksetzen"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "Zonenauswahl"

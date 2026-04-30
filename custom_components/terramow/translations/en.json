@@ -129,6 +129,14 @@
                 "name": "Rain Detected"
             }
         },
+        "button": {
+            "reset_blade_timer": {
+                "name": "Reset Blade Timer"
+            },
+            "reset_base_station_timer": {
+                "name": "Reset Base Station Timer"
+            }
+        },
         "select": {
             "region_select": {
                 "name": "Zone Select"
