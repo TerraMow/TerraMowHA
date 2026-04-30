@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Das Gerät ist bereits konfiguriert"
+            "already_configured": "Das Gerät ist bereits konfiguriert",
+            "reauth_successful": "Erneute Authentifizierung war erfolgreich"
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
@@ -15,7 +16,26 @@
                     "password": "Passwort",
                     "username": "Benutzername"
                 }
+            },
+            "reauth_confirm": {
+                "data": {
+                    "password": "Passwort"
+                }
             }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Host",
+                    "password": "Passwort"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Verbindung fehlgeschlagen",
+            "invalid_auth": "Ungültige Authentifizierung"
         }
     },
     "entity": {

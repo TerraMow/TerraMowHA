@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "设备已配置"
+            "already_configured": "设备已配置",
+            "reauth_successful": "重新认证成功"
         },
         "error": {
             "cannot_connect": "连接失败",
@@ -15,7 +16,26 @@
                     "password": "密码",
                     "username": "用户名"
                 }
+            },
+            "reauth_confirm": {
+                "data": {
+                    "password": "密码"
+                }
             }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "host": "主机",
+                    "password": "密码"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "连接失败",
+            "invalid_auth": "认证失败"
         }
     },
     "entity": {

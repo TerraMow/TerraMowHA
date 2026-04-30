@@ -17,8 +17,10 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv, device_registry as dr, entity_registry as er
 
+from .config_flow import CannotConnect, InvalidAuth, validate_input
 from .const import (
     DOMAIN,
     CURRENT_HA_VERSION,
@@ -147,6 +149,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _LOGGER.info("Setting up TerraMow with host %s", host)
     _LOGGER.debug("TerraMow entry data: %s", dict(entry.data))
+
+    # Verify the broker accepts our credentials before bringing up platforms.
+    # An InvalidAuth error triggers the reauth flow; a connection failure
+    # asks Home Assistant to retry setup later.
+    try:
+        await validate_input(hass, {CONF_HOST: host, CONF_PASSWORD: password})
+    except InvalidAuth as err:
+        raise ConfigEntryAuthFailed("Invalid TerraMow credentials") from err
+    except CannotConnect as err:
+        raise ConfigEntryNotReady(
+            f"Unable to connect to TerraMow at {host}"
+        ) from err
 
     basic_data = TerraMowBasicData(host=host, password=password)
 
