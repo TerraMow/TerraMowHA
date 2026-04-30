@@ -42,7 +42,7 @@ START_SELECT_REGION_SCHEMA = vol.Schema(
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.LAWN_MOWER, Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.NUMBER, Platform.CAMERA, Platform.BUTTON, Platform.SWITCH]
+PLATFORMS: list[Platform] = [Platform.LAWN_MOWER, Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.NUMBER, Platform.CAMERA, Platform.UPDATE, Platform.BUTTON, Platform.SWITCH]
 
 @dataclass
 class TerraMowBasicData:

@@ -283,6 +283,11 @@
             "multiple_direction_angle2": {
                 "name": "第二主方向角度"
             }
+        },
+        "update": {
+            "firmware": {
+                "name": "固件"
+            }
         }
     },
     "state": {
