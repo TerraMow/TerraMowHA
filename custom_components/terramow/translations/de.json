@@ -110,6 +110,15 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Ladestatus"
+            },
+            "map_detected": {
+                "name": "Karte erkannt"
+            },
+            "map_buildable": {
+                "name": "Karte kann erstellt werden"
+            },
+            "map_backing_up": {
+                "name": "Karte wird gesichert"
             }
         },
         "select": {

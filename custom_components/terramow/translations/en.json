@@ -110,6 +110,15 @@
         "binary_sensor": {
             "charging_state": {
                 "name": "Charging State"
+            },
+            "map_detected": {
+                "name": "Map Detected"
+            },
+            "map_buildable": {
+                "name": "Map Buildable"
+            },
+            "map_backing_up": {
+                "name": "Map Backing Up"
             }
         },
         "select": {
