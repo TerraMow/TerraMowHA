@@ -13,6 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import TerraMowBasicData, DOMAIN
+from .const import COMPATIBILITY_INFO_DP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,6 +52,18 @@ class TerraMowFirmwareUpdate(UpdateEntity):
         self.host = self.basic_data.host
         self.hass = hass
         _LOGGER.info("TerraMowFirmwareUpdate entity created")
+
+    async def async_added_to_hass(self) -> None:
+        """Register callback for compatibility info updates once added to HA."""
+        await super().async_added_to_hass()
+        if self.basic_data.lawn_mower:
+            self.basic_data.lawn_mower.register_callback(
+                COMPATIBILITY_INFO_DP, self._on_compatibility_info
+            )
+
+    async def _on_compatibility_info(self, _payload: str) -> None:
+        """Refresh entity state when firmware compatibility info arrives."""
+        self.async_write_ha_state()
 
     @property
     def device_info(self) -> DeviceInfo:
