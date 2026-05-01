@@ -116,6 +116,9 @@
             "current_session_area": {
                 "name": "Fläche der aktuellen Sitzung"
             },
+            "current_session_progress": {
+                "name": "Fortschritt der aktuellen Sitzung"
+            },
             "current_session_time": {
                 "name": "Dauer der aktuellen Sitzung"
             },

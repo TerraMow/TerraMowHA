@@ -116,6 +116,9 @@
             "current_session_area": {
                 "name": "Current Session Area"
             },
+            "current_session_progress": {
+                "name": "Current Session Progress"
+            },
             "current_session_time": {
                 "name": "Current Session Time"
             },

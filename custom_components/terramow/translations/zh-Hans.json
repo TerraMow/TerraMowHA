@@ -116,6 +116,9 @@
             "current_session_area": {
                 "name": "当前会话面积"
             },
+            "current_session_progress": {
+                "name": "当前会话进度"
+            },
             "current_session_time": {
                 "name": "当前会话时间"
             },
