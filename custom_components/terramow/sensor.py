@@ -30,6 +30,7 @@ from .const import (
     BASE_STATION_MAINTENANCE_CYCLE_MINUTES,
     MOW_SPEED_TYPES,
 )
+from .lawn_mower import Mission, SubMission, MissionState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1077,6 +1078,9 @@ CurrentJobTypeSensor(basic_data, hass),
 
         # 任务状态相关 (dp_107)
         BackToStationReasonSensor(basic_data, hass),
+        TerraMowMissionSensor(basic_data, hass),
+        TerraMowSubMissionSensor(basic_data, hass),
+        TerraMowMissionStateSensor(basic_data, hass),
     ]
 
     async_add_entities(entities)
@@ -1304,3 +1308,89 @@ class BackToStationReasonSensor(SensorEntity):
     def available(self):
         """Return True if entity is available."""
         return self.basic_data.lawn_mower is not None
+
+
+class _MissionEnumSensorBase(SensorEntity):
+    """Shared base for the dp_107 mission/sub_mission/state enum sensors."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    _enum_attr: str = ""
+    _unique_suffix: str = ""
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self.basic_data.lawn_mower:
+            self.basic_data.lawn_mower.register_callback(107, self._handle_dp_107)
+
+    async def _handle_dp_107(self, _payload: str) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model,
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.host}.{self._unique_suffix}"
+
+    @property
+    def available(self) -> bool:
+        return self.basic_data.lawn_mower is not None
+
+    @property
+    def native_value(self) -> str | None:
+        if not self.basic_data.lawn_mower:
+            return None
+        member = getattr(self.basic_data.lawn_mower, self._enum_attr, None)
+        if member is None:
+            return None
+        value = member.value if hasattr(member, "value") else str(member)
+        return value if value in self._attr_options else None
+
+
+class TerraMowMissionSensor(_MissionEnumSensorBase):
+    """Current top-level mission (dp_107)."""
+
+    _attr_icon = "mdi:robot-mower-outline"
+    _attr_translation_key = "mission"
+    _attr_options = [member.value for member in Mission]
+    _enum_attr = "mission"
+    _unique_suffix = "mission"
+
+
+class TerraMowSubMissionSensor(_MissionEnumSensorBase):
+    """Current sub-mission (dp_107) — surfaces transient states like waiting for rain."""
+
+    _attr_icon = "mdi:list-status"
+    _attr_translation_key = "sub_mission"
+    _attr_options = [member.value for member in SubMission]
+    _enum_attr = "sub_mission"
+    _unique_suffix = "sub_mission"
+
+
+class TerraMowMissionStateSensor(_MissionEnumSensorBase):
+    """Mission lifecycle state (dp_107): idle / running / paused / abort / complete."""
+
+    _attr_icon = "mdi:state-machine"
+    _attr_translation_key = "mission_state"
+    _attr_options = [member.value for member in MissionState]
+    _enum_attr = "mission_state"
+    _unique_suffix = "mission_state"

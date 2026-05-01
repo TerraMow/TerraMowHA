@@ -178,6 +178,60 @@
                     "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "Antriebsmotor überhitzt",
                     "BACK_TO_STATION_REASON_NIGHT_TIME": "Dunkelheit"
                 }
+            },
+            "mission": {
+                "name": "Auftrag",
+                "state": {
+                    "MISSION_IDLE": "Bereit",
+                    "MISSION_RECHARGE": "Lädt",
+                    "MISSION_GLOBAL_CLEAN": "Komplettmähen",
+                    "MISSION_BUILD_MAP": "Karte erstellen",
+                    "MISSION_BUILD_MAP_AND_CLEAN": "Karte erstellen und mähen",
+                    "MISSION_TEMPORARY_CLEAN": "Temporäres Mähen",
+                    "MISSION_BACK_TO_STARTING_POINT": "Zurück zum Startpunkt",
+                    "MISSION_REMOTE_CONTROL_CLEAN": "Mähen per Fernsteuerung",
+                    "MISSION_SCHEDULE_GLOBAL_CLEAN": "Geplantes Komplettmähen",
+                    "MISSION_SCHEDULE_BUILD_MAP_AND_CLEAN": "Geplantes Karte erstellen und Mähen",
+                    "MISSION_SELECT_REGION_CLEAN": "Zonenmähen",
+                    "MISSION_CREATE_CUSTOM_PASSAGE": "Benutzerdefinierte Passage erstellen",
+                    "MISSION_BACKUP_MAP": "Karte sichern",
+                    "MISSION_RELOCATE_BASE_STATION": "Basisstation neu positionieren",
+                    "MISSION_USER_AUTO_CALIBRATION": "Automatische Kalibrierung",
+                    "MISSION_RESTORE_BACKUP_MAP": "Karten-Sicherung wiederherstellen",
+                    "MISSION_SCHEDULE_SELECT_REGION_CLEAN": "Geplantes Zonenmähen",
+                    "MISSION_DRAW_REGION_CLEAN": "Mähen gezeichneter Zone",
+                    "MISSION_EDGE_TRIM_CLEAN": "Kantentrimmen",
+                    "MISSION_UPDATE_BACKUP_MAP": "Karten-Sicherung aktualisieren"
+                }
+            },
+            "sub_mission": {
+                "name": "Teilauftrag",
+                "state": {
+                    "SUB_MISSION_IDLE": "Bereit",
+                    "SUB_MISSION_RELOCATION": "Lokalisiert",
+                    "SUB_MISSION_RETURN_TO_BASE": "Rückkehr zur Basis",
+                    "SUB_MISSION_OUT_OF_STATION": "Verlässt Basisstation",
+                    "SUB_MISSION_REMOTE_CONTROL": "Fernsteuerung",
+                    "SUB_MISSION_SAVING_MAP": "Karte wird gespeichert",
+                    "SUB_MISSION_SETTING_BLADE_HEIGHT": "Schnitthöhe wird eingestellt",
+                    "SUB_MISSION_CHARGING": "Lädt",
+                    "SUB_MISSION_REMOTE_CONTROL_CLEAN": "Mähen per Fernsteuerung",
+                    "SUB_MISSION_DEFOGGING": "Entfeuchten",
+                    "SUB_MISSION_WAIT_FOR_DAYLIGHT": "Wartet auf Tageslicht",
+                    "SUB_MISSION_COOLING_DOWN_MOTOR": "Motor kühlt ab",
+                    "SUB_MISSION_WAIT_FOR_RAIN_TO_STOP": "Wartet auf Ende des Regens",
+                    "SUB_MISSION_FLEXIBLE_STATION_WAIT": "Wartet an der Basisstation"
+                }
+            },
+            "mission_state": {
+                "name": "Auftragsstatus",
+                "state": {
+                    "MISSION_STATE_IDLE": "Bereit",
+                    "MISSION_STATE_RUNNING": "Läuft",
+                    "MISSION_STATE_PAUSE": "Pausiert",
+                    "MISSION_STATE_ABORT": "Abgebrochen",
+                    "MISSION_STATE_COMPLETE": "Abgeschlossen"
+                }
             }
         },
         "camera": {

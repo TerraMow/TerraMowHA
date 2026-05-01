@@ -178,6 +178,60 @@
           "BACK_TO_STATION_REASON_WHEEL_OVERHEAT": "Drive Wheel Overheating",
           "BACK_TO_STATION_REASON_NIGHT_TIME": "Darkness"
         }
+      },
+      "mission": {
+        "name": "Mission",
+        "state": {
+          "MISSION_IDLE": "Idle",
+          "MISSION_RECHARGE": "Recharging",
+          "MISSION_GLOBAL_CLEAN": "Global Mowing",
+          "MISSION_BUILD_MAP": "Building Map",
+          "MISSION_BUILD_MAP_AND_CLEAN": "Building Map and Mowing",
+          "MISSION_TEMPORARY_CLEAN": "Temporary Mowing",
+          "MISSION_BACK_TO_STARTING_POINT": "Returning to Start Point",
+          "MISSION_REMOTE_CONTROL_CLEAN": "Remote Control Mowing",
+          "MISSION_SCHEDULE_GLOBAL_CLEAN": "Scheduled Global Mowing",
+          "MISSION_SCHEDULE_BUILD_MAP_AND_CLEAN": "Scheduled Map Build and Mow",
+          "MISSION_SELECT_REGION_CLEAN": "Zone Mowing",
+          "MISSION_CREATE_CUSTOM_PASSAGE": "Creating Custom Passage",
+          "MISSION_BACKUP_MAP": "Backing Up Map",
+          "MISSION_RELOCATE_BASE_STATION": "Relocating Base Station",
+          "MISSION_USER_AUTO_CALIBRATION": "Auto Calibration",
+          "MISSION_RESTORE_BACKUP_MAP": "Restoring Backup Map",
+          "MISSION_SCHEDULE_SELECT_REGION_CLEAN": "Scheduled Zone Mowing",
+          "MISSION_DRAW_REGION_CLEAN": "Drawn Zone Mowing",
+          "MISSION_EDGE_TRIM_CLEAN": "Edge Trim Mowing",
+          "MISSION_UPDATE_BACKUP_MAP": "Updating Backup Map"
+        }
+      },
+      "sub_mission": {
+        "name": "Sub-mission",
+        "state": {
+          "SUB_MISSION_IDLE": "Idle",
+          "SUB_MISSION_RELOCATION": "Relocating",
+          "SUB_MISSION_RETURN_TO_BASE": "Returning to Base",
+          "SUB_MISSION_OUT_OF_STATION": "Leaving Base Station",
+          "SUB_MISSION_REMOTE_CONTROL": "Remote Control",
+          "SUB_MISSION_SAVING_MAP": "Saving Map",
+          "SUB_MISSION_SETTING_BLADE_HEIGHT": "Adjusting Blade Height",
+          "SUB_MISSION_CHARGING": "Charging",
+          "SUB_MISSION_REMOTE_CONTROL_CLEAN": "Remote Control Mowing",
+          "SUB_MISSION_DEFOGGING": "Defogging",
+          "SUB_MISSION_WAIT_FOR_DAYLIGHT": "Waiting for Daylight",
+          "SUB_MISSION_COOLING_DOWN_MOTOR": "Cooling Down Motor",
+          "SUB_MISSION_WAIT_FOR_RAIN_TO_STOP": "Waiting for Rain to Stop",
+          "SUB_MISSION_FLEXIBLE_STATION_WAIT": "Waiting at Base Station"
+        }
+      },
+      "mission_state": {
+        "name": "Mission State",
+        "state": {
+          "MISSION_STATE_IDLE": "Idle",
+          "MISSION_STATE_RUNNING": "Running",
+          "MISSION_STATE_PAUSE": "Paused",
+          "MISSION_STATE_ABORT": "Aborted",
+          "MISSION_STATE_COMPLETE": "Completed"
+        }
       }
     },
     "camera": {
