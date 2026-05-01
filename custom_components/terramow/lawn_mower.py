@@ -189,7 +189,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.mission = Mission.MISSION_IDLE
         self.sub_mission = SubMission.SUB_MISSION_IDLE
         self.mission_state = MissionState.MISSION_STATE_IDLE
-        self.has_error = False
         self._is_robot_navi_located: bool | None = None
         self._is_upgrading: bool | None = None
         self._power_mode: str | None = None
