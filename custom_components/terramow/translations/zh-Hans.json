@@ -206,6 +206,15 @@
             },
             "rain_detected": {
                 "name": "检测到降雨"
+            },
+            "map_detected": {
+                "name": "已识别地图"
+            },
+            "map_buildable": {
+                "name": "可建图"
+            },
+            "map_backing_up": {
+                "name": "正在备份地图"
             }
         },
         "button": {

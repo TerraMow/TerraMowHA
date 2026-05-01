@@ -206,6 +206,15 @@
       },
       "rain_detected": {
         "name": "Rain Detected"
+      },
+      "map_detected": {
+        "name": "Map Detected"
+      },
+      "map_buildable": {
+        "name": "Map Buildable"
+      },
+      "map_backing_up": {
+        "name": "Map Backing Up"
       }
     },
     "button": {
