@@ -1,3 +1,4 @@
 {
-  "name": "TerramowHA"
+  "name": "TerramowHA",
+  "homeassistant": "2023.9.3"
 }
