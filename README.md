@@ -22,12 +22,13 @@ This is a Home Assistant integration for TerraMow robotic lawn mowers.
 
 ### Installation
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TerraMow&repository=TerraMowHA&category=Integration)
+
 #### Method 1: HACS (Recommended)
 1. Make sure [HACS](https://hacs.xyz/) is installed
-2. Go to HACS → Integrations → Three dots menu (⋮) → Custom repositories
-3. Add `https://github.com/TerraMow/TerraMowHA` as repository URL with category "Integration"
-4. Go to HACS → Integrations → + → Search for "TerraMow"
-5. Install and restart Home Assistant
+2. Use the button above to add to HACS
+3. Go to HACS → Integrations → + → Search for "TerraMow"
+4. Install and restart Home Assistant
 
 #### Method 2: Manual Installation
 1. Copy the `custom_components/terramow` folder to your Home Assistant `/config/custom_components` folder
