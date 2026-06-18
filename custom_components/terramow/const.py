@@ -6,6 +6,15 @@ MQTT_PORT = 1883
 
 MQTT_USERNAME = "terramow"
 
+# MQTT 重连退避（秒）
+# 首次连接失败后的基础等待时间，之后按指数退避，封顶为 MQTT_RECONNECT_MAX_DELAY。
+# 这样在割草机不可达（休眠/回基站/IP 变化）时不会每隔几秒刷一条 ERROR，也不会频繁拍打网络。
+MQTT_RECONNECT_BASE_DELAY = 5
+MQTT_RECONNECT_MAX_DELAY = 60
+
+# 实体移除时等待 MQTT 工作线程退出的最长时间（秒），避免线程残留为僵尸继续重连。
+MQTT_THREAD_JOIN_TIMEOUT = 10
+
 # MQTT主题
 MAP_INFO_TOPIC = "map/current/info"
 MAP_META_TOPIC = "map/current/meta"

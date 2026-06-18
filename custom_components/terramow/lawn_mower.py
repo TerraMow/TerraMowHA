@@ -30,6 +30,9 @@ from .const import (
     PATH_META_TOPIC,
     PATH_HISTORY_META_TOPIC,
     POSE_TOPIC,
+    MQTT_RECONNECT_BASE_DELAY,
+    MQTT_RECONNECT_MAX_DELAY,
+    MQTT_THREAD_JOIN_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -527,21 +530,47 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.error("Error processing version compatibility info: %s", e)
 
     def mqtt_loop(self):
-        """MQTT main loop with auto-reconnect."""
+        """MQTT main loop with auto-reconnect.
+
+        Uses exponential backoff and throttled logging so an unreachable
+        mower (asleep, docked, or after a DHCP IP change) does not flood
+        the log with an ERROR every few seconds or hammer the network.
+        The wait is interruptible via ``_stop_event`` so shutdown is
+        immediate when the entity is removed.
+        """
+        consecutive_failures = 0
         while not self._stop_event.is_set():
             try:
                 if self.mqtt_client and not self.mqtt_client.is_connected():
                     _LOGGER.info("Attempting to connect to MQTT Broker %s", self.host)
                     self.mqtt_client.connect(self.host, MQTT_PORT, 60)
                     _LOGGER.info("Connected to MQTT Broker")
+                consecutive_failures = 0
                 if self.mqtt_client:
                     self.mqtt_client.loop_forever()
             except Exception as e:
-                _LOGGER.error(f"MQTT connection error: {e}")
+                consecutive_failures += 1
+                # 第一次失败用 WARNING 提醒一次，之后降到 DEBUG，避免刷屏。
+                if consecutive_failures == 1:
+                    _LOGGER.warning(
+                        "Cannot reach TerraMow MQTT broker at %s:%d (%s); "
+                        "will keep retrying with backoff",
+                        self.host, MQTT_PORT, e,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "MQTT connection still failing (attempt %d): %s",
+                        consecutive_failures, e,
+                    )
                 # 设置错误状态
                 self.activity = LawnMowerActivity.ERROR
                 self.schedule_update_ha_state()
-                time.sleep(5)  # 等待 5 秒后重试
+                # 指数退避，封顶 MQTT_RECONNECT_MAX_DELAY；用可中断的等待以便立即停止。
+                delay = min(
+                    MQTT_RECONNECT_BASE_DELAY * (2 ** (consecutive_failures - 1)),
+                    MQTT_RECONNECT_MAX_DELAY,
+                )
+                self._stop_event.wait(delay)
 
     def on_mqtt_connect(self, client, _userdata, _flags, rc):  # type: ignore[misc]
         """Callback when connected to MQTT Broker."""
@@ -1327,7 +1356,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._reset_history_path_retry()
         self._reset_pending_meta()
         if self.mqtt_client:
+            # disconnect() 让 loop_forever() 返回，工作线程才能看到 stop 事件并退出。
             self.mqtt_client.disconnect()
+        # 等待工作线程真正结束，避免在 reload/reconfigure 后残留为僵尸线程
+        # （继续重连并刷日志）。在 executor 中 join，避免阻塞事件循环。
+        thread = getattr(self, "mqtt_thread", None)
+        if thread is not None and thread.is_alive():
+            await self.hass.async_add_executor_job(thread.join, MQTT_THREAD_JOIN_TIMEOUT)
+            if thread.is_alive():
+                _LOGGER.warning(
+                    "MQTT worker thread did not stop within %ds", MQTT_THREAD_JOIN_TIMEOUT
+                )
 
     def _request_compatibility_info(self):
         """Request version compatibility information."""
