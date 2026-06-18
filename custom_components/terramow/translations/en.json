@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Device is already configured",
+            "reconfigure_successful": "Re-configuration was successful"
         },
         "error": {
             "cannot_connect": "Failed to connect",
@@ -14,6 +15,14 @@
                     "host": "Host",
                     "password": "Password",
                     "username": "Username"
+                }
+            },
+            "reconfigure": {
+                "title": "Reconfigure TerraMow",
+                "description": "Update the IP address / hostname or password of your TerraMow.",
+                "data": {
+                    "host": "Host",
+                    "password": "Password"
                 }
             }
         }
