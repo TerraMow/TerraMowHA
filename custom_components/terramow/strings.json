@@ -62,6 +62,9 @@
       },
       "pose": {
         "name": "Pose"
+      },
+      "current_session_progress": {
+        "name": "Current Session Progress"
       }
     },
     "camera": {

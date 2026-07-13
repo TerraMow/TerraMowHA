@@ -249,8 +249,70 @@ class CurrentSessionAreaSensor(SensorEntity):
         is_completed = current_work_data.get('is_completed')
         if is_completed is not None:
             attrs['is_completed'] = is_completed
-            
+
         return attrs
+
+
+class CurrentSessionProgressSensor(SensorEntity):
+    """Progress (%) of the current session, derived from dp_113 clean_area/total_area."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:progress-check"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "current_session_progress"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.host = basic_data.host
+        self.hass = hass
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self.basic_data.lawn_mower:
+            self.basic_data.lawn_mower.register_callback(113, self._handle_dp_113)
+
+    async def _handle_dp_113(self, _payload: str) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={('TerraMowLawnMower', self.basic_data.host)},
+            name='TerraMow',
+            manufacturer='TerraMow',
+            model=self.basic_data.lawn_mower.device_model,
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.host}.current_session_progress"
+
+    @property
+    def available(self) -> bool:
+        return self.basic_data.lawn_mower is not None
+
+    @property
+    def native_value(self) -> float | None:
+        if not self.basic_data.lawn_mower:
+            return None
+        current_work_data = self.basic_data.lawn_mower.current_work_data
+        if not current_work_data:
+            return None
+        total_area = current_work_data.get('total_area') or 0
+        clean_area = current_work_data.get('clean_area') or 0
+        if total_area <= 0:
+            return None
+        progress = 100.0 * clean_area / total_area
+        # Cap at 100; the device occasionally reports clean_area > total_area
+        # near the very end of a session.
+        return round(min(progress, 100.0), 1)
 
 
 class CurrentSessionTimeSensor(SensorEntity):
@@ -835,6 +897,7 @@ async def async_setup_entry(
         # 统计和会话传感器
         TotalMowingTimeSensor(basic_data, hass),
         CurrentSessionAreaSensor(basic_data, hass),
+        CurrentSessionProgressSensor(basic_data, hass),
         CurrentSessionTimeSensor(basic_data, hass),
         
         # 维护提醒传感器
