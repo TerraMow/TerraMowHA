@@ -130,7 +130,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # End of Automatic migration
 
     _LOGGER.info("Setting up TerraMow with host %s", host)
-    _LOGGER.debug("TerraMow entry data: %s", dict(entry.data))
 
     basic_data = TerraMowBasicData(host=host, password=password)
 

@@ -43,9 +43,16 @@ The following parameters are required:
 
 ### Requirements
 
-- Home Assistant 2023.9.3 or later (tested with 2025.1.1)
+- Home Assistant 2025.3.4 or later (development is tested against 2025.3.4 and the current stable release)
 - TerraMow firmware version 6.6.0 or later
 - TerraMow APP version 1.6.0 or later
+
+### Development
+
+The recommended development environment is included in this repository. It runs
+Home Assistant and all Python dependencies in a VS Code dev container, without
+installing packages on the host. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+one-click setup, debugger, tests, and the optional full Home Assistant Core mode.
 
 ### Support
 

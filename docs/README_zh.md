@@ -41,9 +41,15 @@
 
 ### 系统要求
 
-- Home Assistant 2023.9.3或更高版本（已在2025.1.1版本上测试）
+- Home Assistant 2025.3.4或更高版本（开发环境会同时验证2025.3.4和当前稳定版）
 - TerraMow固件版本6.6.0或更高
 - TerraMow APP版本1.6.0或更高
+
+### 参与开发
+
+仓库已内置推荐的 VS Code Dev Container 开发环境。Home Assistant、Python
+和全部依赖都在容器内运行，不会修改宿主机软件包。首次搭建、断点调试、测试以及
+可选的完整 Home Assistant Core 模式请参阅 [CONTRIBUTING.md](../CONTRIBUTING.md)。
 
 ### 支持
 

@@ -1,0 +1,24 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+      - name: Check integration correctness
+        run: >-
+          uvx --from ruff==0.15.7 ruff check
+          --select E9,F63,F7,F82 custom_components tests
+      - name: Check new test code
+        run: uvx --from ruff==0.15.7 ruff check tests
+      - name: Check test formatting
+        run: uvx --from ruff==0.15.7 ruff format --check tests

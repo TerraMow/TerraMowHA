@@ -203,7 +203,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("LawnMowerActivity.RETURNING not available in this HA version")
 
         _LOGGER.info("TerraMowLawnMowerEntity created with host %s", self.host)
-        _LOGGER.debug("Initialization params: host=%s, password=%s", self.host, self.password)
+        _LOGGER.debug("Initialization params: host=%s", self.host)
         _LOGGER.debug("Initial state: activity=%s, mission=%s, sub_mission=%s", 
                      self._activity, self.mission, self.sub_mission)
 
@@ -287,7 +287,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def start_mqtt_client(self):
         """Start the MQTT client in a separate thread."""
         _LOGGER.info("Starting MQTT client, connecting to %s:%d", self.host, MQTT_PORT)
-        _LOGGER.debug("MQTT connection params: username=%s, password=%s", MQTT_USERNAME, self.password)
+        _LOGGER.debug("MQTT connection params: username=%s", MQTT_USERNAME)
         
         self.mqtt_client = mqtt_client.Client()
         self.mqtt_client.username_pw_set(MQTT_USERNAME, self.password)
