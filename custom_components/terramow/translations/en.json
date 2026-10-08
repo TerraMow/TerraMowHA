@@ -37,9 +37,9 @@
             "map_status": {
                 "name": "Map Status",
                 "state": {
-                    "MAP_STATE_EMPTY": "No Map",
-                    "MAP_STATE_INCOMPLETE": "Map Incomplete",
-                    "MAP_STATE_COMPLETE": "Map Complete"
+                    "map_state_empty": "No Map",
+                    "map_state_incomplete": "Map Incomplete",
+                    "map_state_complete": "Map Complete"
                 }
             },
             "map_area": {
@@ -51,19 +51,19 @@
             "mow_speed": {
                 "name": "Mow Speed",
                 "state": {
-                    "MOW_SPEED_TYPE_LOW": "Low",
-                    "MOW_SPEED_TYPE_MEDIUM": "Medium",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High",
-                    "MOW_SPEED_TYPE_AUTO": "Auto"
+                    "mow_speed_type_low": "Low",
+                    "mow_speed_type_medium": "Medium",
+                    "mow_speed_type_adaptive_high": "Adaptive High",
+                    "mow_speed_type_auto": "Auto"
                 }
             },
             "clean_mode": {
                 "name": "Operation Mode",
                 "state": {
-                    "MAP_CLEAN_INFO_MODE_GLOBAL": "Global Operation",
-                    "MAP_CLEAN_INFO_MODE_SELECT_REGION": "Select Region Operation",
-                    "MAP_CLEAN_INFO_MODE_DRAW_REGION": "Draw Region Operation",
-                    "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Move to Target Point"
+                    "map_clean_info_mode_global": "Global Operation",
+                    "map_clean_info_mode_select_region": "Select Region Operation",
+                    "map_clean_info_mode_draw_region": "Draw Region Operation",
+                    "map_clean_info_mode_move_to_target_point": "Move to Target Point"
                 }
             },
             "pose": {
@@ -100,9 +100,9 @@
             "main_direction_status": {
                 "name": "Main Direction Status",
                 "state": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions",
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction",
+                    "main_direction_mode_single": "Single Direction",
+                    "main_direction_mode_multiple": "Multiple Directions",
+                    "main_direction_mode_auto_rotate": "Auto Rotate Direction",
                     "unavailable": "Unavailable",
                     "no_config": "No Configuration"
                 }
@@ -120,36 +120,35 @@
         },
         "select": {
             "region_select": {
-                "name": "Zone Select"
+                "name": "Zone Select",
+                "state": {
+                    "no_zones_available": "No zones available",
+                    "all_zones": "All zones"
+                }
             },
             "mow_speed_setting": {
                 "name": "Mow Speed Setting",
                 "state": {
-                    "MOW_SPEED_TYPE_LOW": "Low Speed",
-                    "MOW_SPEED_TYPE_MEDIUM": "Medium Speed",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptive High Speed",
-                    "MOW_SPEED_TYPE_AUTO": "Auto Speed"
+                    "mow_speed_type_low": "Low Speed",
+                    "mow_speed_type_medium": "Medium Speed",
+                    "mow_speed_type_adaptive_high": "Adaptive High Speed",
+                    "mow_speed_type_auto": "Auto Speed"
                 }
             },
             "blade_speed": {
                 "name": "Blade Speed Setting",
                 "state": {
-                    "BLADE_DISK_SPEED_TYPE_LOW": "Low Speed",
-                    "BLADE_DISK_SPEED_TYPE_MEDIUM": "Medium Speed",
-                    "BLADE_DISK_SPEED_TYPE_HIGH": "High Speed"
+                    "blade_disk_speed_type_low": "Low Speed",
+                    "blade_disk_speed_type_medium": "Medium Speed",
+                    "blade_disk_speed_type_high": "High Speed"
                 }
             },
             "main_direction_mode": {
                 "name": "Main Direction Mode",
                 "state": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
-                },
-                "options": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Single Direction",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Multiple Directions", 
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Auto Rotate Direction"
+                    "main_direction_mode_single": "Single Direction",
+                    "main_direction_mode_multiple": "Multiple Directions",
+                    "main_direction_mode_auto_rotate": "Auto Rotate Direction"
                 }
             }
         },
@@ -176,13 +175,5 @@
                 "name": "Second Direction Angle"
             }
         }
-    },
-    "state": {
-        "unknown": "Unknown",
-        "no_zones_available": "No zones available",
-        "all_zones": "All zones",
-        "changing_mode": "Changing Mode",
-        "active": "Active",
-        "pending": "Pending Confirmation"
     }
 }
