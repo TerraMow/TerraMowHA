@@ -21,6 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import TerraMowBasicData
@@ -202,6 +203,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._battery_status: dict[str, Any] = {}  # Store dp_108 battery status
         self._device_model: str = "TerraMow S1200"  # 默认型号名称，保持向后兼容
         self.basic_data.lawn_mower = self
+        self.mission_signal = f"terramow_{self.host}_mission"
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -558,6 +560,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         )
 
         self.update_activity_from_state()
+        # 先解析并保存 dp_107，再通知诊断传感器读取同一份最新状态。
+        async_dispatcher_send(self.hass, self.mission_signal)
 
     async def on_compatibility_info(self, payload: str):
         """Handle compatibility info updates (dp_112)."""

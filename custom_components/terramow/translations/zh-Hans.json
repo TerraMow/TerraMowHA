@@ -106,6 +106,60 @@
                     "unavailable": "不可用",
                     "no_config": "无配置"
                 }
+            },
+            "mission": {
+                "name": "任务",
+                "state": {
+                    "mission_idle": "空闲",
+                    "mission_recharge": "回充",
+                    "mission_global_clean": "全局割草",
+                    "mission_build_map": "建图",
+                    "mission_build_map_and_clean": "建图并割草",
+                    "mission_temporary_clean": "临时割草",
+                    "mission_back_to_starting_point": "返回起点",
+                    "mission_remote_control_clean": "遥控割草",
+                    "mission_schedule_global_clean": "预约全局割草",
+                    "mission_schedule_build_map_and_clean": "预约建图并割草",
+                    "mission_select_region_clean": "选区割草",
+                    "mission_create_custom_passage": "创建自定义通道",
+                    "mission_backup_map": "备份地图",
+                    "mission_relocate_base_station": "重新定位基站",
+                    "mission_user_auto_calibration": "自动校准",
+                    "mission_restore_backup_map": "恢复备份地图",
+                    "mission_schedule_select_region_clean": "预约选区割草",
+                    "mission_draw_region_clean": "划区割草",
+                    "mission_edge_trim_clean": "沿边修剪",
+                    "mission_update_backup_map": "更新备份地图"
+                }
+            },
+            "sub_mission": {
+                "name": "子任务",
+                "state": {
+                    "sub_mission_idle": "空闲",
+                    "sub_mission_relocation": "重定位中",
+                    "sub_mission_return_to_base": "返回基站",
+                    "sub_mission_out_of_station": "离开基站",
+                    "sub_mission_remote_control": "遥控",
+                    "sub_mission_saving_map": "保存地图",
+                    "sub_mission_setting_blade_height": "调整刀盘高度",
+                    "sub_mission_charging": "充电中",
+                    "sub_mission_remote_control_clean": "遥控割草",
+                    "sub_mission_defogging": "除雾",
+                    "sub_mission_wait_for_daylight": "等待天亮",
+                    "sub_mission_cooling_down_motor": "电机降温中",
+                    "sub_mission_wait_for_rain_to_stop": "等待雨停",
+                    "sub_mission_flexible_station_wait": "在基站等待"
+                }
+            },
+            "mission_state": {
+                "name": "任务状态",
+                "state": {
+                    "mission_state_idle": "空闲",
+                    "mission_state_running": "运行中",
+                    "mission_state_pause": "已暂停",
+                    "mission_state_abort": "已中止",
+                    "mission_state_complete": "已完成"
+                }
             }
         },
         "camera": {
