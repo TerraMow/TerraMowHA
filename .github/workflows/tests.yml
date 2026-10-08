@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    name: HA ${{ matrix.home_assistant }} / Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - home_assistant: "2025.3.4"
+            python: "3.13"
+            pytest_plugin: "0.13.225"
+            extra_requirement: "aiohttp==3.11.13"
+          - home_assistant: "2026.7.2"
+            python: "3.14"
+            pytest_plugin: "0.13.346"
+            extra_requirement: ""
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Create test environment
+        run: uv venv --python ${{ matrix.python }}
+      - name: Install Home Assistant test harness
+        run: >-
+          uv pip install
+          pytest-homeassistant-custom-component==${{ matrix.pytest_plugin }}
+          ${{ matrix.extra_requirement }}
+      - name: Run tests
+        run: .venv/bin/python -m pytest

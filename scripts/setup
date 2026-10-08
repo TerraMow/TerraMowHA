@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+if [[ ! -f /.dockerenv ]]; then
+    echo "Run scripts/setup inside the TerraMowHA dev container." >&2
+    exit 1
+fi
+
+UV_BIN="$(command -v uv || true)"
+if [[ -z "${UV_BIN}" && -x "${HOME}/.local/bin/uv" ]]; then
+    UV_BIN="${HOME}/.local/bin/uv"
+fi
+if [[ -z "${UV_BIN}" ]]; then
+    python -m pip install --user "uv==0.11.28"
+    UV_BIN="${HOME}/.local/bin/uv"
+fi
+
+UV_LINK_MODE=copy "${UV_BIN}" sync --frozen --group dev --no-install-project
+
+mkdir -p config/custom_components
+ln -sfn "${ROOT}/custom_components/terramow" config/custom_components/terramow
+
+echo "TerraMowHA development environment is ready."
+echo "Run scripts/develop and open http://localhost:8124."

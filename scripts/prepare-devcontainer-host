@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROXY_ENV_FILE="${ROOT}/.devcontainer/proxy.env"
+EXPECTED_CONFIG=""
+if [[ -n "${1:-}" ]]; then
+    EXPECTED_CONFIG="$(realpath -m "${ROOT}/${1}")"
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker is required to start the TerraMow development container." >&2
+    exit 1
+fi
+
+http_proxy_value="${HTTP_PROXY:-${http_proxy:-}}"
+https_proxy_value="${HTTPS_PROXY:-${https_proxy:-}}"
+all_proxy_value="${ALL_PROXY:-${all_proxy:-}}"
+no_proxy_value="${NO_PROXY:-${no_proxy:-}}"
+
+# VS Code Server may not inherit the login shell's proxy variables. Fall back
+# to Docker daemon settings so lifecycle commands inside the container can
+# still reach package registries.
+if [[ -z "${http_proxy_value}" ]]; then
+    http_proxy_value="$(docker info --format '{{.HTTPProxy}}' 2>/dev/null || true)"
+fi
+if [[ -z "${https_proxy_value}" ]]; then
+    https_proxy_value="$(docker info --format '{{.HTTPSProxy}}' 2>/dev/null || true)"
+fi
+if [[ -z "${all_proxy_value}" ]]; then
+    all_proxy_value="${https_proxy_value:-${http_proxy_value}}"
+fi
+if [[ -z "${no_proxy_value}" ]]; then
+    no_proxy_value="$(docker info --format '{{.NoProxy}}' 2>/dev/null || true)"
+fi
+
+umask 077
+{
+    printf 'HTTP_PROXY=%s\n' "${http_proxy_value}"
+    printf 'HTTPS_PROXY=%s\n' "${https_proxy_value}"
+    printf 'ALL_PROXY=%s\n' "${all_proxy_value}"
+    printf 'NO_PROXY=%s\n' "${no_proxy_value}"
+    printf 'http_proxy=%s\n' "${http_proxy_value}"
+    printf 'https_proxy=%s\n' "${https_proxy_value}"
+    printf 'all_proxy=%s\n' "${all_proxy_value}"
+    printf 'no_proxy=%s\n' "${no_proxy_value}"
+} > "${PROXY_ENV_FILE}"
+
+if [[ -n "${http_proxy_value}${https_proxy_value}" ]]; then
+    echo "Prepared private proxy environment for the development container."
+fi
+
+if docker inspect ha-dev >/dev/null 2>&1; then
+    if [[ "$(docker inspect -f '{{.State.Running}}' ha-dev)" == "true" ]]; then
+        echo "Stopping legacy ha-dev container to release ports 8124 and 5678..."
+        docker stop ha-dev >/dev/null
+    fi
+fi
+
+for port in 8124 5678; do
+    owner_id="$(docker ps --filter "publish=${port}" --format '{{.ID}}' | head -n 1)"
+    if [[ -n "${owner_id}" ]]; then
+        owner_config="$(docker inspect -f '{{ index .Config.Labels "devcontainer.config_file" }}' "${owner_id}" 2>/dev/null || true)"
+        if [[ -n "${EXPECTED_CONFIG}" && "${owner_config}" == "${EXPECTED_CONFIG}" ]]; then
+            continue
+        fi
+        owner_name="$(docker inspect -f '{{.Name}}' "${owner_id}" | sed 's#^/##')"
+        echo "Port ${port} is already published by container ${owner_name}." >&2
+        exit 1
+    fi
+done

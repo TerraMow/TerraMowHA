@@ -25,15 +25,21 @@
             }
         },
         "sensor": {
+            "last_event": {
+                "name": "Letztes Ereignis"
+            },
+            "active_fault": {
+                "name": "Aktueller Fehler"
+            },
             "battery": {
                 "name": "Akku"
             },
             "map_status": {
                 "name": "Kartenstatus",
                 "state": {
-                    "MAP_STATE_EMPTY": "Keine Karte",
-                    "MAP_STATE_INCOMPLETE": "Karte unvollständig",
-                    "MAP_STATE_COMPLETE": "Karte vollständig"
+                    "map_state_empty": "Keine Karte",
+                    "map_state_incomplete": "Karte unvollständig",
+                    "map_state_complete": "Karte vollständig"
                 }
             },
             "map_area": {
@@ -45,19 +51,19 @@
             "mow_speed": {
                 "name": "Mähgeschwindigkeit",
                 "state": {
-                    "MOW_SPEED_TYPE_LOW": "Fein",
-                    "MOW_SPEED_TYPE_MEDIUM": "Standard",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell",
-                    "MOW_SPEED_TYPE_AUTO": "Automatik"
+                    "mow_speed_type_low": "Fein",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv / Schnell",
+                    "mow_speed_type_auto": "Automatik"
                 }
             },
             "clean_mode": {
                 "name": "Betriebsmodus",
                 "state": {
-                    "MAP_CLEAN_INFO_MODE_GLOBAL": "Auto",
-                    "MAP_CLEAN_INFO_MODE_SELECT_REGION": "Zone",
-                    "MAP_CLEAN_INFO_MODE_DRAW_REGION": "Box",
-                    "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT": "Zum Zielpunkt bewegen"
+                    "map_clean_info_mode_global": "Auto",
+                    "map_clean_info_mode_select_region": "Zone",
+                    "map_clean_info_mode_draw_region": "Box",
+                    "map_clean_info_mode_move_to_target_point": "Zum Zielpunkt bewegen"
                 }
             },
             "pose": {
@@ -94,9 +100,9 @@
             "main_direction_status": {
                 "name": "Mährichtung",
                 "state": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Einzeln",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Doppelt",
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Automatisch drehend",
+                    "main_direction_mode_single": "Einzeln",
+                    "main_direction_mode_multiple": "Doppelt",
+                    "main_direction_mode_auto_rotate": "Automatisch drehend",
                     "unavailable": "Nicht verfügbar",
                     "no_config": "Keine Konfiguration"
                 }
@@ -114,36 +120,35 @@
         },
         "select": {
             "region_select": {
-                "name": "Zonenauswahl"
+                "name": "Zonenauswahl",
+                "state": {
+                    "no_zones_available": "Keine Zonen verfügbar",
+                    "all_zones": "Alle Zonen"
+                }
             },
             "mow_speed_setting": {
                 "name": "Mähgeschwindigkeit",
                 "state": {
-                    "MOW_SPEED_TYPE_LOW": "Fein",
-                    "MOW_SPEED_TYPE_MEDIUM": "Standard",
-                    "MOW_SPEED_TYPE_ADAPTIVE_HIGH": "Adaptiv / Schnell",
-                    "MOW_SPEED_TYPE_AUTO": "Automatik"
+                    "mow_speed_type_low": "Fein",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv / Schnell",
+                    "mow_speed_type_auto": "Automatik"
                 }
             },
             "blade_speed": {
                 "name": "Drehgeschwindigkeit",
                 "state": {
-                    "BLADE_DISK_SPEED_TYPE_LOW": "Eco",
-                    "BLADE_DISK_SPEED_TYPE_MEDIUM": "Standard",
-                    "BLADE_DISK_SPEED_TYPE_HIGH": "Schnell"
+                    "blade_disk_speed_type_low": "Eco",
+                    "blade_disk_speed_type_medium": "Standard",
+                    "blade_disk_speed_type_high": "Schnell"
                 }
             },
             "main_direction_mode": {
                 "name": "Mährichtung",
                 "state": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Einzeln",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Doppelt",
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Automatisch drehend"
-                },
-                "options": {
-                    "MAIN_DIRECTION_MODE_SINGLE": "Einzeln",
-                    "MAIN_DIRECTION_MODE_MULTIPLE": "Doppelt",
-                    "MAIN_DIRECTION_MODE_AUTO_ROTATE": "Automatisch drehend"
+                    "main_direction_mode_single": "Einzeln",
+                    "main_direction_mode_multiple": "Doppelt",
+                    "main_direction_mode_auto_rotate": "Automatisch drehend"
                 }
             }
         },
@@ -170,13 +175,5 @@
                 "name": "Zweiter Richtungswinkel"
             }
         }
-    },
-    "state": {
-        "unknown": "Unbekannt",
-        "no_zones_available": "Keine Zonen verfügbar",
-        "all_zones": "Alle Zonen",
-        "changing_mode": "Ändere den Modus",
-        "active": "Aktiv",
-        "pending": "Warte auf Bestätigung"
     }
 }

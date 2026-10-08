@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CORE_DIR="${ROOT}/../HomeAssistantCore"
+CORE_VERSION="2026.7.2"
+CORE_COMMIT="f9122fb28dd30d3833b3b313924befbc82157f97"
+
+prepare_host() {
+    "${ROOT}/scripts/prepare-devcontainer-host" ".devcontainer/full-core/devcontainer.json"
+
+    if [[ ! -d "${CORE_DIR}/.git" ]]; then
+        echo "Cloning Home Assistant Core ${CORE_VERSION} into ${CORE_DIR}..."
+        git clone --depth 1 --branch "${CORE_VERSION}" \
+            https://github.com/home-assistant/core.git "${CORE_DIR}"
+    fi
+
+    actual_commit="$(git -C "${CORE_DIR}" rev-parse HEAD)"
+    if [[ "${actual_commit}" != "${CORE_COMMIT}" ]]; then
+        cat >&2 <<EOF
+${CORE_DIR} is at ${actual_commit}, expected ${CORE_COMMIT} (${CORE_VERSION}).
+Choose a clean checkout or move the existing directory; it will not be reset automatically.
+EOF
+        exit 1
+    fi
+}
+
+setup_container() {
+    core_mount="${ROOT}/.ha-core"
+    if [[ ! -d "${core_mount}/.git" ]]; then
+        echo "Home Assistant Core is not mounted at ${core_mount}." >&2
+        exit 1
+    fi
+
+    git config --global --add safe.directory "${core_mount}"
+    (
+        cd "${core_mount}"
+        script/setup
+    )
+
+    mkdir -p "${core_mount}/config/custom_components"
+    ln -sfn "${ROOT}/custom_components/terramow" \
+        "${core_mount}/config/custom_components/terramow"
+    ln -sfn "${ROOT}/config/configuration.yaml" \
+        "${core_mount}/config/configuration.yaml"
+
+    echo "Full Home Assistant Core development environment is ready."
+}
+
+verify_container() {
+    # Attach 时命令可能从 /workspaces 执行，因此按脚本位置定位挂载。
+    # 这里只检查环境；依赖安装仍由首次创建时的 container 步骤负责。
+    core_mount="${ROOT}/.ha-core"
+    if [[ ! -d "${core_mount}/.git" ]]; then
+        echo "Home Assistant Core is not mounted at ${core_mount}." >&2
+        exit 1
+    fi
+
+    python_bin="${HOME}/.local/ha-venv/bin/python"
+    if [[ ! -x "${python_bin}" ]]; then
+        echo "Home Assistant Python environment is missing; run scripts/full-core container." >&2
+        exit 1
+    fi
+    "${python_bin}" -B -c 'import homeassistant, debugpy'
+    echo "Full Core environment is ready. Open ${ROOT} in VS Code."
+}
+
+case "${1:-}" in
+    prepare)
+        prepare_host
+        ;;
+    container)
+        setup_container
+        ;;
+    verify)
+        verify_container
+        ;;
+    *)
+        echo "Usage: scripts/full-core [prepare|container|verify]" >&2
+        exit 2
+        ;;
+esac

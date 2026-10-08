@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TerraMow: Run Home Assistant",
+      "type": "shell",
+      "command": "scripts/develop",
+      "args": ["run"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "TerraMow: Run Home Assistant for Attach",
+      "type": "shell",
+      "command": "scripts/develop",
+      "args": ["debug"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "TerraMow: Test",
+      "type": "shell",
+      "command": "scripts/test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

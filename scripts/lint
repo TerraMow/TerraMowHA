@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+UV_BIN="$(command -v uv || true)"
+if [[ -z "${UV_BIN}" && -x "${ROOT}/.venv/bin/uv" ]]; then
+    UV_BIN="${ROOT}/.venv/bin/uv"
+fi
+if [[ -z "${UV_BIN}" && -x "${HOME}/.local/bin/uv" ]]; then
+    UV_BIN="${HOME}/.local/bin/uv"
+fi
+if [[ -z "${UV_BIN}" ]]; then
+    echo "uv is not installed; run scripts/setup inside the dev container." >&2
+    exit 1
+fi
+
+# 源码与测试使用同一套完整规则，让本地、VS Code 和 CI 的检查范围一致。
+"${UV_BIN}" run --frozen --no-sync ruff check custom_components tests
+"${UV_BIN}" run --frozen --no-sync ruff format --check custom_components tests

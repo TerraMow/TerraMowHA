@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TerraMow: Launch Home Assistant",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "homeassistant",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": false,
+      "args": ["--debug", "--config", "${workspaceFolder}/config"],
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/custom_components"
+      }
+    },
+    {
+      "name": "TerraMow: Attach to Home Assistant",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "justMyCode": false,
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/custom_components/terramow",
+          "remoteRoot": "${workspaceFolder}/config/custom_components/terramow"
+        }
+      ]
+    },
+    {
+      "name": "TerraMow: Launch Full Home Assistant Core",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "homeassistant",
+      "python": "/home/vscode/.local/ha-venv/bin/python",
+      "cwd": "${workspaceFolder}/.ha-core",
+      "justMyCode": false,
+      "args": [
+        "--debug",
+        "--config",
+        "${workspaceFolder}/.ha-core/config"
+      ]
+    }
+  ]
+}

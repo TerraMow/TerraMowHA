@@ -49,6 +49,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+.ruff_cache/
 cover/
 
 # Translations
@@ -98,7 +99,8 @@ ipython_config.py
 #   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
-#uv.lock
+# uv.lock is committed so the dev container is reproducible.
+!uv.lock
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
@@ -169,3 +171,31 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Personal project instructions
+AGENTS.override.md
+
+# Local Home Assistant runtime state
+config/*
+!config/.gitignore
+!config/configuration.yaml
+
+# Optional full Home Assistant Core mount inside the dev container
+.ha-core/
+
+# Shared editor/container configuration. These explicit rules override common
+# global Git ignore files that exclude .devcontainer and .vscode wholesale.
+!.devcontainer/
+.devcontainer/*
+!.devcontainer/default/
+.devcontainer/default/*
+!.devcontainer/default/Dockerfile
+!.devcontainer/default/devcontainer.json
+!.devcontainer/full-core/
+.devcontainer/full-core/*
+!.devcontainer/full-core/devcontainer.json
+!.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json

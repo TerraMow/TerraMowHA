@@ -20,6 +20,20 @@ This is a Home Assistant integration for TerraMow robotic lawn mowers.
 - Monitor battery status and activity
 - MQTT based real-time communication
 
+Control actions wait up to five seconds for a matching robot reply. A rejected
+command raises a Home Assistant error; a timeout means the result is unconfirmed
+and the integration does not retry automatically. Firmware that does not send
+command replies will also report an unconfirmed result. Acceptance of a command
+does not imply mowing has begun: activity still follows the robot's mission state.
+
+The diagnostic **Last Event** sensor exposes the latest event code, time, and
+description. **Active Fault** shows `0` when the robot reports no faults and the
+first fault code when faults are present; its attributes contain all active faults.
+Both sensors are unknown until feedback arrives. A current fault also sets the
+mower activity to `error`; clearing the fault restores the reported mission state.
+Historical events do not set the current fault state. The mower's
+`back_to_station_reason` attribute explains a return to the station.
+
 ### Installation
 
 #### Method 1: HACS (Recommended)
@@ -43,9 +57,16 @@ The following parameters are required:
 
 ### Requirements
 
-- Home Assistant 2023.9.3 or later (tested with 2025.1.1)
+- Home Assistant 2025.3.4 or later (development is tested against 2025.3.4 and the current stable release)
 - TerraMow firmware version 6.6.0 or later
 - TerraMow APP version 1.6.0 or later
+
+### Development
+
+The recommended development environment is included in this repository. It runs
+Home Assistant and all Python dependencies in a VS Code dev container, without
+installing packages on the host. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+one-click setup, debugger, tests, and the optional full Home Assistant Core mode.
 
 ### Support
 

@@ -1,0 +1,14 @@
+# Avoid enabling every optional integration bundled by default_config (for
+# example Bluetooth, USB, and go2rtc) in the lightweight development image.
+# The frontend dependency chain still provides onboarding and the integration
+# configuration UI needed to add and debug TerraMow.
+frontend:
+
+homeassistant:
+  debug: true
+
+logger:
+  default: info
+  logs:
+    custom_components.terramow: debug
+    paho.mqtt: debug

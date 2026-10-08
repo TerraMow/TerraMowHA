@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+export PYTHONPATH="${ROOT}/custom_components${PYTHONPATH:+:${PYTHONPATH}}"
+UV_BIN="$(command -v uv || true)"
+if [[ -z "${UV_BIN}" && -x "${ROOT}/.venv/bin/uv" ]]; then
+    UV_BIN="${ROOT}/.venv/bin/uv"
+fi
+if [[ -z "${UV_BIN}" && -x "${HOME}/.local/bin/uv" ]]; then
+    UV_BIN="${HOME}/.local/bin/uv"
+fi
+if [[ -z "${UV_BIN}" ]]; then
+    echo "uv is not installed; run scripts/setup inside the dev container." >&2
+    exit 1
+fi
+
+case "${1:-run}" in
+    run)
+        exec "${UV_BIN}" run --frozen --no-sync hass --config "${ROOT}/config" --debug
+        ;;
+    debug)
+        exec "${UV_BIN}" run --frozen --no-sync python -Xfrozen_modules=off \
+            -m debugpy --listen 0.0.0.0:5678 --wait-for-client \
+            -m homeassistant --config "${ROOT}/config" --debug
+        ;;
+    *)
+        echo "Usage: scripts/develop [run|debug]" >&2
+        exit 2
+        ;;
+esac

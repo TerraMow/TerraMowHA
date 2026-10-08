@@ -1,0 +1,28 @@
+# Version control and local agent configuration
+.git/
+.gitignore
+AGENTS.override.md
+
+# Python environments, caches, and build output
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Home Assistant runtime state and optional Core checkout
+config/
+.ha-core/
+
+# Local secrets and runtime artifacts
+.env
+.env.*
+*.log
+*.db

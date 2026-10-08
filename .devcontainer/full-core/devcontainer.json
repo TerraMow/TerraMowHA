@@ -1,0 +1,54 @@
+{
+  "name": "TerraMowHA + Home Assistant Core (maintainers)",
+  "build": {
+    "context": "../../../HomeAssistantCore",
+    "dockerfile": "../../../HomeAssistantCore/Dockerfile.dev",
+    "args": {
+      "HTTP_PROXY": "${localEnv:HTTP_PROXY}",
+      "HTTPS_PROXY": "${localEnv:HTTPS_PROXY}",
+      "ALL_PROXY": "${localEnv:all_proxy}",
+      "NO_PROXY": "${localEnv:NO_PROXY}",
+      "http_proxy": "${localEnv:http_proxy}",
+      "https_proxy": "${localEnv:https_proxy}",
+      "all_proxy": "${localEnv:all_proxy}",
+      "no_proxy": "${localEnv:NO_PROXY}"
+    }
+  },
+  "initializeCommand": "bash scripts/full-core prepare",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/TerraMowHA,type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/TerraMowHA",
+  "mounts": [
+    "source=${localWorkspaceFolder}/../HomeAssistantCore,target=/workspaces/TerraMowHA/.ha-core,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "bash /workspaces/TerraMowHA/scripts/full-core container",
+  "postStartCommand": "bash /workspaces/TerraMowHA/scripts/full-core verify",
+  "appPort": ["8124:8123", "5678:5678"],
+  "containerEnv": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONASYNCIODEBUG": "1"
+  },
+  "runArgs": [
+    "--env-file",
+    "${localWorkspaceFolder}/.devcontainer/proxy.env",
+    "-e",
+    "GIT_EDITOR=code --wait",
+    "--security-opt",
+    "label=disable"
+  ],
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python"
+      },
+      "extensions": [
+        "charliermarsh.ruff",
+        "github.vscode-pull-request-github",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}

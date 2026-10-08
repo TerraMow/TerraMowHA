@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+UV_BIN="$(command -v uv || true)"
+if [[ -z "${UV_BIN}" && -x "${ROOT}/.venv/bin/uv" ]]; then
+    UV_BIN="${ROOT}/.venv/bin/uv"
+fi
+if [[ -z "${UV_BIN}" && -x "${HOME}/.local/bin/uv" ]]; then
+    UV_BIN="${HOME}/.local/bin/uv"
+fi
+if [[ -z "${UV_BIN}" ]]; then
+    echo "uv is not installed; run scripts/setup inside the dev container." >&2
+    exit 1
+fi
+
+exec "${UV_BIN}" run --frozen --no-sync python -m pytest "$@"
