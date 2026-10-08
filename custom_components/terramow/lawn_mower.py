@@ -152,6 +152,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.hass = hass
         self._activity = LawnMowerActivity.DOCKED  # 默认状态
         self.mqtt_client = None
+        self.mqtt_connected = False
         self._stop_event = threading.Event()  # 用于停止重连循环
         self.callbacks: dict[
             int, list[Callable]
@@ -204,6 +205,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._device_model: str = "TerraMow S1200"  # 默认型号名称，保持向后兼容
         self.basic_data.lawn_mower = self
         self.mission_signal = f"terramow_{self.host}_mission"
+        self.map_status_signal = f"terramow_{self.host}_map_status"
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -436,10 +438,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.debug("Raw map status payload: %s", payload)
         try:
             data = json.loads(payload)
+            if not isinstance(data, dict):
+                _LOGGER.error("Invalid object payload for dp_117: %s", payload)
+                return
             self._map_status = data
             _LOGGER.info("Map status updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_117: %s", payload)
+            return
+
+        # 缓存先更新，再让所有地图诊断实体读取同一轮上报。
+        async_dispatcher_send(self.hass, self.map_status_signal)
 
     async def on_current_work_data(self, payload: str):
         """Handle current work data updates (dp_113)."""
@@ -642,6 +651,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def on_mqtt_connect(self, client, _userdata, _flags, rc):  # type: ignore[misc]
         """Callback when connected to MQTT Broker."""
         if rc == 0:
+            self.mqtt_connected = True
+            # 新连接重新等待 dp_117，避免断线前的缓存恢复为在线状态。
+            self._map_status = {}
+            self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
             _LOGGER.info("MQTT connected")
             # 订阅主题
             for dp_id in range(201):
@@ -673,6 +686,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
             self.update_activity_from_state()
         else:
+            self.mqtt_connected = False
+            self._map_status = {}
+            self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
             _LOGGER.error(f"MQTT connection failed with code {rc}")
             # 设置错误状态
             self.activity = LawnMowerActivity.ERROR
@@ -680,6 +696,11 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
     def on_mqtt_disconnect(self, _client, _userdata, rc):  # type: ignore[misc]
         """Callback when disconnected from MQTT Broker."""
+        self.mqtt_connected = False
+        # 重连后必须等待新上报，避免旧地图标志重新变成有效状态。
+        self._map_status = {}
+        # MQTT 回调来自后台线程，交给 HA 事件循环刷新实体可用性。
+        self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
         self.hass.add_job(self.feedback.disconnected)
         if rc != 0:
             _LOGGER.warning(f"Unexpected MQTT disconnection: {rc}")
