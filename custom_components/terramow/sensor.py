@@ -313,6 +313,61 @@ class CurrentSessionAreaSensor(SensorEntity):
         return attrs
 
 
+class CurrentSessionProgressSensor(SensorEntity):
+    """根据 dp_113 的已作业面积和总面积展示当前作业进度。"""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_icon = "mdi:progress-check"
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "current_session_progress"
+
+    def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
+        """保存设备引用；监听信号由主机标识确定，以兼容平台装载顺序。"""
+        super().__init__()
+        self.basic_data = basic_data
+        self.hass = hass
+        self._attr_unique_id = (
+            f"lawn_mower.terramow@{basic_data.host}.current_session_progress"
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """接收当前作业数据更新，实体移除时自动撤销监听。"""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                f"terramow_{self.basic_data.host}_current_work_data",
+                self.async_write_ha_state,
+            )
+        )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(identifiers={("TerraMowLawnMower", self.basic_data.host)})
+
+    @property
+    def available(self) -> bool:
+        return self.basic_data.lawn_mower is not None
+
+    @property
+    def native_value(self) -> float | None:
+        mower = self.basic_data.lawn_mower
+        if mower is None:
+            return None
+
+        current_work_data = mower.current_work_data
+        total_area = current_work_data.get("total_area") or 0
+        if total_area <= 0:
+            return None
+
+        clean_area = current_work_data.get("clean_area") or 0
+        # 收尾上报的已作业面积可能超过总面积，展示值最多为 100%。
+        return round(min(100.0 * clean_area / total_area, 100.0), 1)
+
+
 class CurrentSessionTimeSensor(SensorEntity):
     """Current session mowing time sensor - uses dp_113 data"""
 
@@ -917,6 +972,7 @@ async def async_setup_entry(
         # 统计和会话传感器
         TotalMowingTimeSensor(basic_data, hass),
         CurrentSessionAreaSensor(basic_data, hass),
+        CurrentSessionProgressSensor(basic_data, hass),
         CurrentSessionTimeSensor(basic_data, hass),
         # 维护提醒传感器
         RemainingBladeTimeSensor(basic_data, hass),

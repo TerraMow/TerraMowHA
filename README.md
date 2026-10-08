@@ -41,6 +41,11 @@ can translate them. The `protocol_value` attribute retains the original
 uppercase robot value. These sensors update when a new mission status arrives
 and do not send commands to the mower.
 
+The diagnostic **Current Session Progress** sensor shows the percentage derived
+from the current work area's `clean_area` and `total_area`. It updates with new
+work data, shows unknown when the total area is missing or zero, and caps the
+displayed value at 100%.
+
 ### Installation
 
 #### Method 1: HACS (Recommended)

@@ -206,6 +206,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.basic_data.lawn_mower = self
         self.mission_signal = f"terramow_{self.host}_mission"
         self.map_status_signal = f"terramow_{self.host}_map_status"
+        self.current_work_data_signal = f"terramow_{self.host}_current_work_data"
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -455,10 +456,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.debug("Raw current work data payload: %s", payload)
         try:
             data = json.loads(payload)
+            if not isinstance(data, dict):
+                _LOGGER.error("Invalid object payload for dp_113: %s", payload)
+                return
             self._current_work_data = data
             _LOGGER.info("Current work data updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_113: %s", payload)
+            return
+
+        # 先保存本轮数据，再通知诊断实体读取更新后的作业进度。
+        async_dispatcher_send(self.hass, self.current_work_data_signal)
 
     async def on_statistics_data(self, payload: str):
         """Handle statistics data updates (dp_124)."""

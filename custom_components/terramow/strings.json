@@ -63,6 +63,9 @@
       "pose": {
         "name": "Pose"
       },
+      "current_session_progress": {
+        "name": "Current Session Progress"
+      },
       "last_event": {
         "name": "Last Event"
       },
