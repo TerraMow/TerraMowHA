@@ -1,5 +1,6 @@
 """地图二元传感器的状态、连接可用性和监听生命周期测试。"""
 
+import asyncio
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -155,13 +156,18 @@ async def test_connection_changes_map_sensor_availability(
     await sensor.async_added_to_hass()
     assert not sensor.available
 
+    async def settle_dispatcher() -> None:
+        # HA 2025.3 的 add_job 先排入任务，再在下一轮执行回调。
+        await asyncio.sleep(0)
+        await hass.async_block_till_done()
+
     client = MagicMock()
     with (
         patch.object(mower, "_request_compatibility_info"),
         patch.object(mower, "update_activity_from_state"),
     ):
         mower.on_mqtt_connect(client, None, None, 0)
-    await hass.async_block_till_done()
+    await settle_dispatcher()
     assert sensor.available
     assert writes == 1
 
@@ -170,7 +176,7 @@ async def test_connection_changes_map_sensor_availability(
     assert writes == 2
 
     mower.on_mqtt_disconnect(client, None, 1)
-    await hass.async_block_till_done()
+    await settle_dispatcher()
     assert not sensor.available
     assert sensor.is_on is None
     assert writes == 3
@@ -180,7 +186,7 @@ async def test_connection_changes_map_sensor_availability(
         patch.object(mower, "update_activity_from_state"),
     ):
         mower.on_mqtt_connect(client, None, None, 0)
-    await hass.async_block_till_done()
+    await settle_dispatcher()
     assert sensor.available
     assert sensor.is_on is None
     assert writes == 4
