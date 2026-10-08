@@ -30,6 +30,7 @@ from .const import (
     BLADE_MAINTENANCE_CYCLE_MINUTES,
     MOW_SPEED_TYPES,
 )
+from .lawn_mower import Mission, MissionState, SubMission
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -926,6 +927,10 @@ async def async_setup_entry(
         VersionCompatibilitySensor(basic_data, hass),
         # 主方向状态传感器
         MainDirectionStatusSensor(basic_data, hass),
+        # dp_107 中的任务、子任务和任务阶段
+        TerraMowMissionSensor(basic_data, hass),
+        TerraMowSubMissionSensor(basic_data, hass),
+        TerraMowMissionStateSensor(basic_data, hass),
     ]
 
     async_add_entities(entities)
@@ -1040,3 +1045,98 @@ class MainDirectionStatusSensor(SensorEntity):
         attrs["mode_friendly_name"] = mode_names.get(mode, mode)
 
         return attrs
+
+
+class _MissionEnumSensorBase(SensorEntity):
+    """把割草机已解析的 dp_107 枚举状态展示为只读诊断传感器。"""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    _enum_attr: str = ""
+    _unique_suffix: str = ""
+
+    def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
+        """共享割草机状态；实体只负责展示，不拥有设备连接。"""
+        super().__init__()
+        self.basic_data = basic_data
+        self.hass = hass
+        self._attr_unique_id = (
+            f"lawn_mower.terramow@{basic_data.host}.{self._unique_suffix}"
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """订阅解析后的状态，并在实体移除时撤销监听。"""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                self.basic_data.lawn_mower.mission_signal,
+                self.async_write_ha_state,
+            )
+        )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(identifiers={("TerraMowLawnMower", self.basic_data.host)})
+
+    @property
+    def available(self) -> bool:
+        return self.basic_data.lawn_mower is not None
+
+    @property
+    def native_value(self) -> str | None:
+        value = self._protocol_value()
+        if value is None:
+            return None
+        state = value.lower()
+        return state if state in self.options else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str]:
+        """保留设备原始枚举，状态本身使用可被 HA 翻译的小写键。"""
+        value = self._protocol_value()
+        return {"protocol_value": value} if value is not None else {}
+
+    def _protocol_value(self) -> str | None:
+        """读取已解析的枚举，不把未知值伪装成有效状态。"""
+        mower = self.basic_data.lawn_mower
+        if mower is None:
+            return None
+        member = getattr(mower, self._enum_attr, None)
+        value = getattr(member, "value", member)
+        if not isinstance(value, str) or value.lower() not in self.options:
+            return None
+        return value
+
+
+class TerraMowMissionSensor(_MissionEnumSensorBase):
+    """展示当前顶层任务。"""
+
+    _attr_icon = "mdi:robot-mower-outline"
+    _attr_translation_key = "mission"
+    _attr_options = [member.value.lower() for member in Mission]
+    _enum_attr = "mission"
+    _unique_suffix = "mission"
+
+
+class TerraMowSubMissionSensor(_MissionEnumSensorBase):
+    """展示等待雨停、降温等当前子任务。"""
+
+    _attr_icon = "mdi:list-status"
+    _attr_translation_key = "sub_mission"
+    _attr_options = [member.value.lower() for member in SubMission]
+    _enum_attr = "sub_mission"
+    _unique_suffix = "sub_mission"
+
+
+class TerraMowMissionStateSensor(_MissionEnumSensorBase):
+    """展示任务运行、暂停或完成等阶段。"""
+
+    _attr_icon = "mdi:state-machine"
+    _attr_translation_key = "mission_state"
+    _attr_options = [member.value.lower() for member in MissionState]
+    _enum_attr = "mission_state"
+    _unique_suffix = "mission_state"

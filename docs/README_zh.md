@@ -27,6 +27,11 @@ Home Assistant 会显示错误；超时表示结果尚未确认，不会自动�
 当前故障会使割草机显示 `error`，故障清除后恢复设备上报的作业状态；历史事件不会
 改变当前故障状态。割草机属性 `back_to_station_reason` 保留回基站原因。
 
+三个诊断传感器分别显示设备当前任务、子任务和任务阶段。传感器状态使用
+`mission_global_clean`、`sub_mission_wait_for_rain_to_stop` 等小写值，
+以便 Home Assistant 显示翻译；`protocol_value` 属性保留设备原始的大写枚举值。
+收到新任务状态时会立即更新，这些传感器不会向割草机发送控制命令。
+
 ### 安装方法
 
 #### 方法一：通过HACS安装（推荐）

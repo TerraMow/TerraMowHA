@@ -68,6 +68,60 @@
       },
       "active_fault": {
         "name": "Active Fault"
+      },
+      "mission": {
+        "name": "Mission",
+        "state": {
+          "mission_idle": "Idle",
+          "mission_recharge": "Recharging",
+          "mission_global_clean": "Global Mowing",
+          "mission_build_map": "Building Map",
+          "mission_build_map_and_clean": "Building Map and Mowing",
+          "mission_temporary_clean": "Temporary Mowing",
+          "mission_back_to_starting_point": "Returning to Start Point",
+          "mission_remote_control_clean": "Remote Control Mowing",
+          "mission_schedule_global_clean": "Scheduled Global Mowing",
+          "mission_schedule_build_map_and_clean": "Scheduled Map Build and Mow",
+          "mission_select_region_clean": "Region Mowing",
+          "mission_create_custom_passage": "Creating Custom Passage",
+          "mission_backup_map": "Backing Up Map",
+          "mission_relocate_base_station": "Relocating Base Station",
+          "mission_user_auto_calibration": "Auto Calibration",
+          "mission_restore_backup_map": "Restoring Backup Map",
+          "mission_schedule_select_region_clean": "Scheduled Region Mowing",
+          "mission_draw_region_clean": "Drawn Region Mowing",
+          "mission_edge_trim_clean": "Edge Trim Mowing",
+          "mission_update_backup_map": "Updating Backup Map"
+        }
+      },
+      "sub_mission": {
+        "name": "Sub-mission",
+        "state": {
+          "sub_mission_idle": "Idle",
+          "sub_mission_relocation": "Relocating",
+          "sub_mission_return_to_base": "Returning to Base",
+          "sub_mission_out_of_station": "Leaving Base Station",
+          "sub_mission_remote_control": "Remote Control",
+          "sub_mission_saving_map": "Saving Map",
+          "sub_mission_setting_blade_height": "Adjusting Blade Height",
+          "sub_mission_charging": "Charging",
+          "sub_mission_remote_control_clean": "Remote Control Mowing",
+          "sub_mission_defogging": "Defogging",
+          "sub_mission_wait_for_daylight": "Waiting for Daylight",
+          "sub_mission_cooling_down_motor": "Cooling Down Motor",
+          "sub_mission_wait_for_rain_to_stop": "Waiting for Rain to Stop",
+          "sub_mission_flexible_station_wait": "Waiting at Base Station"
+        }
+      },
+      "mission_state": {
+        "name": "Mission State",
+        "state": {
+          "mission_state_idle": "Idle",
+          "mission_state_running": "Running",
+          "mission_state_pause": "Paused",
+          "mission_state_abort": "Aborted",
+          "mission_state_complete": "Completed"
+        }
       }
     },
     "camera": {

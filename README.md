@@ -34,6 +34,13 @@ mower activity to `error`; clearing the fault restores the reported mission stat
 Historical events do not set the current fault state. The mower's
 `back_to_station_reason` attribute explains a return to the station.
 
+Three diagnostic sensors expose the current mission, sub-mission, and mission
+state reported by the robot. Their states use lowercase keys such as
+`mission_global_clean` and `sub_mission_wait_for_rain_to_stop` so Home Assistant
+can translate them. The `protocol_value` attribute retains the original
+uppercase robot value. These sensors update when a new mission status arrives
+and do not send commands to the mower.
+
 ### Installation
 
 #### Method 1: HACS (Recommended)
