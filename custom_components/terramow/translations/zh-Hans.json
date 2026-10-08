@@ -25,6 +25,12 @@
             }
         },
         "sensor": {
+            "last_event": {
+                "name": "最近事件"
+            },
+            "active_fault": {
+                "name": "当前故障"
+            },
             "battery": {
                 "name": "电池"
             },

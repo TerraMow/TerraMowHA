@@ -48,6 +48,24 @@ setup_container() {
     echo "Full Home Assistant Core development environment is ready."
 }
 
+verify_container() {
+    # Attach 时命令可能从 /workspaces 执行，因此按脚本位置定位挂载。
+    # 这里只检查环境；依赖安装仍由首次创建时的 container 步骤负责。
+    core_mount="${ROOT}/.ha-core"
+    if [[ ! -d "${core_mount}/.git" ]]; then
+        echo "Home Assistant Core is not mounted at ${core_mount}." >&2
+        exit 1
+    fi
+
+    python_bin="${HOME}/.local/ha-venv/bin/python"
+    if [[ ! -x "${python_bin}" ]]; then
+        echo "Home Assistant Python environment is missing; run scripts/full-core container." >&2
+        exit 1
+    fi
+    "${python_bin}" -B -c 'import homeassistant, debugpy'
+    echo "Full Core environment is ready. Open ${ROOT} in VS Code."
+}
+
 case "${1:-}" in
     prepare)
         prepare_host
@@ -55,8 +73,11 @@ case "${1:-}" in
     container)
         setup_container
         ;;
+    verify)
+        verify_container
+        ;;
     *)
-        echo "Usage: scripts/full-core [prepare|container]" >&2
+        echo "Usage: scripts/full-core [prepare|container|verify]" >&2
         exit 2
         ;;
 esac

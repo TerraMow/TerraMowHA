@@ -20,8 +20,8 @@
   "mounts": [
     "source=${localWorkspaceFolder}/../HomeAssistantCore,target=/workspaces/TerraMowHA/.ha-core,type=bind,consistency=cached"
   ],
-  "postCreateCommand": "bash scripts/full-core container",
-  "postStartCommand": "cd .ha-core && script/bootstrap",
+  "postCreateCommand": "bash /workspaces/TerraMowHA/scripts/full-core container",
+  "postStartCommand": "bash /workspaces/TerraMowHA/scripts/full-core verify",
   "appPort": ["8124:8123", "5678:5678"],
   "containerEnv": {
     "PYTHONDONTWRITEBYTECODE": "1",

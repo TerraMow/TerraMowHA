@@ -1,46 +1,52 @@
-import threading
 import asyncio
-import paho.mqtt.client as mqtt_client
-import logging
-import time
-import re
 import gzip
 import json
+import logging
 import random
-from typing import Callable, Any
+import re
+import threading
+import time
+from collections.abc import Callable
+from enum import Enum
+from typing import Any
+
+import paho.mqtt.client as mqtt_client
 from homeassistant.components.lawn_mower import LawnMowerEntity
-from homeassistant.components.lawn_mower.const import LawnMowerActivity, LawnMowerEntityFeature
+from homeassistant.components.lawn_mower.const import (
+    LawnMowerActivity,
+    LawnMowerEntityFeature,
+)
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import TerraMowBasicData
-from homeassistant.config_entries import ConfigEntry
 from .const import (
-    MQTT_PORT,
-    MQTT_USERNAME,
-    DOMAIN,
     COMPATIBILITY_INFO_DP,
-    CompatibilityStatus,
-    MODEL_NAME_TOPIC,
+    DOMAIN,
     MAP_INFO_TOPIC,
     MAP_META_TOPIC,
-    PATH_META_TOPIC,
-    PATH_HISTORY_META_TOPIC,
-    POSE_TOPIC,
+    MODEL_NAME_TOPIC,
+    MQTT_PORT,
     MQTT_RECONNECT_BASE_DELAY,
     MQTT_RECONNECT_MAX_DELAY,
     MQTT_THREAD_JOIN_TIMEOUT,
+    MQTT_USERNAME,
+    PATH_HISTORY_META_TOPIC,
+    PATH_META_TOPIC,
+    POSE_TOPIC,
+    CompatibilityStatus,
 )
+from .feedback import TerraMowFeedback
 
 _LOGGER = logging.getLogger(__name__)
 
 # 定义正则表达式模式
 TOPIC_PATTERN = re.compile(r"^data_point/(\d+)/robot$")
 
-from enum import Enum
 
 class Mission(Enum):
     MISSION_IDLE = "MISSION_IDLE"
@@ -64,6 +70,7 @@ class Mission(Enum):
     MISSION_EDGE_TRIM_CLEAN = "MISSION_EDGE_TRIM_CLEAN"
     MISSION_UPDATE_BACKUP_MAP = "MISSION_UPDATE_BACKUP_MAP"
 
+
 class SubMission(Enum):
     SUB_MISSION_IDLE = "SUB_MISSION_IDLE"
     SUB_MISSION_RELOCATION = "SUB_MISSION_RELOCATION"
@@ -80,6 +87,7 @@ class SubMission(Enum):
     SUB_MISSION_WAIT_FOR_RAIN_TO_STOP = "SUB_MISSION_WAIT_FOR_RAIN_TO_STOP"
     SUB_MISSION_FLEXIBLE_STATION_WAIT = "SUB_MISSION_FLEXIBLE_STATION_WAIT"
 
+
 class MissionState(Enum):
     MISSION_STATE_IDLE = "MISSION_STATE_IDLE"
     MISSION_STATE_RUNNING = "MISSION_STATE_RUNNING"
@@ -87,18 +95,23 @@ class MissionState(Enum):
     MISSION_STATE_ABORT = "MISSION_STATE_ABORT"
     MISSION_STATE_COMPLETE = "MISSION_STATE_COMPLETE"
 
+
 class PowerMode(Enum):
     POWER_MODE_RUNNING = "POWER_MODE_RUNNING"
     POWER_MODE_STANDBY = "POWER_MODE_STANDBY"
     POWER_MODE_HIBERNATE = "POWER_MODE_HIBERNATE"
 
+
 class BackToStationReason(Enum):
     BACK_TO_STATION_REASON_NONE = "BACK_TO_STATION_REASON_NONE"
     BACK_TO_STATION_REASON_LOW_BATTERY = "BACK_TO_STATION_REASON_LOW_BATTERY"
     BACK_TO_STATION_REASON_RAINING = "BACK_TO_STATION_REASON_RAINING"
-    BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT = "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT"
+    BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT = (
+        "BACK_TO_STATION_REASON_MOW_MOTOR_OVERHEAT"
+    )
     BACK_TO_STATION_REASON_WHEEL_OVERHEAT = "BACK_TO_STATION_REASON_WHEEL_OVERHEAT"
     BACK_TO_STATION_REASON_NIGHT_TIME = "BACK_TO_STATION_REASON_NIGHT_TIME"
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -108,7 +121,7 @@ async def async_setup_entry(
     """Set up the TerraMow entity."""
     # 从 hass.data 获取数据而不是 config_entry.runtime_data
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
-    
+
     # 创建实体
     entity = TerraMowLawnMowerEntity(basic_data, hass)
 
@@ -117,6 +130,7 @@ async def async_setup_entry(
 
     # 启动 MQTT 客户端
     entity.start_mqtt_client()
+
 
 class TerraMowLawnMowerEntity(LawnMowerEntity):
     _attr_has_entity_name = True
@@ -138,7 +152,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._activity = LawnMowerActivity.DOCKED  # 默认状态
         self.mqtt_client = None
         self._stop_event = threading.Event()  # 用于停止重连循环
-        self.callbacks: dict[int, list[Callable]] = {}  # 存储 dp_id 和对应的回调函数列表
+        self.callbacks: dict[
+            int, list[Callable]
+        ] = {}  # 存储 dp_id 和对应的回调函数列表
         self.map_callbacks: list[Callable] = []  # 存储地图信息回调函数
         self.pose_callbacks: list[Callable] = []  # 存储姿态回调函数
         self.path_callbacks: list[Callable] = []  # 存储路径数据回调函数
@@ -183,7 +199,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._base_station_time: dict[str, Any] = {}  # 存储dp_125基站使用时间
         self._blade_time: dict[str, Any] = {}  # 存储dp_126刀盘使用时间
         self._schedule_data: dict[str, Any] = {}  # 存储dp_138即将到来的预约
-        self._battery_status: dict[str, Any] = {} # Store dp_108 battery status
+        self._battery_status: dict[str, Any] = {}  # Store dp_108 battery status
         self._device_model: str = "TerraMow S1200"  # 默认型号名称，保持向后兼容
         self.basic_data.lawn_mower = self
 
@@ -192,30 +208,38 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.sub_mission = SubMission.SUB_MISSION_IDLE
         self.mission_state = MissionState.MISSION_STATE_IDLE
         self.has_error = False
+        self.back_to_station_reason = BackToStationReason.BACK_TO_STATION_REASON_NONE
+        self.feedback = TerraMowFeedback(self)
 
         self.cmd_seq = random.randint(0, 0xFFFFFFFF)  # 生成随机的指令序号
+        self._seq_lock = threading.Lock()  # MQTT 线程和 HA 控制服务共用序号。
 
         self._last_control_time = time.monotonic()
-        self._control_interval = 1.0 # 控制间隔时间
+        self._control_interval = 1.0  # 控制间隔时间
 
-        self._has_returning = hasattr(LawnMowerActivity, 'RETURNING')
+        self._has_returning = hasattr(LawnMowerActivity, "RETURNING")
         if not self._has_returning:
             _LOGGER.info("LawnMowerActivity.RETURNING not available in this HA version")
 
         _LOGGER.info("TerraMowLawnMowerEntity created with host %s", self.host)
         _LOGGER.debug("Initialization params: host=%s", self.host)
-        _LOGGER.debug("Initial state: activity=%s, mission=%s, sub_mission=%s", 
-                     self._activity, self.mission, self.sub_mission)
-
+        _LOGGER.debug(
+            "Initial state: activity=%s, mission=%s, sub_mission=%s",
+            self._activity,
+            self.mission,
+            self.sub_mission,
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
-            name='TerraMow',
-            manufacturer='TerraMow',
-            model=self.device_model
+            identifiers={
+                ("TerraMowLawnMower", self.basic_data.host)
+            },  # Corrected typo in identifier
+            name="TerraMow",
+            manufacturer="TerraMow",
+            model=self.device_model,
         )
 
     @property
@@ -227,6 +251,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def device_model(self, model_name: str) -> None:
         """更新设备型号"""
         self._device_model = model_name
+
     def _can_accept_command(self):
         """Check if control commands can be accepted"""
         now = time.monotonic()
@@ -248,21 +273,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             Mission.MISSION_EDGE_TRIM_CLEAN,
             Mission.MISSION_SCHEDULE_GLOBAL_CLEAN,
             Mission.MISSION_SCHEDULE_BUILD_MAP_AND_CLEAN,
-            Mission.MISSION_SCHEDULE_SELECT_REGION_CLEAN
+            Mission.MISSION_SCHEDULE_SELECT_REGION_CLEAN,
         ]
 
     def _get_recharge_missions(self):
         """Get the list of recharging missions"""
-        return [
-            Mission.MISSION_RECHARGE,
-            Mission.MISSION_BACK_TO_STARTING_POINT
-        ]
+        return [Mission.MISSION_RECHARGE, Mission.MISSION_BACK_TO_STARTING_POINT]
 
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
         return f"lawn_mower.terramow@{self.host}"
-
 
     @property
     def activity(self) -> LawnMowerActivity:
@@ -275,37 +296,48 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         old_activity = self._activity
         self._activity = value
         _LOGGER.info("Activity changed from %s to %s", old_activity, value)
-        _LOGGER.debug("State change details: mission=%s, sub_mission=%s, mission_state=%s, has_error=%s",
-                     self.mission, self.sub_mission, self.mission_state, self.has_error)
+        _LOGGER.debug(
+            "State change details: mission=%s, sub_mission=%s, mission_state=%s, has_error=%s",
+            self.mission,
+            self.sub_mission,
+            self.mission_state,
+            self.has_error,
+        )
         self.schedule_update_ha_state()
 
     @property
     def supported_features(self) -> LawnMowerEntityFeature:
         """Flag lawn mower features that are supported."""
-        return LawnMowerEntityFeature.START_MOWING | LawnMowerEntityFeature.PAUSE | LawnMowerEntityFeature.DOCK
+        return (
+            LawnMowerEntityFeature.START_MOWING
+            | LawnMowerEntityFeature.PAUSE
+            | LawnMowerEntityFeature.DOCK
+        )
 
     def start_mqtt_client(self):
         """Start the MQTT client in a separate thread."""
         _LOGGER.info("Starting MQTT client, connecting to %s:%d", self.host, MQTT_PORT)
         _LOGGER.debug("MQTT connection params: username=%s", MQTT_USERNAME)
-        
+
         self.mqtt_client = mqtt_client.Client()
         self.mqtt_client.username_pw_set(MQTT_USERNAME, self.password)
         self.mqtt_client.on_connect = self.on_mqtt_connect
         self.mqtt_client.on_disconnect = self.on_mqtt_disconnect
         self.mqtt_client.on_message = self.on_mqtt_message
 
+        # 先注册回调，避免重连后立即到达的 retained 快照被丢弃。
+        self.register_all_callbacks()
         # Start MQTT loop thread
         _LOGGER.debug("Starting MQTT thread")
         self.mqtt_thread = threading.Thread(target=self.mqtt_loop)
         self.mqtt_thread.daemon = True
         self.mqtt_thread.start()
 
-        self.register_all_callbacks()
         _LOGGER.debug("MQTT client startup completed")
 
     def register_all_callbacks(self):
         """Register all callbacks for data points."""
+        self.feedback.register_callbacks()
         self.register_callback(107, self.on_mission_status)
         self.register_callback(155, self.on_global_params)
         self.register_callback(117, self.on_map_status)
@@ -321,7 +353,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Update activity based on current mission state."""
         last_activity = self.activity
 
-        if self.has_error:
+        if self.has_error or self.feedback.active_errors:
             self.activity = LawnMowerActivity.ERROR
         elif self.mission_state == MissionState.MISSION_STATE_RUNNING:
             if self.mission in self._get_mow_missions():
@@ -357,30 +389,43 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             old_params = self._global_params
             self._global_params = data
             _LOGGER.info("Global parameters updated: %s", data)
-            
+
             # 检查主方向模式是否有变化，通知模式选择器
             self._notify_mode_selector_if_changed(old_params, data)
-            
+
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_155: %s", payload)
-    
-    def _notify_mode_selector_if_changed(self, old_params: dict, new_params: dict) -> None:
+
+    def _notify_mode_selector_if_changed(
+        self, old_params: dict, new_params: dict
+    ) -> None:
         """如果主方向模式有变化，通知模式选择器"""
         try:
-            old_mode = old_params.get('main_direction_angle_config', {}).get('mode') if old_params else None
-            new_mode = new_params.get('main_direction_angle_config', {}).get('mode')
-            
+            old_mode = (
+                old_params.get("main_direction_angle_config", {}).get("mode")
+                if old_params
+                else None
+            )
+            new_mode = new_params.get("main_direction_angle_config", {}).get("mode")
+
             if new_mode and old_mode != new_mode:
-                _LOGGER.debug("Main direction mode changed from %s to %s, notifying mode selector", old_mode, new_mode)
-                
+                _LOGGER.debug(
+                    "Main direction mode changed from %s to %s, notifying mode selector",
+                    old_mode,
+                    new_mode,
+                )
+
                 # 通过Home Assistant事件通知模式选择器
-                self.hass.bus.fire(f"{DOMAIN}_device_mode_confirmed", {
-                    "device_host": self.host,
-                    "confirmed_mode": new_mode,
-                    "old_mode": old_mode,
-                    "source": "device_feedback"
-                })
-                
+                self.hass.bus.fire(
+                    f"{DOMAIN}_device_mode_confirmed",
+                    {
+                        "device_host": self.host,
+                        "confirmed_mode": new_mode,
+                        "old_mode": old_mode,
+                        "source": "device_feedback",
+                    },
+                )
+
         except Exception as e:
             _LOGGER.warning("Error notifying mode selector: %s", e)
 
@@ -470,7 +515,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             "sub_mission": SubMission,
             "state": MissionState,
             "power_mode": PowerMode,
-            "back_to_station_reason": BackToStationReason
+            "back_to_station_reason": BackToStationReason,
         }
 
         # Convert enum strings to enum members
@@ -481,7 +526,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                     data[key] = enum_class(data[key])
                     _LOGGER.debug("Converted %s: %s -> %s", key, old_value, data[key])
                 except (ValueError, KeyError) as e:
-                    _LOGGER.error("Invalid value for %s: %s (error: %s)", key, data[key], e)
+                    _LOGGER.error(
+                        "Invalid value for %s: %s (error: %s)", key, data[key], e
+                    )
                     data[key] = None
 
         # Store old values for logging
@@ -494,10 +541,21 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.sub_mission = data.get("sub_mission", self.sub_mission)
         self.mission_state = data.get("state", self.mission_state)
         self.has_error = data.get("has_error", self.has_error)
+        self.back_to_station_reason = data.get(
+            "back_to_station_reason", self.back_to_station_reason
+        )
 
-        _LOGGER.debug("Mission state updated: mission=%s->%s, sub_mission=%s->%s, state=%s->%s, error=%s->%s",
-                     old_mission, self.mission, old_sub_mission, self.sub_mission,
-                     old_mission_state, self.mission_state, old_has_error, self.has_error)
+        _LOGGER.debug(
+            "Mission state updated: mission=%s->%s, sub_mission=%s->%s, state=%s->%s, error=%s->%s",
+            old_mission,
+            self.mission,
+            old_sub_mission,
+            self.sub_mission,
+            old_mission_state,
+            self.mission_state,
+            old_has_error,
+            self.has_error,
+        )
 
         self.update_activity_from_state()
 
@@ -522,7 +580,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
             # 如果版本不兼容，可以考虑禁用某些功能或显示警告
             if compatibility_status == CompatibilityStatus.INCOMPATIBLE:
-                _LOGGER.error("Version completely incompatible, recommend checking firmware and plugin versions")
+                _LOGGER.error(
+                    "Version completely incompatible, recommend checking firmware and plugin versions"
+                )
 
         except json.JSONDecodeError:
             _LOGGER.error("Failed to parse compatibility info JSON: %s", payload)
@@ -555,12 +615,15 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                     _LOGGER.warning(
                         "Cannot reach TerraMow MQTT broker at %s:%d (%s); "
                         "will keep retrying with backoff",
-                        self.host, MQTT_PORT, e,
+                        self.host,
+                        MQTT_PORT,
+                        e,
                     )
                 else:
                     _LOGGER.debug(
                         "MQTT connection still failing (attempt %d): %s",
-                        consecutive_failures, e,
+                        consecutive_failures,
+                        e,
                     )
                 # 设置错误状态
                 self.activity = LawnMowerActivity.ERROR
@@ -596,14 +659,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 PATH_HISTORY_META_TOPIC,
                 POSE_TOPIC,
             )
-            
+
             # 订阅设备型号主题
             client.subscribe(MODEL_NAME_TOPIC)
             _LOGGER.info("Subscribed to %s topic", MODEL_NAME_TOPIC)
-            
+
             # 主动请求版本兼容性信息
             self._request_compatibility_info()
-            
+
             self.update_activity_from_state()
         else:
             _LOGGER.error(f"MQTT connection failed with code {rc}")
@@ -613,6 +676,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
     def on_mqtt_disconnect(self, _client, _userdata, rc):  # type: ignore[misc]
         """Callback when disconnected from MQTT Broker."""
+        self.hass.add_job(self.feedback.disconnected)
         if rc != 0:
             _LOGGER.warning(f"Unexpected MQTT disconnection: {rc}")
             # 断开连接后自动重连
@@ -626,7 +690,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         payload = msg.payload.decode()
 
         if topic != POSE_TOPIC:
-            _LOGGER.debug("Received MQTT message: topic=%s, payload=%s", topic, payload)
+            # metadata 包含 HTTP 凭据；通用接收日志只记录主题。
+            _LOGGER.debug("Received MQTT message: topic=%s", topic)
 
         # 处理地图元信息
         if topic == MAP_META_TOPIC:
@@ -659,7 +724,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 self._history_path_meta = meta
                 self.hass.add_job(self._async_handle_history_path_meta, meta)
             except json.JSONDecodeError:
-                _LOGGER.error("Failed to parse history path meta JSON: %s", payload[:200])
+                _LOGGER.error(
+                    "Failed to parse history path meta JSON: %s", payload[:200]
+                )
             except Exception as e:
                 _LOGGER.error("Error handling history path meta: %s", e)
             return
@@ -682,7 +749,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("Received map info message, size: %d bytes", len(payload))
             self._handle_map_info(payload)
             return
-        
+
         # 处理设备型号主题
         if topic == MODEL_NAME_TOPIC:
             _LOGGER.info("Received device model message: %s", payload)
@@ -707,7 +774,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if callbacks:
             _LOGGER.debug("Calling %d callbacks for dp_id %d", len(callbacks), dp_id)
             for callback in callbacks:
-                self.hass.add_job(callback, payload)
+                if dp_id in (114, 115, 123):
+                    self.hass.add_job(callback, payload, bool(msg.retain))
+                else:
+                    self.hass.add_job(callback, payload)
         else:
             _LOGGER.debug("No callback registered for dp_id: %d", dp_id)
 
@@ -760,8 +830,12 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def _update_map_info(self, map_info: dict[str, Any]) -> None:
         """Update map info and notify callbacks."""
         self._map_info = map_info
-        _LOGGER.info("Map info updated: id=%s, name=%s, state=%s",
-                     map_info.get('id'), map_info.get('name'), map_info.get('map_state'))
+        _LOGGER.info(
+            "Map info updated: id=%s, name=%s, state=%s",
+            map_info.get("id"),
+            map_info.get("name"),
+            map_info.get("map_state"),
+        )
         for callback in self.map_callbacks:
             self.hass.add_job(callback, map_info)
 
@@ -772,7 +846,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 return data.get(key)
         return None
 
-    def _build_map_info_from_map_data(self, map_data: dict[str, Any]) -> dict[str, Any] | None:
+    def _build_map_info_from_map_data(
+        self, map_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """根据 HTTP map 数据构建/补全 map_info"""
         if not isinstance(map_data, dict):
             return None
@@ -784,7 +860,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         mapped = {
             "id": new_id,
             "name": self._get_map_field(map_data, "name", "map_name", "mapName"),
-            "map_state": self._get_map_field(map_data, "map_state", "mapState", "state"),
+            "map_state": self._get_map_field(
+                map_data, "map_state", "mapState", "state"
+            ),
             "regions": map_data.get("regions"),
             "clean_info": self._get_map_field(map_data, "clean_info", "cleanInfo"),
             "total_area": self._get_map_field(map_data, "total_area", "totalArea"),
@@ -808,7 +886,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 _LOGGER.warning("Invalid %s meta seq: %s", label, meta.get("seq"))
             return -1
 
-    def _should_replace_pending(self, pending_meta: dict[str, Any] | None, seq: int, label: str) -> bool:
+    def _should_replace_pending(
+        self, pending_meta: dict[str, Any] | None, seq: int, label: str
+    ) -> bool:
         """是否用新的 meta 替换缓存的 pending meta"""
         if pending_meta is None:
             return True
@@ -872,7 +952,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             return
         delay = self._get_retry_delay(self._path_retry_count)
         self._path_retry_count += 1
-        self._path_retry_task = self.hass.async_create_task(self._async_retry_path(delay))
+        self._path_retry_task = self.hass.async_create_task(
+            self._async_retry_path(delay)
+        )
 
     def _schedule_history_path_retry(self, meta: dict[str, Any]) -> None:
         """安排历史路径拉取重试"""
@@ -948,7 +1030,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
         self._fetching_map = True
         try:
-            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._map_etag)
+            data, etag, ok, _not_modified = await self._async_fetch_json(
+                meta, self._map_etag
+            )
             if ok:
                 if seq != -1:
                     self._map_seq = seq
@@ -974,7 +1058,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             if pending_meta:
                 pending_seq = self._get_meta_seq(pending_meta, "map", warn=False)
                 if pending_seq == -1 or pending_seq > self._map_seq:
-                    self.hass.async_create_task(self._async_handle_map_meta(pending_meta))
+                    self.hass.async_create_task(
+                        self._async_handle_map_meta(pending_meta)
+                    )
 
     async def _async_handle_path_meta(self, meta: dict[str, Any]) -> None:
         """Handle path meta message and fetch path data via HTTP."""
@@ -987,7 +1073,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if seq != -1 and self._path_seq != -1 and seq < self._path_seq:
             _LOGGER.info(
                 "Path seq went backward (%d -> %d); treating as new session",
-                self._path_seq, seq,
+                self._path_seq,
+                seq,
             )
             self._path_seq = -1
             self._path_etag = None
@@ -1006,7 +1093,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
         self._fetching_path = True
         try:
-            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._path_etag)
+            data, etag, ok, _not_modified = await self._async_fetch_json(
+                meta, self._path_etag
+            )
             if ok:
                 if seq != -1:
                     self._path_seq = seq
@@ -1031,7 +1120,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             if pending_meta:
                 pending_seq = self._get_meta_seq(pending_meta, "path", warn=False)
                 if pending_seq == -1 or pending_seq > self._path_seq:
-                    self.hass.async_create_task(self._async_handle_path_meta(pending_meta))
+                    self.hass.async_create_task(
+                        self._async_handle_path_meta(pending_meta)
+                    )
 
     async def _async_handle_history_path_meta(self, meta: dict[str, Any]) -> None:
         """Handle history path meta message and fetch history path data via HTTP."""
@@ -1043,7 +1134,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if seq != -1 and self._history_path_seq != -1 and seq < self._history_path_seq:
             _LOGGER.info(
                 "History path seq went backward (%d -> %d); treating as new session",
-                self._history_path_seq, seq,
+                self._history_path_seq,
+                seq,
             )
             self._history_path_seq = -1
             self._history_path_etag = None
@@ -1056,13 +1148,17 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             if (now - self._history_path_no_seq_last_fetch) < self._no_seq_min_interval:
                 return
         if self._fetching_history_path:
-            if self._should_replace_pending(self._pending_history_path_meta, seq, "history path"):
+            if self._should_replace_pending(
+                self._pending_history_path_meta, seq, "history path"
+            ):
                 self._pending_history_path_meta = meta
             return
 
         self._fetching_history_path = True
         try:
-            data, etag, ok, _not_modified = await self._async_fetch_json(meta, self._history_path_etag)
+            data, etag, ok, _not_modified = await self._async_fetch_json(
+                meta, self._history_path_etag
+            )
             if ok:
                 if seq != -1:
                     self._history_path_seq = seq
@@ -1085,9 +1181,13 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             pending_meta = self._pending_history_path_meta
             self._pending_history_path_meta = None
             if pending_meta:
-                pending_seq = self._get_meta_seq(pending_meta, "history path", warn=False)
+                pending_seq = self._get_meta_seq(
+                    pending_meta, "history path", warn=False
+                )
                 if pending_seq == -1 or pending_seq > self._history_path_seq:
-                    self.hass.async_create_task(self._async_handle_history_path_meta(pending_meta))
+                    self.hass.async_create_task(
+                        self._async_handle_history_path_meta(pending_meta)
+                    )
 
     async def _async_fetch_json(
         self,
@@ -1117,7 +1217,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             new_etag = resp.headers.get("ETag") or etag
             raw = await resp.read()
             # 手动处理 gzip 压缩：协议要求 Content-Encoding: gzip
-            if raw[:2] == b'\x1f\x8b':
+            if raw[:2] == b"\x1f\x8b":
                 raw = await self.hass.async_add_executor_job(gzip.decompress, raw)
             text = raw.decode("utf-8")
             data = json.loads(text)
@@ -1127,15 +1227,12 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """异步更新设备注册表中的模型信息."""
         try:
             device_registry = dr.async_get(self.hass)
-            device_identifier = ('TerraMowLawnMower', self.basic_data.host)
-            
+            device_identifier = ("TerraMowLawnMower", self.basic_data.host)
+
             # 查找设备并更新模型信息
             device_entry = device_registry.async_get_device({device_identifier})
             if device_entry:
-                device_registry.async_update_device(
-                    device_entry.id,
-                    model=model_name
-                )
+                device_registry.async_update_device(device_entry.id, model=model_name)
                 _LOGGER.info("Device registry updated with new model: %s", model_name)
             else:
                 _LOGGER.warning("Device not found in registry for update")
@@ -1151,10 +1248,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 old_model = self.device_model
                 self.device_model = model_name
                 _LOGGER.info("Device model updated: %s -> %s", old_model, model_name)
-                
+
                 # 使用 hass.add_job 调度异步设备注册表更新操作到主事件循环
                 self.hass.add_job(self._async_update_device_model, model_name)
-                
+
                 # 触发实体状态更新
                 self.schedule_update_ha_state()
             else:
@@ -1248,108 +1345,67 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.info(f"Publishing data to topic {topic}: {data}")
         payload = json.dumps(data)
         if self.mqtt_client:
-            self.mqtt_client.publish(topic, payload)
+            return self.mqtt_client.publish(topic, payload)
         else:
             _LOGGER.error("MQTT client is not initialized")
 
     def get_cmd_seq(self):
         """Generate a new command sequence number."""
-        self.cmd_seq += 1
-        return self.cmd_seq
+        with self._seq_lock:
+            self.cmd_seq = (self.cmd_seq + 1) & 0xFFFFFFFF
+            return self.cmd_seq
 
-    def start_mowing(self):
-        """Start mowing implementation for lawn_mower entity."""
-        if not self._can_accept_command():
-            logging.warning("Request too quick, skip start mowing command")
-            return
+    @property
+    def extra_state_attributes(self) -> dict:
+        """保留任务返回原因，并展示当前故障，供自动化判断是否需要人工处理。"""
+        reason = self.back_to_station_reason
+        return {
+            "back_to_station_reason": reason.value if reason is not None else None,
+            "active_faults": list((self.feedback.active_errors or {}).values()),
+        }
 
+    async def async_start_mowing(self) -> None:
+        """按当前任务选择启动或恢复，并把设备的拒绝反馈给服务调用方。"""
         if self.mission in self._get_mow_missions():
-            if self.sub_mission == SubMission.SUB_MISSION_FLEXIBLE_STATION_WAIT:
-                _LOGGER.info("SubMissionWaitInStation resume mow")
-                self._resume_mow()
-            else:
-                if self.mission_state == MissionState.MISSION_STATE_RUNNING:
-                    _LOGGER.info("Now is mowing, can not start mow again")
-                elif self.mission_state == MissionState.MISSION_STATE_PAUSE:
-                    _LOGGER.info("Mission paused, resume mow")
-                    self._resume_mow()
-        else:
-            _LOGGER.info("START CLEAN : Sending start command")
-            self._start_normal_mow()
+            if (
+                self.sub_mission == SubMission.SUB_MISSION_FLEXIBLE_STATION_WAIT
+                or self.mission_state == MissionState.MISSION_STATE_PAUSE
+            ):
+                await self.feedback.async_send_command(106, {})
+            elif self.mission_state != MissionState.MISSION_STATE_RUNNING:
+                from homeassistant.exceptions import ServiceValidationError
 
-    def pause(self):
-        """Pause mowing implementation for lawn_mower entity."""
-        if not self._can_accept_command():
-            logging.warning("Request too quick, skip pause command")
+                raise ServiceValidationError(
+                    "TerraMow cannot resume the current mission"
+                )
+            # 已在割草时保持幂等，不发送重复启动。
             return
+        await self.feedback.async_send_command(
+            103,
+            {
+                "mode": "START_MODE_GLOBAL_CLEAN",
+                "global_clean": {"restart": False},
+            },
+        )
 
-        if self.mission in self._get_mow_missions():
-            if self.sub_mission == SubMission.SUB_MISSION_FLEXIBLE_STATION_WAIT:
-                _LOGGER.info("SubMissionWaitInStation, now is not ok to pause mow")
-            else:
-                if self.mission_state == MissionState.MISSION_STATE_RUNNING:
-                    _LOGGER.info("PAUSE CLEAN : Sending pause command")
-                    self._send_pause_command()
-                elif self.mission_state == MissionState.MISSION_STATE_PAUSE:
-                    _LOGGER.info("Now is paused, can not pause mow again")
-        else:
-            if self.mission_state == MissionState.MISSION_STATE_RUNNING:
-                _LOGGER.info("PAUSE CLEAN : Sending pause command")
-                self._send_pause_command()
-            elif self.mission_state == MissionState.MISSION_STATE_PAUSE:
-                _LOGGER.info("Now is paused, can not pause mow again")
+    async def async_pause(self) -> None:
+        """暂停运行中的任务，等待设备确认；已暂停时保持幂等。"""
+        if self.mission_state == MissionState.MISSION_STATE_RUNNING:
+            if self.sub_mission != SubMission.SUB_MISSION_FLEXIBLE_STATION_WAIT:
+                await self.feedback.async_send_command(105, {})
 
-    def dock(self):
-        """Docking implementation for lawn_mower entity."""
-        if not self._can_accept_command():
-            logging.warning("Request too quick, skip dock command")
-            return
-
+    async def async_dock(self) -> None:
+        """回基站或恢复回充，使用与割草相同的回复确认机制。"""
         if self.mission in self._get_recharge_missions():
-            if self.mission_state == MissionState.MISSION_STATE_RUNNING:
-                _LOGGER.info("Now is not ok to start recharge")
-            elif self.mission_state == MissionState.MISSION_STATE_PAUSE:
-                _LOGGER.info("ResumeRecharge : Resuming recharge")
-                self._resume_recharge()
-        else:
-            _LOGGER.info("StartRecharge : Sending recharge command")
-            self._start_normal_recharge()
-
-    def _start_normal_mow(self):
-        """Start normal mowing"""
-        command = {
-            'seq': self.get_cmd_seq(),
-            'mode': 'START_MODE_GLOBAL_CLEAN',
-            'global_clean': {'restart': False}
-        }
-        self.publish_data_point(103, command)
-
-    def _resume_mow(self):
-        """Resume mowing"""
-        command = {'seq': self.get_cmd_seq()}
-        self.publish_data_point(106, command)
-
-    def _send_pause_command(self):
-        """Send pause command"""
-        command = {'seq': self.get_cmd_seq()}
-        self.publish_data_point(105, command)
-
-    def _start_normal_recharge(self):
-        """Start normal recharging"""
-        command = {
-            'seq': self.get_cmd_seq(),
-            'mode': 'START_MODE_RETURN'
-        }
-        self.publish_data_point(103, command)
-
-    def _resume_recharge(self):
-        """Resume recharging"""
-        # 继续回充等效于继续割草
-        return self._resume_mow();
+            if self.mission_state == MissionState.MISSION_STATE_PAUSE:
+                await self.feedback.async_send_command(106, {})
+            return
+        await self.feedback.async_send_command(103, {"mode": "START_MODE_RETURN"})
 
     async def async_will_remove_from_hass(self):
         """Clean up resources when the entity is removed."""
         _LOGGER.info("Stopping MQTT client")
+        self.feedback.disconnected()
         self._stop_event.set()
         self._reset_map_retry()
         self._reset_path_retry()
@@ -1362,10 +1418,13 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         # （继续重连并刷日志）。在 executor 中 join，避免阻塞事件循环。
         thread = getattr(self, "mqtt_thread", None)
         if thread is not None and thread.is_alive():
-            await self.hass.async_add_executor_job(thread.join, MQTT_THREAD_JOIN_TIMEOUT)
+            await self.hass.async_add_executor_job(
+                thread.join, MQTT_THREAD_JOIN_TIMEOUT
+            )
             if thread.is_alive():
                 _LOGGER.warning(
-                    "MQTT worker thread did not stop within %ds", MQTT_THREAD_JOIN_TIMEOUT
+                    "MQTT worker thread did not stop within %ds",
+                    MQTT_THREAD_JOIN_TIMEOUT,
                 )
 
     def _request_compatibility_info(self):

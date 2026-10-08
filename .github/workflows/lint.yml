@@ -14,11 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
-      - name: Check integration correctness
-        run: >-
-          uvx --from ruff==0.15.7 ruff check
-          --select E9,F63,F7,F82 custom_components tests
-      - name: Check new test code
-        run: uvx --from ruff==0.15.7 ruff check tests
-      - name: Check test formatting
-        run: uvx --from ruff==0.15.7 ruff format --check tests
+      - name: Check Python code
+        run: uvx --from ruff==0.15.7 ruff check custom_components tests
+      - name: Check Python formatting
+        run: uvx --from ruff==0.15.7 ruff format --check custom_components tests

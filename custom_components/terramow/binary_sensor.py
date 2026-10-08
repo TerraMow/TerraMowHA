@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import logging
-import json
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
+    BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import TerraMowBasicData, DOMAIN
+from . import DOMAIN, TerraMowBasicData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,16 +51,20 @@ class TerraMowChargingSensor(BinarySensorEntity):
         self.host = self.basic_data.host
         self.hass = hass
         self._attr_is_on: bool | None = None
-        _LOGGER.info("TerraMowChargingSensor entity created") # Callback is no longer needed here
+        _LOGGER.info(
+            "TerraMowChargingSensor entity created"
+        )  # Callback is no longer needed here
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={('TerraMowLawnMower', self.basic_data.host)}, # Corrected typo in identifier
-            name='TerraMow',
-            manufacturer='TerraMow',
-            model=self.basic_data.lawn_mower.device_model # Use dynamically updated model
+            identifiers={
+                ("TerraMowLawnMower", self.basic_data.host)
+            },  # Corrected typo in identifier
+            name="TerraMow",
+            manufacturer="TerraMow",
+            model=self.basic_data.lawn_mower.device_model,  # Use dynamically updated model
         )
 
     @property
@@ -71,11 +75,11 @@ class TerraMowChargingSensor(BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        if not hasattr(self.basic_data, 'lawn_mower') or not self.basic_data.lawn_mower:
+        if not hasattr(self.basic_data, "lawn_mower") or not self.basic_data.lawn_mower:
             return None
 
         battery_status = self.basic_data.lawn_mower.battery_status
-        charger_connected = battery_status.get('charger_connected')
+        charger_connected = battery_status.get("charger_connected")
 
         return bool(charger_connected) if charger_connected is not None else None
 

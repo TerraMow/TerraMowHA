@@ -25,6 +25,12 @@
             }
         },
         "sensor": {
+            "last_event": {
+                "name": "Last Event"
+            },
+            "active_fault": {
+                "name": "Active Fault"
+            },
             "battery": {
                 "name": "Battery"
             },

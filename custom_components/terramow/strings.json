@@ -62,6 +62,12 @@
       },
       "pose": {
         "name": "Pose"
+      },
+      "last_event": {
+        "name": "Last Event"
+      },
+      "active_fault": {
+        "name": "Active Fault"
       }
     },
     "camera": {
