@@ -15,6 +15,7 @@ Data Point Definition
 - [Upcoming Schedule](#upcoming-schedule)
 - [Global Operation Parameter Settings](#global-operation-parameter-settings)
 - [Map Status](#map-status)
+- [Work Mode](#work-mode)
 
 <!-- /code_chunk_output -->
 
@@ -31,6 +32,7 @@ Data Point Definition
 | 125 | [Base Station Usage Time](#base-station-usage-time) | Robot↔HA | Base station usage time |
 | 126 | [Mowing Blade Disk Usage Time](#mowing-blade-disk-usage-time) | Robot↔HA | Mowing blade disk usage time |
 | 138 | [Upcoming Schedule](#upcoming-schedule) | Robot→HA | Upcoming scheduled task |
+| 154 | [Work Mode](#work-mode) | Robot↔HA | Movement, map and mowing mode |
 | 155 | [Global Operation Parameter Settings](#global-operation-parameter-settings) | Robot↔HA | Global operation parameter settings |
 
 ## Battery Level
@@ -344,3 +346,29 @@ Data Point Definition
   - Map state (`map_state`) directly affects the types of operations the robot can perform
   - Even if the map state is `MAP_STATE_COMPLETE`, if `is_able_to_run_build_map` is `true`, mapping can still be started (e.g., in cases with virtual passages)
   - The `backup_map_id` field is only meaningful when `is_backing_up_map` is `true`
+
+## Work Mode
+
+- **ID**: 154
+- Data Direction: Robot↔HA
+- Field Description:
+
+  | Field Name | Type | Unit | Description |
+  |-------|------|------|------|
+  | move_mode | String | - | Movement mode:<br>"MOVE_MODE_MOW" - Mowing (default)<br>"MOVE_MODE_MAPPING" - Mapping (only while the map is incomplete) |
+  | map_mode | String | - | Map mode:<br>"MAP_MODE_BASE_STATION" - With base station (default)<br>"MAP_MODE_SPOT" - Without base station (Spot mode) |
+  | mow_mode | String | - | Mowing mode:<br>"MOW_MODE_GLOBAL" - Global mowing (default)<br>"MOW_MODE_SELECT_REGION" - Selected region<br>"MOW_MODE_DRAW_REGION" - Drawn region<br>"MOW_MODE_EDGE_TRIM" - Edge trimming |
+
+- Example:
+  ```json
+  {
+    "move_mode": "MOVE_MODE_MOW",
+    "map_mode": "MAP_MODE_BASE_STATION",
+    "mow_mode": "MOW_MODE_SELECT_REGION"
+  }
+  ```
+  This indicates mowing in base station map mode, with selected region mowing.
+- Notes:
+  - Reported when any of the three modes changes and when the robot resynchronizes its state; the message is retained.
+  - `mow_mode` was introduced with work mode version 2. The integration treats a missing `mow_mode` as `MOW_MODE_GLOBAL`.
+  - This integration only reads this data point and never publishes it. The Current Session Progress sensor uses it to decide whether the robot app would show a progress ring.

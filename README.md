@@ -41,10 +41,16 @@ can translate them. The `protocol_value` attribute retains the original
 uppercase robot value. These sensors update when a new mission status arrives
 and do not send commands to the mower.
 
-The diagnostic **Current Session Progress** sensor shows the percentage derived
-from the current work area's `clean_area` and `total_area`. It updates with new
-work data, shows unknown when the total area is missing or zero, and caps the
-displayed value at 100%.
+The diagnostic **Current Session Progress** sensor follows the progress ring in
+the TerraMow app. It compares the mowed area with the total area and stays at
+98% or below until the robot reports the work as completed, which is the only
+time it shows 100%. It is unknown when the app would not show a ring: the map
+is not complete or can still be built, Spot mode, drawn-region or edge-trim
+mowing, simultaneous mapping and mowing, or the robot has not reported any
+work yet. It shows 0% while the robot waits for daylight. The value updates
+when work data, map status, mission status or work mode changes, and it shows
+the robot's last reported session until a new one starts. It is unavailable
+while Home Assistant is not connected to the robot.
 
 ### Installation
 

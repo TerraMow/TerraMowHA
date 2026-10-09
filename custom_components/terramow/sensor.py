@@ -30,7 +30,7 @@ from .const import (
     BLADE_MAINTENANCE_CYCLE_MINUTES,
     MOW_SPEED_TYPES,
 )
-from .lawn_mower import Mission, MissionState, SubMission
+from .lawn_mower import Mission, MissionState, SubMission, TerraMowLawnMowerEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -313,8 +313,31 @@ class CurrentSessionAreaSensor(SensorEntity):
         return attrs
 
 
+# 以下判定复现 TerraMow App 控制页进度环（CustomMachineStatusFactory2）的规则。
+_BUILD_AREA_TYPES = frozenset(
+    {"MAP_AREA_TYPE_BUILD_MAP", "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING"}
+)
+# 协议规定这些类型没有可用于计算进度的总面积（NONE 表示从未作业）。App 靠工作模式
+# 过滤它们，而本插件可能还没收到 dp_154，所以直接按 dp_113 的类型排除。
+_NO_PROGRESS_AREA_TYPES = frozenset(
+    {
+        "MAP_AREA_TYPE_NONE",
+        "MAP_AREA_TYPE_DRAW_REGION_CLEANING",
+        "MAP_AREA_TYPE_EDGE_TRIM_CLEANING",
+    }
+)
+_PROGRESS_MOW_MODES = frozenset({"MOW_MODE_GLOBAL", "MOW_MODE_SELECT_REGION"})
+_INVALID_MAP_ID = -1
+_UNFINISHED_PROGRESS_CAP = 98.0
+
+
 class CurrentSessionProgressSensor(SensorEntity):
-    """根据 dp_113 的已作业面积和总面积展示当前作业进度。"""
+    """当前作业进度，规则与 TerraMow App 控制页的进度环一致。
+
+    进度环只在“基站地图已建完、全局或选区割草”时显示，作业完成前最多 98%，
+    设备报告已完成才是 100%。输入来自 dp_113 作业面积、dp_117 地图状态、
+    dp_107 任务状态和 dp_154 工作模式，任何一路更新都会立即刷新。
+    """
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -324,8 +347,11 @@ class CurrentSessionProgressSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "current_session_progress"
 
+    # 割草机实体按同样的名称发送信号；用主机标识拼接，兼容平台装载顺序。
+    # map_status 信号同时承担 MQTT 连接与断线通知，用来刷新可用性。
+    _SIGNALS = ("current_work_data", "map_status", "mission", "work_mode")
+
     def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
-        """保存设备引用；监听信号由主机标识确定，以兼容平台装载顺序。"""
         super().__init__()
         self.basic_data = basic_data
         self.hass = hass
@@ -334,15 +360,16 @@ class CurrentSessionProgressSensor(SensorEntity):
         )
 
     async def async_added_to_hass(self) -> None:
-        """接收当前作业数据更新，实体移除时自动撤销监听。"""
+        """订阅四路上报，实体移除时自动撤销监听。"""
         await super().async_added_to_hass()
-        self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass,
-                f"terramow_{self.basic_data.host}_current_work_data",
-                self.async_write_ha_state,
+        for name in self._SIGNALS:
+            self.async_on_remove(
+                async_dispatcher_connect(
+                    self.hass,
+                    f"terramow_{self.basic_data.host}_{name}",
+                    self.async_write_ha_state,
+                )
             )
-        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -350,22 +377,57 @@ class CurrentSessionProgressSensor(SensorEntity):
 
     @property
     def available(self) -> bool:
-        return self.basic_data.lawn_mower is not None
+        mower = self.basic_data.lawn_mower
+        return mower is not None and mower.mqtt_connected
 
     @property
     def native_value(self) -> float | None:
         mower = self.basic_data.lawn_mower
-        if mower is None:
+        work = mower.current_work_data if mower is not None else None
+        if not work or work.get("type") in _NO_PROGRESS_AREA_TYPES:
+            return None
+        if not self._app_shows_progress(mower):
             return None
 
-        current_work_data = mower.current_work_data
-        total_area = current_work_data.get("total_area") or 0
+        if mower.sub_mission is SubMission.SUB_MISSION_WAIT_FOR_DAYLIGHT:
+            return 0.0
+        # 地图已建完时，建图类面积不代表割草进度。
+        if (
+            work.get("type") in _BUILD_AREA_TYPES
+            and mower.map_status.get("map_id", 0) != _INVALID_MAP_ID
+        ):
+            return 0.0
+        if work.get("is_completed") is True:
+            return 100.0
+
+        total_area = work.get("total_area") or 0
         if total_area <= 0:
-            return None
+            return 0.0
+        progress = 100.0 * (work.get("clean_area") or 0) / total_area
+        return round(min(progress, _UNFINISHED_PROGRESS_CAP), 1)
 
-        clean_area = current_work_data.get("clean_area") or 0
-        # 收尾上报的已作业面积可能超过总面积，展示值最多为 100%。
-        return round(min(100.0 * clean_area / total_area, 100.0), 1)
+    @staticmethod
+    def _app_shows_progress(mower: TerraMowLawnMowerEntity | None) -> bool:
+        """App 是否会显示进度环（getMapControlStyleData 为自动或选区割草）。
+
+        未收到 dp_154 或载荷缺字段时，按 protobuf 默认值处理：基站地图、全局割草，
+        与 App 在没有工作模式数据时的回退一致，不会一直停在未知。
+        """
+        if mower is None:
+            return False
+        map_status = mower.map_status
+        mode = mower.work_mode
+        if mode.get("map_mode") == "MAP_MODE_SPOT":
+            return False
+        map_complete = (
+            map_status.get("is_map_detected") is True
+            and map_status.get("map_state") == "MAP_STATE_COMPLETE"
+        )
+        if not map_complete or map_status.get("is_able_to_run_build_map") is True:
+            return False
+        if mower.mission is Mission.MISSION_BUILD_MAP_AND_CLEAN:
+            return False
+        return mode.get("mow_mode", "MOW_MODE_GLOBAL") in _PROGRESS_MOW_MODES
 
 
 class CurrentSessionTimeSensor(SensorEntity):
