@@ -1,4 +1,4 @@
-"""当前作业进度传感器：与 TerraMow App 进度环一致的取值、四路即时刷新和监听生命周期。"""
+"""验证当前作业进度的取值、四路即时刷新和监听生命周期。"""
 
 import asyncio
 import json
@@ -137,14 +137,14 @@ async def test_sensor_platform_adds_progress_entity(
         (work(CLEANING, 3000, 2999), 98.0),
         (work(CLEANING, 3000, 3100), 98.0),
         (work(SELECT_REGION, 1200, 600), 50.0),
-        # 模拟器自然样本：新作业刚开始，以及作业进行中。
-        (work(CLEANING, 2457, 24), 1.0),
-        (work(CLEANING, 2450, 246), 10.0),
+        # 作业初期和作业进行中的构造数据。
+        (work(CLEANING, 1000, 10), 1.0),
+        (work(CLEANING, 1000, 100), 10.0),
         # 设备报告已完成才是 100%，即使面积没有达到总面积。
-        (work(SELECT_REGION, 2451, 2027, True), 100.0),
+        (work(SELECT_REGION, 1000, 400, True), 100.0),
         (work(CLEANING, 3000, 3000, True), 100.0),
         (work(CLEANING, 0, 0, True), 100.0),
-        # 总面积缺失或为 0：App 以 0 计，不报错。
+        # 总面积缺失或为 0 时以 0 计，不报错。
         (work(CLEANING, 0, 100), 0.0),
         ({"type": CLEANING, "clean_area": 100}, 0.0),
         ({"type": CLEANING, "total_area": None, "clean_area": None}, 0.0),
@@ -154,13 +154,13 @@ async def test_sensor_platform_adds_progress_entity(
         (work(BUILD_MAP_AND_CLEANING, 400, 400, True), 0.0),
     ],
 )
-async def test_progress_follows_app_rules(
+async def test_progress_value_when_applicable(
     mower: TerraMowLawnMowerEntity,
     sensor: CurrentSessionProgressSensor,
     work_data: dict,
     expected: float,
 ) -> None:
-    """全局割草、地图已建完时，取值与 App 进度环一致。"""
+    """全局割草且地图已建完时，按面积与完成状态计算进度。"""
     await feed(mower, work_data=work_data)
 
     assert sensor.available
@@ -170,7 +170,7 @@ async def test_progress_follows_app_rules(
 async def test_build_types_use_ratio_without_valid_map_id(
     mower: TerraMowLawnMowerEntity, sensor: CurrentSessionProgressSensor
 ) -> None:
-    """App 仅在地图编号有效时才把建图类面积记为 0；无效编号退回面积比。"""
+    """仅在地图编号有效时把建图类面积记为 0；无效编号退回面积比。"""
     await feed(
         mower,
         work_data=work(BUILD_MAP_AND_CLEANING, 400, 100),
@@ -183,7 +183,7 @@ async def test_build_types_use_ratio_without_valid_map_id(
 async def test_waiting_for_daylight_is_zero(
     mower: TerraMowLawnMowerEntity, sensor: CurrentSessionProgressSensor
 ) -> None:
-    """等待日照时 App 进度环归零，优先于面积比和完成标志。"""
+    """等待日照时进度归零，优先于面积比和完成标志。"""
     await feed(
         mower,
         work_data=work(CLEANING, 3000, 1500, True),
@@ -197,7 +197,7 @@ async def test_waiting_for_daylight_is_zero(
 @pytest.mark.parametrize(
     ("map_status", "work_mode", "mission"),
     [
-        # 地图未检测、未建完，或仍可建图：App 不显示进度环。
+        # 地图未检测、未建完，或仍可建图时不展示进度。
         ({**MAP_COMPLETE, "is_map_detected": False}, GLOBAL_MODE, None),
         ({**MAP_COMPLETE, "map_state": "MAP_STATE_INCOMPLETE"}, GLOBAL_MODE, None),
         ({**MAP_COMPLETE, "map_state": "MAP_STATE_EMPTY"}, GLOBAL_MODE, None),
@@ -212,14 +212,14 @@ async def test_waiting_for_daylight_is_zero(
         (MAP_COMPLETE, GLOBAL_MODE, "MISSION_BUILD_MAP_AND_CLEAN"),
     ],
 )
-async def test_progress_hidden_when_app_hides_ring(
+async def test_progress_unknown_when_inapplicable(
     mower: TerraMowLawnMowerEntity,
     sensor: CurrentSessionProgressSensor,
     map_status: dict,
     work_mode: dict,
     mission: str | None,
 ) -> None:
-    """App 不显示进度环的场景，传感器为未知，且不沿用面积比。"""
+    """进度不适用时传感器为未知，且不沿用面积比。"""
     await feed(
         mower,
         work_data=work(CLEANING, 3000, 1500),
@@ -276,7 +276,7 @@ async def test_invalid_area_type_does_not_block_the_next_session(
     await mower.on_work_mode(json.dumps(GLOBAL_MODE))
     assert sensor.native_value is None
 
-    await mower.on_current_work_data(json.dumps(work(CLEANING, 2457, 24)))
+    await mower.on_current_work_data(json.dumps(work(CLEANING, 1000, 10)))
     assert sensor.native_value == 1.0
 
 
@@ -287,7 +287,7 @@ async def test_invalid_area_type_does_not_block_the_next_session(
         {},
         {"move_mode": "MOVE_MODE_MOW", "map_mode": "MAP_MODE_BASE_STATION"},
         {**GLOBAL_MODE, "mow_mode": "MOW_MODE_SELECT_REGION"},
-        # 地图已建完且不可建图时，App 不看 move_mode。
+        # 地图已建完且不可建图时，不依赖 move_mode。
         {**GLOBAL_MODE, "move_mode": "MOVE_MODE_MAPPING"},
     ],
 )
@@ -315,10 +315,10 @@ async def test_unknown_until_work_data_arrives(
 async def test_completed_snapshot_lasts_until_new_work_data(
     mower: TerraMowLawnMowerEntity, sensor: CurrentSessionProgressSensor
 ) -> None:
-    """设备在新作业的 dp_113 到达前仍保留上次完成快照，传感器与 App 一致。"""
+    """新作业的 dp_113 到达前仍保留设备上次报告的完成快照。"""
     await feed(
         mower,
-        work_data=work(SELECT_REGION, 2451, 2027, True),
+        work_data=work(SELECT_REGION, 1000, 400, True),
         mission="MISSION_IDLE",
     )
     assert sensor.native_value == 100.0
@@ -327,7 +327,7 @@ async def test_completed_snapshot_lasts_until_new_work_data(
     await feed(mower, mission="MISSION_GLOBAL_CLEAN", sub_mission="SUB_MISSION_IDLE")
     assert sensor.native_value == 100.0
 
-    await mower.on_current_work_data(json.dumps(work(CLEANING, 2457, 24)))
+    await mower.on_current_work_data(json.dumps(work(CLEANING, 1000, 10)))
     assert sensor.native_value == 1.0
 
 
@@ -444,7 +444,7 @@ async def test_mqtt_message_path_updates_sensor(
         mower.on_mqtt_message(None, None, msg)
 
     deliver(117, MAP_COMPLETE)
-    deliver(113, work(SELECT_REGION, 2451, 2027, True))
+    deliver(113, work(SELECT_REGION, 1000, 400, True))
     deliver(154, {**GLOBAL_MODE, "mow_mode": "MOW_MODE_SELECT_REGION"})
     await asyncio.sleep(0)
     await hass.async_block_till_done()

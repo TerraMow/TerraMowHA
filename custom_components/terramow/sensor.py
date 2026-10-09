@@ -313,12 +313,12 @@ class CurrentSessionAreaSensor(SensorEntity):
         return attrs
 
 
-# 以下判定复现 TerraMow App 控制页进度环（CustomMachineStatusFactory2）的规则。
+# 以下条件决定当前作业的面积数据是否可用于展示割草进度。
 _BUILD_AREA_TYPES = frozenset(
     {"MAP_AREA_TYPE_BUILD_MAP", "MAP_AREA_TYPE_BUILD_MAP_AND_CLEANING"}
 )
-# 协议规定这些类型没有可用于计算进度的总面积（NONE 表示从未作业）。App 靠工作模式
-# 过滤它们，而本插件可能还没收到 dp_154，所以直接按 dp_113 的类型排除。
+# 协议规定这些类型没有可用于计算进度的总面积（NONE 表示从未作业）。
+# 工作模式可能晚于作业数据到达，因此先按 dp_113 的类型排除。
 _NO_PROGRESS_AREA_TYPES = frozenset(
     {
         "MAP_AREA_TYPE_NONE",
@@ -332,9 +332,9 @@ _UNFINISHED_PROGRESS_CAP = 98.0
 
 
 class CurrentSessionProgressSensor(SensorEntity):
-    """当前作业进度，规则与 TerraMow App 控制页的进度环一致。
+    """根据设备上报展示当前割草作业进度。
 
-    进度环只在“基站地图已建完、全局或选区割草”时显示，作业完成前最多 98%，
+    进度只在“基站地图已建完、全局或选区割草”时显示，作业完成前最多 98%，
     设备报告已完成才是 100%。输入来自 dp_113 作业面积、dp_117 地图状态、
     dp_107 任务状态和 dp_154 工作模式，任何一路更新都会立即刷新。
     """
@@ -386,7 +386,7 @@ class CurrentSessionProgressSensor(SensorEntity):
         work = mower.current_work_data if mower is not None else None
         if not work or work.get("type") in _NO_PROGRESS_AREA_TYPES:
             return None
-        if not self._app_shows_progress(mower):
+        if not self._progress_is_applicable(mower):
             return None
 
         if mower.sub_mission is SubMission.SUB_MISSION_WAIT_FOR_DAYLIGHT:
@@ -407,11 +407,11 @@ class CurrentSessionProgressSensor(SensorEntity):
         return round(min(progress, _UNFINISHED_PROGRESS_CAP), 1)
 
     @staticmethod
-    def _app_shows_progress(mower: TerraMowLawnMowerEntity | None) -> bool:
-        """App 是否会显示进度环（getMapControlStyleData 为自动或选区割草）。
+    def _progress_is_applicable(mower: TerraMowLawnMowerEntity | None) -> bool:
+        """判断当前地图与任务模式是否适合展示割草进度。
 
-        未收到 dp_154 或载荷缺字段时，按 protobuf 默认值处理：基站地图、全局割草，
-        与 App 在没有工作模式数据时的回退一致，不会一直停在未知。
+        未收到 dp_154 或载荷缺字段时，按默认的基站地图和全局割草处理，
+        避免旧固件缺少工作模式数据时一直显示未知。
         """
         if mower is None:
             return False

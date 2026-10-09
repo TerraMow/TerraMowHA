@@ -371,4 +371,4 @@ Data Point Definition
 - Notes:
   - Reported when any of the three modes changes and when the robot resynchronizes its state; the message is retained.
   - `mow_mode` was introduced with work mode version 2. The integration treats a missing `mow_mode` as `MOW_MODE_GLOBAL`.
-  - This integration only reads this data point and never publishes it. The Current Session Progress sensor uses it to decide whether the robot app would show a progress ring.
+  - This integration only reads this data point and never publishes it. The Current Session Progress sensor uses it to determine whether progress applies to the current work mode.
