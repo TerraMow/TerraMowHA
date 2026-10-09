@@ -55,7 +55,7 @@ class TerraMowNumberBase(NumberEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -87,7 +87,7 @@ class MowingHeightNumber(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.mowing_height"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.mowing_height"
 
     @property
     def native_value(self) -> float | None:
@@ -140,7 +140,7 @@ class EdgeCuttingDistanceNumber(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.edge_cutting_distance"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.edge_cutting_distance"
 
     @property
     def native_value(self) -> float | None:
@@ -193,7 +193,7 @@ class MowingSpacingNumber(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.mowing_spacing"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.mowing_spacing"
 
     @property
     def native_value(self) -> float | None:
@@ -293,9 +293,7 @@ class MainDirectionSingleAngleNumber(TerraMowNumberBase):
 
         try:
             # 查找同设备的模式选择器实体
-            mode_selector_entity_id = (
-                f"select.terramow_{self.host.replace('.', '_')}_main_direction_mode"
-            )
+            mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
                 return mode_selector_state.state
@@ -306,7 +304,7 @@ class MainDirectionSingleAngleNumber(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.main_direction_single_angle"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.main_direction_single_angle"
 
     @property
     def available(self) -> bool:
@@ -442,9 +440,7 @@ class MainDirectionAutoRotateIntervalNumber(TerraMowNumberBase):
 
         try:
             # 查找同设备的模式选择器实体
-            mode_selector_entity_id = (
-                f"select.terramow_{self.host.replace('.', '_')}_main_direction_mode"
-            )
+            mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
                 return mode_selector_state.state
@@ -455,7 +451,7 @@ class MainDirectionAutoRotateIntervalNumber(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.main_direction_auto_rotate_interval"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.main_direction_auto_rotate_interval"
 
     @property
     def available(self) -> bool:
@@ -590,9 +586,7 @@ class MultipleDirectionAngle1Number(TerraMowNumberBase):
 
         try:
             # 查找同设备的模式选择器实体
-            mode_selector_entity_id = (
-                f"select.terramow_{self.host.replace('.', '_')}_main_direction_mode"
-            )
+            mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
                 return mode_selector_state.state
@@ -603,7 +597,9 @@ class MultipleDirectionAngle1Number(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.multiple_direction_angle1"
+        return (
+            f"lawn_mower.terramow@{self.basic_data.stable_id}.multiple_direction_angle1"
+        )
 
     @property
     def available(self) -> bool:
@@ -771,9 +767,7 @@ class MultipleDirectionAngle2Number(TerraMowNumberBase):
 
         try:
             # 查找同设备的模式选择器实体
-            mode_selector_entity_id = (
-                f"select.terramow_{self.host.replace('.', '_')}_main_direction_mode"
-            )
+            mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
                 return mode_selector_state.state
@@ -784,7 +778,9 @@ class MultipleDirectionAngle2Number(TerraMowNumberBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.multiple_direction_angle2"
+        return (
+            f"lawn_mower.terramow@{self.basic_data.stable_id}.multiple_direction_angle2"
+        )
 
     @property
     def available(self) -> bool:

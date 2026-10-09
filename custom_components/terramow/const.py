@@ -2,6 +2,9 @@
 
 DOMAIN = "terramow"
 
+# 已有配置沿用首次地址；地址被复用时新配置加唯一后缀，避免实体身份碰撞。
+CONF_IDENTITY_KEY = "identity_key"
+
 MQTT_PORT = 1883
 
 MQTT_USERNAME = "terramow"

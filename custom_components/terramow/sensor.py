@@ -47,14 +47,16 @@ class TerraMowFeedbackSensor(SensorEntity):
         self.basic_data = basic_data
         self.kind = kind
         self._attr_translation_key = kind
-        self._attr_unique_id = f"lawn_mower.terramow@{basic_data.host}.{kind}"
+        self._attr_unique_id = f"lawn_mower.terramow@{basic_data.stable_id}.{kind}"
         self._attr_icon = (
             "mdi:message-alert" if kind == "last_event" else "mdi:alert-circle"
         )
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={("TerraMowLawnMower", self.basic_data.host)})
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
 
     async def async_added_to_hass(self) -> None:
         """订阅反馈，并在实体卸载时自动撤销监听。"""
@@ -136,7 +138,7 @@ class BatterySensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -146,7 +148,7 @@ class BatterySensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.battery"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.battery"
 
     def set_capacity(self, payload: str) -> None:
         """Handle battery capacity status updates."""
@@ -210,7 +212,7 @@ class TotalMowingTimeSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -220,7 +222,7 @@ class TotalMowingTimeSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.total_mowing_time"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.total_mowing_time"
 
     @property
     def native_value(self) -> int | None:
@@ -261,7 +263,7 @@ class CurrentSessionAreaSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -271,7 +273,7 @@ class CurrentSessionAreaSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.current_session_area"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.current_session_area"
 
     @property
     def native_value(self) -> float | None:
@@ -356,7 +358,7 @@ class CurrentSessionProgressSensor(SensorEntity):
         self.basic_data = basic_data
         self.hass = hass
         self._attr_unique_id = (
-            f"lawn_mower.terramow@{basic_data.host}.current_session_progress"
+            f"lawn_mower.terramow@{basic_data.stable_id}.current_session_progress"
         )
 
     async def async_added_to_hass(self) -> None:
@@ -373,7 +375,9 @@ class CurrentSessionProgressSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={("TerraMowLawnMower", self.basic_data.host)})
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
 
     @property
     def available(self) -> bool:
@@ -456,7 +460,7 @@ class CurrentSessionTimeSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -466,7 +470,7 @@ class CurrentSessionTimeSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.current_session_time"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.current_session_time"
 
     @property
     def native_value(self) -> int | None:
@@ -507,7 +511,7 @@ class RemainingBladeTimeSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -517,7 +521,7 @@ class RemainingBladeTimeSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.remaining_blade_time"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.remaining_blade_time"
 
     @property
     def native_value(self) -> int | None:
@@ -579,7 +583,7 @@ class RemainingBaseStationTimeSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -589,7 +593,7 @@ class RemainingBaseStationTimeSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.remaining_base_station_time"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.remaining_base_station_time"
 
     @property
     def native_value(self) -> int | None:
@@ -652,7 +656,7 @@ class TerraMowMowHeightSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -662,7 +666,7 @@ class TerraMowMowHeightSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.mow_height"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.mow_height"
 
     @property
     def native_value(self) -> int | None:
@@ -704,7 +708,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -714,7 +718,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.mow_speed"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.mow_speed"
 
     @property
     def native_value(self) -> str | None:
@@ -802,7 +806,7 @@ class NextScheduledStartSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -812,7 +816,7 @@ class NextScheduledStartSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.next_scheduled_start"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.next_scheduled_start"
 
     @property
     def native_value(self) -> str | None:
@@ -886,7 +890,7 @@ class VersionCompatibilitySensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -896,7 +900,7 @@ class VersionCompatibilitySensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"version_compatibility.terramow@{self.basic_data.host}"
+        return f"version_compatibility.terramow@{self.basic_data.stable_id}"
 
     @property
     def native_value(self):
@@ -960,7 +964,7 @@ class TerraMowPoseSensor(SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={("TerraMowLawnMower", self.basic_data.host)},
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)},
             name="TerraMow",
             manufacturer="TerraMow",
             model=self.basic_data.lawn_mower.device_model,
@@ -969,7 +973,7 @@ class TerraMowPoseSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.pose"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.pose"
 
     async def _on_pose(self, pose: dict[str, Any]) -> None:
         """处理姿态更新"""
@@ -1077,7 +1081,7 @@ class MainDirectionStatusSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -1087,7 +1091,7 @@ class MainDirectionStatusSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.main_direction_status"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.main_direction_status"
 
     @property
     def native_value(self) -> str | None:
@@ -1182,7 +1186,7 @@ class _MissionEnumSensorBase(SensorEntity):
         self.basic_data = basic_data
         self.hass = hass
         self._attr_unique_id = (
-            f"lawn_mower.terramow@{basic_data.host}.{self._unique_suffix}"
+            f"lawn_mower.terramow@{basic_data.stable_id}.{self._unique_suffix}"
         )
 
     async def async_added_to_hass(self) -> None:
@@ -1198,7 +1202,9 @@ class _MissionEnumSensorBase(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={("TerraMowLawnMower", self.basic_data.host)})
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
 
     @property
     def available(self) -> bool:

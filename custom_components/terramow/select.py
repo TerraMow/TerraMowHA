@@ -52,7 +52,7 @@ class TerraMowZoneSelect(SelectEntity):
 
     # 注意: translation_key 保持使用 "region_select" 而不是 "zone_select"
     # 原因: 为保持向后兼容性，避免改变 entity_id
-    # entity_id 格式: select.terramow_{host}_region_select
+    # entity_id 沿用首次配置的地址标识，变更连接地址后仍保持不变。
     # 实际显示名称通过翻译文件控制，已改为 "Zone Select" / "分区选择"
     _attr_translation_key = "region_select"
 
@@ -78,7 +78,7 @@ class TerraMowZoneSelect(SelectEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -90,7 +90,7 @@ class TerraMowZoneSelect(SelectEntity):
         """Return a unique ID for this entity."""
         # 注意: unique_id 保持使用 "region_select" 以保持向后兼容性
         # 这确保升级后 entity_id 不变，用户的自动化脚本无需修改
-        return f"lawn_mower.terramow@{self.host}.region_select"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.region_select"
 
     @property
     def options(self) -> list[str]:
@@ -320,7 +320,7 @@ class MowSpeedSelect(SelectEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -330,7 +330,7 @@ class MowSpeedSelect(SelectEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.mow_speed_setting"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.mow_speed_setting"
 
     @property
     def options(self) -> list[str]:
@@ -457,7 +457,7 @@ class BladeSpeedSelect(SelectEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -467,7 +467,7 @@ class BladeSpeedSelect(SelectEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.blade_speed"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.blade_speed"
 
     @property
     def current_option(self) -> str | None:
@@ -567,7 +567,7 @@ class MainDirectionModeSelect(SelectEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -577,7 +577,7 @@ class MainDirectionModeSelect(SelectEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.main_direction_mode"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.main_direction_mode"
 
     def get_effective_mode(self) -> str:
         """获取当前生效的模式（包括待处理模式）"""
@@ -703,7 +703,7 @@ class MainDirectionModeSelect(SelectEntity):
             ]
 
             entities_to_update = []
-            host_suffix = self.host.replace(".", "_")
+            host_suffix = self.basic_data.stable_id.replace(".", "_")
 
             for pattern in related_entity_patterns:
                 # 构造预期的entity_id

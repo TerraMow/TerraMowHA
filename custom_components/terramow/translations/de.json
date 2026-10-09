@@ -1,9 +1,12 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Das Gerät ist bereits konfiguriert"
+            "already_configured": "Das Gerät ist bereits konfiguriert",
+            "reconfigure_successful": "Die Neukonfiguration war erfolgreich",
+            "unknown": "Unerwarteter Fehler"
         },
         "error": {
+            "already_configured": "Diese Adresse ist bereits konfiguriert",
             "cannot_connect": "Verbindung fehlgeschlagen",
             "invalid_auth": "Ungültige Authentifizierung",
             "unknown": "Unerwarteter Fehler"
@@ -14,6 +17,14 @@
                     "host": "Host",
                     "password": "Passwort",
                     "username": "Benutzername"
+                }
+            },
+            "reconfigure": {
+                "title": "TerraMow neu konfigurieren",
+                "description": "Adresse oder Passwort deiner TerraMow aktualisieren.",
+                "data": {
+                    "host": "Host",
+                    "password": "Passwort"
                 }
             }
         }

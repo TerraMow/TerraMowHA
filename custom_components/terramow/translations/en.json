@@ -1,9 +1,12 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Device is already configured",
+            "reconfigure_successful": "Reconfiguration was successful",
+            "unknown": "Unexpected error"
         },
         "error": {
+            "already_configured": "This address is already configured",
             "cannot_connect": "Failed to connect",
             "invalid_auth": "Invalid authentication",
             "unknown": "Unexpected error"
@@ -14,6 +17,14 @@
                     "host": "Host",
                     "password": "Password",
                     "username": "Username"
+                }
+            },
+            "reconfigure": {
+                "title": "Reconfigure TerraMow",
+                "description": "Update the address or password of your TerraMow.",
+                "data": {
+                    "host": "Host",
+                    "password": "Password"
                 }
             }
         }
