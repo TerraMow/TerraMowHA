@@ -197,6 +197,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._global_params: dict[str, Any] = {}  # 存储dp_155全局作业参数
         self._map_status: dict[str, Any] = {}  # 存储dp_117地图状态
         self._current_work_data: dict[str, Any] = {}  # 存储dp_113当前作业数据
+        self._work_mode: dict[str, Any] = {}  # 存储dp_154工作模式
         self._statistics_data: dict[str, Any] = {}  # 存储dp_124作业统计数据
         self._base_station_time: dict[str, Any] = {}  # 存储dp_125基站使用时间
         self._blade_time: dict[str, Any] = {}  # 存储dp_126刀盘使用时间
@@ -206,6 +207,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.basic_data.lawn_mower = self
         self.mission_signal = f"terramow_{self.host}_mission"
         self.map_status_signal = f"terramow_{self.host}_map_status"
+        self.current_work_data_signal = f"terramow_{self.host}_current_work_data"
+        self.work_mode_signal = f"terramow_{self.host}_work_mode"
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -346,6 +349,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.register_callback(155, self.on_global_params)
         self.register_callback(117, self.on_map_status)
         self.register_callback(113, self.on_current_work_data)
+        self.register_callback(154, self.on_work_mode)
         self.register_callback(124, self.on_statistics_data)
         self.register_callback(125, self.on_base_station_time)
         self.register_callback(126, self.on_blade_time)
@@ -455,10 +459,34 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.debug("Raw current work data payload: %s", payload)
         try:
             data = json.loads(payload)
+            if not isinstance(data, dict):
+                _LOGGER.error("Invalid object payload for dp_113: %s", payload)
+                return
             self._current_work_data = data
             _LOGGER.info("Current work data updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_113: %s", payload)
+            return
+
+        # 先保存本轮数据，再通知诊断实体读取更新后的作业进度。
+        async_dispatcher_send(self.hass, self.current_work_data_signal)
+
+    async def on_work_mode(self, payload: str):
+        """Handle work mode updates (dp_154)."""
+        _LOGGER.debug("Raw work mode payload: %s", payload)
+        try:
+            data = json.loads(payload)
+            if not isinstance(data, dict):
+                _LOGGER.error("Invalid object payload for dp_154: %s", payload)
+                return
+            self._work_mode = data
+            _LOGGER.info("Work mode updated: %s", data)
+        except json.JSONDecodeError:
+            _LOGGER.error("Invalid JSON payload for dp_154: %s", payload)
+            return
+
+        # 工作模式决定进度是否展示，缓存更新后立即通知依赖它的实体。
+        async_dispatcher_send(self.hass, self.work_mode_signal)
 
     async def on_statistics_data(self, payload: str):
         """Handle statistics data updates (dp_124)."""
@@ -1323,6 +1351,11 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def current_work_data(self) -> dict:
         """Get current work data from dp_113."""
         return self._current_work_data
+
+    @property
+    def work_mode(self) -> dict:
+        """Get current work mode from dp_154."""
+        return self._work_mode
 
     @property
     def statistics_data(self) -> dict:

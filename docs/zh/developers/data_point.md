@@ -16,6 +16,7 @@ Data Point 定义
 - [即将到来的预约](#即将到来的预约)
 - [全局作业参数设置](#全局作业参数设置)
 - [地图状态](#地图状态)
+- [工作模式](#工作模式)
 
 <!-- /code_chunk_output -->
 
@@ -32,6 +33,7 @@ Data Point 定义
 | 125 | [基站使用时间](#基站使用时间) | 机器人↔HA | 基站使用时间 |
 | 126 | [作业刀盘使用时间](#作业刀盘使用时间) | 机器人↔HA | 刀盘使用时间 |
 | 138 | [即将到来的预约](#即将到来的预约) | 机器人→HA | 即将执行的计划任务 |
+| 154 | [工作模式](#工作模式) | 机器人↔HA | 移动模式、地图模式和割草模式 |
 | 155 | [全局作业参数设置](#全局作业参数设置) | 机器人↔HA | 全局运行参数设置 |
 
 ## 电量
@@ -346,3 +348,29 @@ Data Point 定义
   - 地图状态(`map_state`)直接影响机器人可执行的作业类型
   - 即使地图状态为`MAP_STATE_COMPLETE`，如果`is_able_to_run_build_map`为`true`，仍然可以启动建图（例如存在虚拟通道的情况）
   - 当`is_backing_up_map`为`true`时，`backup_map_id`字段才有意义
+
+## 工作模式
+
+- **ID**：154
+- 数据方向：机器人↔HA
+- 字段说明：
+
+  | 字段名 | 类型 | 单位 | 说明 |
+  |-------|------|------|------|
+  | move_mode | 字符串 | - | 移动模式：<br>"MOVE_MODE_MOW" - 割草模式（默认）<br>"MOVE_MODE_MAPPING" - 建图模式（仅在地图未建完时可用） |
+  | map_mode | 字符串 | - | 地图模式：<br>"MAP_MODE_BASE_STATION" - 带基站地图模式（默认）<br>"MAP_MODE_SPOT" - 不带基站地图模式（Spot 模式） |
+  | mow_mode | 字符串 | - | 割草模式：<br>"MOW_MODE_GLOBAL" - 全局割草（默认）<br>"MOW_MODE_SELECT_REGION" - 选区割草<br>"MOW_MODE_DRAW_REGION" - 划区割草<br>"MOW_MODE_EDGE_TRIM" - 沿边割草 |
+
+- 示例：
+  ```json
+  {
+    "move_mode": "MOVE_MODE_MOW",
+    "map_mode": "MAP_MODE_BASE_STATION",
+    "mow_mode": "MOW_MODE_SELECT_REGION"
+  }
+  ```
+  表示带基站地图的割草模式，当前为选区割草。
+- 备注：
+  - 三项模式任一变化时上报，机器人重新同步状态时也会上报；消息带保留标志。
+  - `mow_mode` 在工作模式版本 2 中引入，缺少该字段时本插件按 `MOW_MODE_GLOBAL` 处理。
+  - 本插件只读取此数据点，不会向机器人下发。“当前会话进度”传感器用它判断当前工作模式是否适合展示进度。
