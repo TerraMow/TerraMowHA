@@ -74,6 +74,11 @@ The following parameters are required:
 - **Host**: IP address or hostname of the TerraMow device
 - **Password**: MQTT password for authentication
 
+To change either value later, open Settings → Devices & Services → TerraMow and
+choose **Reconfigure** from the integration's menu. Existing entities and their
+names are retained. An address already used by another TerraMow configuration
+cannot be selected.
+
 ### Requirements
 
 - Home Assistant 2025.3.4 or later (development is tested against 2025.3.4 and the current stable release)

@@ -16,6 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
+    CONF_IDENTITY_KEY,
     CURRENT_HA_VERSION,
     DOMAIN,
     MIN_REQUIRED_OVERALL_VERSION,
@@ -44,6 +45,12 @@ class TerraMowBasicData:
     compatibility_reason: str = (
         ""  # Store the specific reason for compatibility check failure
     )
+    identity_key: str | None = None
+
+    @property
+    def stable_id(self) -> str:
+        """返回不会随连接地址变化的实体和设备身份。"""
+        return self.identity_key or self.host
 
     def check_version_compatibility(self, compatibility_info: dict) -> str:
         """Check version compatibility and return status."""
@@ -120,11 +127,12 @@ class TerraMowBasicData:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     host = entry.data[CONF_HOST]
     password = entry.data[CONF_PASSWORD]
+    identity_key = entry.data.get(CONF_IDENTITY_KEY, entry.unique_id or host)
 
     # Automatic migration of the device identifier
     device_registry = dr.async_get(hass)
-    old_identifier = ("TerraMowLanwMower", host)
-    new_identifier = ("TerraMowLawnMower", host)
+    old_identifier = ("TerraMowLanwMower", identity_key)
+    new_identifier = ("TerraMowLawnMower", identity_key)
 
     # Search for the device with the old identifier
     old_device_entry = device_registry.async_get_device({old_identifier})
@@ -149,7 +157,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _LOGGER.info("Setting up TerraMow with host %s", host)
 
-    basic_data = TerraMowBasicData(host=host, password=password)
+    basic_data = TerraMowBasicData(
+        host=host, password=password, identity_key=identity_key
+    )
 
     # Use hass.data instead of entry.runtime_data
     hass.data.setdefault(DOMAIN, {})

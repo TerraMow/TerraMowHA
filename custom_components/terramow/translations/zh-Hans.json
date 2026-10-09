@@ -1,9 +1,12 @@
 {
     "config": {
         "abort": {
-            "already_configured": "设备已配置"
+            "already_configured": "设备已配置",
+            "reconfigure_successful": "重新配置成功",
+            "unknown": "未知错误"
         },
         "error": {
+            "already_configured": "该地址已被配置",
             "cannot_connect": "连接失败",
             "invalid_auth": "认证失败",
             "unknown": "未知错误"
@@ -14,6 +17,14 @@
                     "host": "主机",
                     "password": "密码",
                     "username": "用户名"
+                }
+            },
+            "reconfigure": {
+                "title": "重新配置 TerraMow",
+                "description": "更新 TerraMow 的地址或密码。",
+                "data": {
+                    "host": "主机",
+                    "password": "密码"
                 }
             }
         }

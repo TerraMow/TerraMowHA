@@ -64,7 +64,7 @@ class TerraMowChargingSensor(BinarySensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -74,7 +74,7 @@ class TerraMowChargingSensor(BinarySensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.charging_state"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.charging_state"
 
     @property
     def is_on(self) -> bool | None:
@@ -123,11 +123,13 @@ class _MapStatusBinarySensorBase(BinarySensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """使用割草机的设备标识，避免平台并发装载时依赖其创建顺序。"""
-        return DeviceInfo(identifiers={("TerraMowLawnMower", self.host)})
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
 
     @property
     def unique_id(self) -> str:
-        return f"lawn_mower.terramow@{self.host}.{self._unique_suffix}"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.{self._unique_suffix}"
 
     @property
     def available(self) -> bool:

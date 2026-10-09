@@ -852,7 +852,7 @@ class TerraMowMapCamera(Camera):
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            identifiers={("TerraMowLawnMower", self.basic_data.host)},
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)},
             name="TerraMow",
             manufacturer="TerraMow",
             model=self.basic_data.lawn_mower.device_model,
@@ -860,7 +860,7 @@ class TerraMowMapCamera(Camera):
 
     @property
     def unique_id(self) -> str:
-        return f"lawn_mower.terramow@{self.host}.map_camera"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.map_camera"
 
     @property
     def available(self) -> bool:

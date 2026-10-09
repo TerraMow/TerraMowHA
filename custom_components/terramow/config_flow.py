@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from typing import Any
+from uuid import uuid4
 
 import paho.mqtt.client as mqtt_client
 import voluptuous as vol
@@ -15,7 +16,7 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, MQTT_PORT, MQTT_USERNAME
+from .const import CONF_IDENTITY_KEY, DOMAIN, MQTT_PORT, MQTT_USERNAME
 
 _LOGGER = logging.getLogger(__name__)
 MQTT_CONNECT_TIMEOUT = 5
@@ -116,13 +117,75 @@ class ConfigFlow(BaseConfigFlow, domain=DOMAIN):
                 _LOGGER.info('Setting up for host "%s"', host)
                 await self.async_set_unique_id(host)
                 self._abort_if_unique_id_configured()
+                # 旧地址可能仍是另一配置项的实体身份；新设备不能复用该身份。
+                reserved_ids = {
+                    entry.data.get(
+                        CONF_IDENTITY_KEY, entry.unique_id or entry.data[CONF_HOST]
+                    )
+                    for entry in self.hass.config_entries.async_entries(DOMAIN)
+                }
+                identity_key = host
+                while identity_key in reserved_ids:
+                    identity_key = f"{host}_{uuid4().hex}"
                 return self.async_create_entry(
                     title=info["title"],
-                    data=user_input,
+                    data={**user_input, CONF_IDENTITY_KEY: identity_key},
                 )
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
+        )
+
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
+        """验证新地址与凭据，并保留现有实体的注册表身份。"""
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if entry is None:
+            return self.async_abort(reason="unknown")
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            host = user_input[CONF_HOST]
+            # 同一地址只能由一个配置项连接，避免重复实体和控制入口。
+            if any(
+                other.entry_id != entry.entry_id
+                and (other.data.get(CONF_HOST) == host or other.unique_id == host)
+                for other in self.hass.config_entries.async_entries(DOMAIN)
+            ):
+                errors["base"] = "already_configured"
+            else:
+                try:
+                    info = await validate_input(self.hass, user_input)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors["base"] = "invalid_auth"
+                except Exception:
+                    _LOGGER.exception("Unexpected exception")
+                    errors["base"] = "unknown"
+                else:
+                    # 配置项按当前地址去重；实体身份另存，避免重载后生成新实体。
+                    identity_key = entry.data.get(
+                        CONF_IDENTITY_KEY, entry.unique_id or entry.data[CONF_HOST]
+                    )
+                    self.hass.config_entries.async_update_entry(
+                        entry,
+                        title=info["title"],
+                        unique_id=host,
+                        data={
+                            **entry.data,
+                            **user_input,
+                            CONF_IDENTITY_KEY: identity_key,
+                        },
+                    )
+                    await self.hass.config_entries.async_reload(entry.entry_id)
+                    return self.async_abort(reason="reconfigure_successful")
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_USER_DATA_SCHEMA, entry.data
+            ),
+            errors=errors,
         )
 
 

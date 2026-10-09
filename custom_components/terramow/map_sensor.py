@@ -59,7 +59,7 @@ class TerraMowMapSensorBase(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -97,7 +97,7 @@ class TerraMowMapStatusSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -107,7 +107,7 @@ class TerraMowMapStatusSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.map_status"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.map_status"
 
     @property
     def native_value(self) -> str | None:
@@ -167,7 +167,7 @@ class TerraMowMapAreaSensor(TerraMowMapSensorBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.map_area"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.map_area"
 
     @property
     def native_value(self) -> float | None:
@@ -205,7 +205,7 @@ class TerraMowCleanModeSensor(TerraMowMapSensorBase):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}.clean_mode"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.clean_mode"
 
     @property
     def native_value(self) -> str | None:

@@ -242,7 +242,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                ("TerraMowLawnMower", self.basic_data.host)
+                ("TerraMowLawnMower", self.basic_data.stable_id)
             },  # Corrected typo in identifier
             name="TerraMow",
             manufacturer="TerraMow",
@@ -290,7 +290,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this entity."""
-        return f"lawn_mower.terramow@{self.host}"
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}"
 
     @property
     def activity(self) -> LawnMowerActivity:
@@ -1280,7 +1280,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """异步更新设备注册表中的模型信息."""
         try:
             device_registry = dr.async_get(self.hass)
-            device_identifier = ("TerraMowLawnMower", self.basic_data.host)
+            device_identifier = ("TerraMowLawnMower", self.basic_data.stable_id)
 
             # 查找设备并更新模型信息
             device_entry = device_registry.async_get_device({device_identifier})
