@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_component import async_update_entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DOMAIN, TerraMowBasicData
@@ -44,7 +45,7 @@ async def async_setup_entry(
 
 
 class TerraMowZoneSelect(SelectEntity):
-    """地图分区选择器 - Zone selector for mowing specific areas"""
+    """提供全局、指定分区和沿边作业入口，沿用已有实体身份。"""
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:map-marker-multiple"
@@ -55,6 +56,7 @@ class TerraMowZoneSelect(SelectEntity):
     # entity_id 沿用首次配置的地址标识，变更连接地址后仍保持不变。
     # 实际显示名称通过翻译文件控制，已改为 "Zone Select" / "分区选择"
     _attr_translation_key = "region_select"
+    _EDGE_CUTTING_OPTION = "edge_cutting"
 
     def __init__(
         self,
@@ -114,6 +116,48 @@ class TerraMowZoneSelect(SelectEntity):
             self.async_write_ha_state()
             return
 
+        if option == self._EDGE_CUTTING_OPTION:
+            mower = self.basic_data.lawn_mower
+            if mower is None:
+                from homeassistant.exceptions import HomeAssistantError
+
+                raise HomeAssistantError(
+                    "Cannot start edge cutting: TerraMow is not available"
+                )
+            firmware = self.basic_data.firmware_version or {}
+            module_versions = (
+                firmware.get("module", {}) if isinstance(firmware, dict) else {}
+            )
+            raw_control_version = (
+                module_versions.get("control")
+                if isinstance(module_versions, dict)
+                else None
+            )
+            control_version: int | None = None
+            if isinstance(raw_control_version, int) and not isinstance(
+                raw_control_version, bool
+            ):
+                control_version = raw_control_version
+            elif isinstance(raw_control_version, str):
+                try:
+                    control_version = int(raw_control_version)
+                except ValueError:
+                    control_version = None
+            if control_version is not None and control_version < 8:
+                from homeassistant.exceptions import ServiceValidationError
+
+                # 已知旧固件无法识别沿边启动命令，不向设备发送无效控制。
+                raise ServiceValidationError(
+                    "Edge cutting requires firmware control version 8 or later"
+                )
+            # 与选区作业一样，只有设备确认接受后才切换 HA 中的选项。
+            await mower.feedback.async_send_command(
+                103, {"mode": "START_MODE_EDGE_TRIM_CLEAN"}
+            )
+            self._current_option = option
+            self.async_write_ha_state()
+            return
+
         # 解析分区ID
         try:
             # 格式: "分区名称 (ID: 123)"
@@ -168,12 +212,14 @@ class TerraMowZoneSelect(SelectEntity):
 
         regions = self._map_info.get("regions", [])  # 设备协议字段名，保持不变
         if not regions:
-            self._options = ["no_zones_available"]
-            self._current_option = "no_zones_available"
+            # 沿边作业使用整张地图，不要求地图含有可选子分区。
+            self._options = ["no_zones_available", self._EDGE_CUTTING_OPTION]
+            if self._current_option not in self._options:
+                self._current_option = "no_zones_available"
             return
 
-        # 构建分区选项列表 - 只添加子分区
-        options = ["all_zones"]  # 添加全部分区选项
+        # 保留全部分区入口，同时提供沿边作业和地图中的子分区。
+        options = ["all_zones", self._EDGE_CUTTING_OPTION]
 
         for region in regions:
             # 只处理子分区（设备协议使用sub_regions字段名）
@@ -195,7 +241,7 @@ class TerraMowZoneSelect(SelectEntity):
             self._current_option = "all_zones"
 
         _LOGGER.info(
-            "Updated zone options: %d sub-zones available", len(self._options) - 1
+            "Updated zone options: %d sub-zones available", len(self._options) - 2
         )
 
     @property
@@ -686,13 +732,13 @@ class MainDirectionModeSelect(SelectEntity):
         )
 
         # 延迟触发所有相关实体的状态更新
-        async def delayed_update():
-            await self.hass.async_add_executor_job(self._force_update_related_entities)
+        async def delayed_update() -> None:
+            await self._async_force_update_related_entities()
 
         self.hass.async_create_task(delayed_update())
 
-    def _force_update_related_entities(self) -> None:
-        """强制更新相关角度控制实体的状态"""
+    async def _async_force_update_related_entities(self) -> None:
+        """在 HA 事件循环中刷新相关角度控制实体的状态。"""
         try:
             # 简化的实体更新方案：直接通过entity_id推断来更新
             related_entity_patterns = [
@@ -712,15 +758,10 @@ class MainDirectionModeSelect(SelectEntity):
                 if self.hass.states.get(entity_id):
                     entities_to_update.append(entity_id)
 
-            # 触发这些实体的状态更新
+            # 使用 HA 提供的模块级接口，避免依赖不存在的 hass.helpers 属性。
             for entity_id in entities_to_update:
                 try:
-                    # 使用异步方式调度更新
-                    self.hass.async_create_task(
-                        self.hass.helpers.entity_component.async_update_entity(
-                            entity_id
-                        )
-                    )
+                    await async_update_entity(self.hass, entity_id)
                 except Exception as update_error:
                     _LOGGER.debug(
                         "Could not update entity %s: %s", entity_id, update_error

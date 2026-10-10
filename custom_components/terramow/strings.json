@@ -162,7 +162,8 @@
         "name": "Region Select",
         "state": {
           "no_zones_available": "No zones available",
-          "all_zones": "All zones"
+          "all_zones": "All zones",
+          "edge_cutting": "Edge cutting"
         }
       },
       "mow_speed_setting": {
