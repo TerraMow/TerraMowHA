@@ -1359,8 +1359,10 @@ class TerraMowMapCamera(Camera):
                 if scene["move_target_point"] is not None:
                     all_points.append(scene["move_target_point"])
 
+        # 隐藏路径点只用于拆分作业段，不能把画面缩放到未绘制的转移路线。
         for path_point in scene["path_points"]:
-            all_points.append((path_point["x"], path_point["y"]))
+            if path_point["type"] == "PATH_POINT_TYPE_CLEANING":
+                all_points.append((path_point["x"], path_point["y"]))
 
         scene["all_points"] = _dedupe_points(all_points)
         scene["scene_counts"] = {

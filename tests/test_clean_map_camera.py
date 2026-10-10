@@ -534,6 +534,83 @@ def test_path_map_fallback_uses_dataset_with_cleaning_points(
     assert scene["filtered_non_cleaning_point_count"] == {"current": 1, "history": 0}
 
 
+@pytest.mark.parametrize("path_layer", ["current", "history"])
+@pytest.mark.parametrize("hidden_type", ["MOVE", "RETURN", "RESUME"])
+def test_hidden_path_points_do_not_change_map_viewport(
+    cameras: tuple[TerraMowMapCamera, TerraMowCleanMapCamera],
+    path_layer: str,
+    hidden_type: str,
+) -> None:
+    """地图外的隐藏路径仅用于分段，不应缩小或移动两种地图画面。"""
+    map_camera, _ = cameras
+    boundary = _square(0, 0, 20_000, 20_000)["boundary"]
+    map_camera._map_data = {
+        "id": 1,
+        "width": 20_000,
+        "height": 20_000,
+        "resolution": 1,
+        "origin": {"x": 0, "y": 0},
+        "regions": [
+            {
+                "id": 1,
+                "boundary": boundary,
+                "sub_regions": [{"id": 1, "boundary": boundary}],
+            }
+        ],
+    }
+    path = {
+        "map_id": 1,
+        "points": [
+            {
+                "position": {"x": x, "y": 10_000},
+                "type": "PATH_POINT_TYPE_CLEANING",
+            }
+            for x in (5_000, 15_000)
+        ],
+    }
+    if path_layer == "current":
+        map_camera._path_data = path
+    else:
+        map_camera._history_path_data = path
+    map_camera._rebuild_static_image()
+    before_clean = Image.open(io.BytesIO(map_camera._render_clean_image())).convert(
+        "RGB"
+    )
+    before_full = Image.open(io.BytesIO(map_camera._render_final_image())).convert(
+        "RGB"
+    )
+    transformer = map_camera._transformer
+    assert transformer is not None
+    expected_corners = [
+        transformer.to_pixel(*point) for point in ((0, 0), (20_000, 20_000))
+    ]
+
+    path["points"].append(
+        {
+            "position": {"x": 100_000, "y": 100_000},
+            "type": f"PATH_POINT_TYPE_{hidden_type}",
+        }
+    )
+    map_camera._rebuild_static_image()
+    map_camera._notify_image_updated(write_state=False)
+    transformer = map_camera._transformer
+    assert transformer is not None
+    assert [
+        transformer.to_pixel(*point) for point in ((0, 0), (20_000, 20_000))
+    ] == expected_corners
+    after_clean = Image.open(io.BytesIO(map_camera._render_clean_image())).convert(
+        "RGB"
+    )
+    after_full = Image.open(io.BytesIO(map_camera._render_final_image())).convert("RGB")
+    assert ImageChops.difference(before_clean, after_clean).getbbox() is None
+    assert (
+        ImageChops.difference(
+            before_full.crop(MAP_RECT), after_full.crop(MAP_RECT)
+        ).getbbox()
+        is None
+    )
+
+
 def test_region_order_badge_stays_above_cleaning_path(
     cameras: tuple[TerraMowMapCamera, TerraMowCleanMapCamera],
 ) -> None:
