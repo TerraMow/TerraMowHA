@@ -11,6 +11,7 @@ import math
 import time
 from functools import lru_cache
 from itertools import pairwise
+from pathlib import Path
 from typing import Any
 
 from homeassistant.components.camera import Camera
@@ -34,75 +35,55 @@ MAP_RECT = (40, 40, 984, 728)
 SUMMARY_RECT = (40, 760, 984, 928)
 MAP_PADDING = 24
 MAP_RADIUS = 28
-CARD_RADIUS = 24
+CARD_RADIUS = 16
+PATH_SMOOTH_GAP_PX = 80
+PATH_SMOOTH_MAX_POINTS = 20_000
 
 # 颜色定义
 COLOR_APP_BG = (237, 240, 244, 255)
-COLOR_MAP_BG = (244, 244, 246, 255)
+COLOR_MAP_BG = (240, 240, 240, 255)
 COLOR_CARD_BG = (255, 255, 255, 255)
-COLOR_CARD_BORDER = (223, 227, 233, 255)
-COLOR_SHADOW = (205, 212, 223, 90)
+COLOR_PANEL_BG = (240, 240, 240, 255)
+COLOR_CARD_BORDER = (255, 255, 255, 255)
 COLOR_TEXT = (38, 38, 38, 255)
 COLOR_TEXT_SUBTLE = (102, 110, 122, 255)
 COLOR_TEXT_MUTED = (149, 156, 166, 255)
 COLOR_TEXT_WHITE = (255, 255, 255, 255)
 
-COLOR_MAP_DEFAULT_FILL = (220, 224, 232, 255)
+COLOR_MAP_DEFAULT_FILL = (223, 224, 230, 255)
 COLOR_MAP_DEFAULT_OUTLINE = (198, 199, 204, 255)
-COLOR_CHANNEL = (255, 196, 0, 255)
-COLOR_CHANNEL_SOFT = (255, 247, 219, 160)
-COLOR_RESTRICTED_FILL = (255, 120, 70, 26)
+COLOR_CHANNEL = (151, 164, 189, 255)
+COLOR_CHANNEL_SOFT = (151, 164, 189, 68)
+COLOR_CHANNEL_INNER = (255, 247, 219, 128)
+COLOR_RESTRICTED_FILL = (255, 102, 63, 77)
 COLOR_RESTRICTED_OUTLINE = (255, 120, 70, 255)
-COLOR_PASS_THROUGH_FILL = (255, 162, 49, 36)
+COLOR_PHYSICAL_RESTRICTED_FILL = COLOR_RESTRICTED_FILL
+COLOR_PHYSICAL_RESTRICTED_OUTLINE = COLOR_RESTRICTED_OUTLINE
+COLOR_PASS_THROUGH_FILL = (255, 162, 49, 102)
 COLOR_PASS_THROUGH_OUTLINE = (255, 162, 49, 255)
-COLOR_REQUIRED_FILL = (68, 117, 235, 32)
+COLOR_REQUIRED_FILL = (68, 117, 235, 77)
 COLOR_REQUIRED_OUTLINE = (68, 117, 235, 255)
 COLOR_DRAW_REGION_FILL = (68, 117, 235, 20)
 COLOR_DRAW_REGION_OUTLINE = (68, 117, 235, 220)
-COLOR_OBSTACLE_FILL = (98, 102, 109, 160)
-COLOR_OBSTACLE_OUTLINE = (65, 69, 77, 255)
+COLOR_OBSTACLE_FILL = COLOR_MAP_BG
+COLOR_OBSTACLE_OUTLINE = COLOR_MAP_DEFAULT_OUTLINE
 COLOR_EDGE_LINE = (176, 181, 190, 220)
-COLOR_PATH_OTHER = (132, 138, 146, 255)
-COLOR_PATH_CLEANING = (68, 117, 235, 255)
-COLOR_PATH_RETURN = (255, 162, 49, 255)
-COLOR_PATH_MAPPING = (255, 196, 0, 255)
-COLOR_PATH_MANUAL = (122, 136, 180, 255)
-COLOR_PATH_HISTORY = (48, 220, 187, 88)
-COLOR_PATH_HISTORY_GLOW = (48, 220, 187, 52)
-COLOR_PATH_CURRENT = (18, 191, 143, 132)
-COLOR_PATH_CURRENT_GLOW = (18, 191, 143, 78)
-COLOR_ORIGIN = (38, 38, 38, 180)
-
-COLOR_ROBOT_BODY = (46, 46, 47, 255)
-COLOR_ROBOT_TOP = (208, 211, 214, 255)
-COLOR_ROBOT_DETAIL = (169, 174, 179, 255)
-COLOR_ROBOT_DIR = (38, 38, 38, 255)
-
-COLOR_STATION_BODY = (45, 45, 45, 255)
-COLOR_STATION_TOP = (237, 239, 240, 255)
-COLOR_STATION_LED = (51, 255, 92, 255)
-COLOR_STATION_BORDER = (190, 194, 197, 255)
-
+COLOR_PATH_HISTORY = (174, 229, 185, 140)
+COLOR_PATH_HISTORY_GLOW = (174, 229, 185, 50)
+COLOR_PATH_CURRENT = (174, 229, 185, 255)
+COLOR_PATH_CURRENT_GLOW = (174, 229, 185, 90)
 COLOR_BADGE_RED = (169, 37, 43, 255)
-COLOR_BADGE_BLUE = (68, 117, 235, 255)
+COLOR_BADGE_BLUE = (0, 144, 255, 255)
 COLOR_BADGE_ORANGE = (255, 120, 70, 255)
 COLOR_BADGE_GRAY = (108, 114, 124, 255)
 
 COLOR_TRANSPARENT = (255, 255, 255, 0)
 
 COLOR_PLACEHOLDER_BG = (200, 200, 200, 255)
-COLOR_HATCH = (255, 120, 70, 88)
 BATTERY_STATUS_DP = 108
-
-PATH_POINT_COLORS = {
-    "PATH_POINT_TYPE_CLEANING": COLOR_PATH_CLEANING,
-    "PATH_POINT_TYPE_RETURN": COLOR_PATH_RETURN,
-    "PATH_POINT_TYPE_RESUME": COLOR_PATH_CLEANING,
-    "PATH_POINT_TYPE_MOVE": COLOR_PATH_OTHER,
-    "PATH_POINT_TYPE_MAPPING": COLOR_PATH_MAPPING,
-    "PATH_POINT_TYPE_CROSS_BOUDARY": COLOR_CHANNEL,
-    "PATH_POINT_TYPE_SEMI_AUTO_MANUAL_MAPPING": COLOR_PATH_MANUAL,
-}
+MARKER_SIZE = (24, 24)
+MARKER_WORLD_SIZE_MM = 600
+MARKER_MAX_SIZE_PX = min(MAP_RECT[2] - MAP_RECT[0], MAP_RECT[3] - MAP_RECT[1]) // 4
 
 HANDLED_MAP_FIELDS = {
     "id",
@@ -540,15 +521,31 @@ def _merge_path_points(
     return [*history_points, *current_points]
 
 
-def _filter_cleaning_path_points(
+def _split_path_segments(
     path_points: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """只保留割草路径点。"""
-    return [
-        point
-        for point in path_points
-        if point.get("type") == "PATH_POINT_TYPE_CLEANING"
-    ]
+) -> list[tuple[str, list[dict[str, Any]]]]:
+    """按连续点类型拆分路径，并在可连续的类型边界保留一步衔接。"""
+    segments: list[tuple[str, list[dict[str, Any]]]] = []
+    segment: list[dict[str, Any]] = []
+    segment_type = ""
+    for point in path_points:
+        point_type = str(point.get("type") or "")
+        if segment and point_type != segment_type:
+            previous = segment[-1]
+            segments.append((segment_type, segment))
+            # 恢复点两侧必须断开；其他类型切换由新段承接上一段的终点。
+            segment = (
+                [previous, point]
+                if segment_type != "PATH_POINT_TYPE_RESUME"
+                and point_type != "PATH_POINT_TYPE_RESUME"
+                else [point]
+            )
+        else:
+            segment.append(point)
+        segment_type = point_type
+    if segment:
+        segments.append((segment_type, segment))
+    return segments
 
 
 def _pixel_distance(point_a: tuple[int, int], point_b: tuple[int, int]) -> float:
@@ -621,6 +618,65 @@ def _simplify_path_pixels(
     if simplified[-1] != filtered[-1]:
         filtered.append(simplified[-1])
     return filtered
+
+
+def _catmull_rom_coordinate(
+    p0: int, p1: int, p2: int, p3: int, t: float, t2: float, t3: float
+) -> int:
+    """在相邻控制点之间插入一个平滑坐标。"""
+    return int(
+        round(
+            0.5
+            * (
+                2 * p1
+                + (p2 - p0) * t
+                + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+                + (3 * p1 - p0 - 3 * p2 + p3) * t3
+            )
+        )
+    )
+
+
+def _smooth_path_pixels(pixels: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """平滑连续轨迹，保留大间隔的原有直线连接。"""
+    if len(pixels) < 4:
+        return list(pixels)
+
+    # 长路径降低插值密度，避免图像重建时生成过多描边点。
+    samples = 20 if len(pixels) <= 800 else 12
+    samples = min(samples, max(1, PATH_SMOOTH_MAX_POINTS // (len(pixels) - 1)))
+
+    def smooth_run(run: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        if len(run) < 4 or samples < 2:
+            return run
+
+        result = [run[0]]
+        for index in range(len(run) - 1):
+            p0 = run[max(0, index - 1)]
+            p1 = run[index]
+            p2 = run[index + 1]
+            p3 = run[min(len(run) - 1, index + 2)]
+            for step in range(1, samples + 1):
+                t = step / samples
+                t2 = t * t
+                t3 = t2 * t
+                point = (
+                    _catmull_rom_coordinate(p0[0], p1[0], p2[0], p3[0], t, t2, t3),
+                    _catmull_rom_coordinate(p0[1], p1[1], p2[1], p3[1], t, t2, t3),
+                )
+                if point != result[-1]:
+                    result.append(point)
+        return result
+
+    # 间隔过大时不跨越缺口插值；相邻段仍由原描边直线连接。
+    result: list[tuple[int, int]] = []
+    start = 0
+    for index in range(1, len(pixels)):
+        if _pixel_distance(pixels[index - 1], pixels[index]) > PATH_SMOOTH_GAP_PX:
+            result.extend(smooth_run(pixels[start:index]))
+            start = index
+    result.extend(smooth_run(pixels[start:]))
+    return result
 
 
 def _extract_map_extent(map_data: dict[str, Any]) -> list[tuple[float, float]]:
@@ -781,9 +837,12 @@ def _normalize_angle_radians(value: float) -> float:
     return math.atan2(math.sin(value), math.cos(value))
 
 
-def _render_placeholder(text: str = "Waiting for map data...") -> bytes:
+def _render_placeholder(
+    text: str = "Waiting for map data...",
+    size: tuple[int, int] = (IMAGE_WIDTH, IMAGE_HEIGHT),
+) -> bytes:
     """生成占位图。"""
-    image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), COLOR_PLACEHOLDER_BG[:3])
+    image = Image.new("RGB", size, COLOR_PLACEHOLDER_BG[:3])
     draw = ImageDraw.Draw(image)
     title_font = _load_font(28, bold=True)
     text_font = _load_font(18)
@@ -793,8 +852,8 @@ def _render_placeholder(text: str = "Waiting for map data...") -> bytes:
     title_w = title_box[2] - title_box[0]
     title_h = title_box[3] - title_box[1]
     text_w = text_box[2] - text_box[0]
-    center_x = IMAGE_WIDTH / 2
-    center_y = IMAGE_HEIGHT / 2
+    center_x = size[0] / 2
+    center_y = size[1] / 2
     draw.text(
         (center_x - title_w / 2, center_y - title_h - 8),
         title,
@@ -810,6 +869,23 @@ def _render_placeholder(text: str = "Waiting for map data...") -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+def _marker_display_size(transformer: CoordinateTransformer) -> tuple[int, int]:
+    """按地图比例换算标记尺寸，并限制退化地图的异常放大。"""
+    scaled = round(MARKER_WORLD_SIZE_MM * transformer._scale)
+    edge = min(MARKER_MAX_SIZE_PX, max(MARKER_SIZE[0], scaled))
+    return edge, edge
+
+
+@lru_cache(maxsize=24)
+def _load_marker_image(
+    filename: str, size: tuple[int, int] = MARKER_SIZE
+) -> Image.Image:
+    """读取随集成发布的透明标记，并缩放到当前地图的显示尺寸。"""
+    asset_path = Path(__file__).with_name("assets") / filename
+    with Image.open(asset_path) as source:
+        return source.convert("RGBA").resize(size, Image.Resampling.LANCZOS)
 
 
 class TerraMowMapCamera(Camera):
@@ -831,10 +907,11 @@ class TerraMowMapCamera(Camera):
         self._pose: dict[str, Any] = {}
 
         self._static_image: Image.Image | None = None
-        self._robot_image: Image.Image | None = None
-        self._robot_image_mask: Image.Image | None = None
+        self._static_clean_image: Image.Image | None = None
         self._transformer: CoordinateTransformer | None = None
         self._cached_png: bytes | None = None
+        self._cached_clean_png: bytes | None = None
+        self._clean_camera: TerraMowCleanMapCamera | None = None
         self._last_pose_state_update = 0.0
         self._render_metadata: dict[str, Any] = {}
         self._map_data_logged = False
@@ -906,8 +983,7 @@ class TerraMowMapCamera(Camera):
             _LOGGER.debug("ha_map_v1 top-level keys: %s", list(self._map_data.keys()))
             self._map_data_logged = True
         await self.hass.async_add_executor_job(self._rebuild_static_image)
-        self._cached_png = None
-        self.async_write_ha_state()
+        self._notify_image_updated()
 
     async def _on_path_data(self, path_data: dict[str, Any]) -> None:
         """路径数据更新回调。"""
@@ -921,8 +997,7 @@ class TerraMowMapCamera(Camera):
             )
             self._path_data_logged = True
         await self.hass.async_add_executor_job(self._rebuild_static_image)
-        self._cached_png = None
-        self.async_write_ha_state()
+        self._notify_image_updated()
 
     async def _on_history_path_data(self, path_data: dict[str, Any]) -> None:
         """历史路径数据更新回调。"""
@@ -936,22 +1011,30 @@ class TerraMowMapCamera(Camera):
             )
             self._history_path_data_logged = True
         await self.hass.async_add_executor_job(self._rebuild_static_image)
-        self._cached_png = None
-        self.async_write_ha_state()
+        self._notify_image_updated()
 
     async def _on_pose(self, pose: dict[str, Any]) -> None:
         """姿态更新回调。"""
         self._pose = pose
-        self._cached_png = None
         now = time.monotonic()
-        if now - self._last_pose_state_update >= 2.0:
+        write_state = now - self._last_pose_state_update >= 2.0
+        self._notify_image_updated(write_state=write_state)
+        if write_state:
             self._last_pose_state_update = now
-            self.async_write_ha_state()
 
     async def _on_battery_status(self, _payload: str) -> None:
-        """电池状态更新后清理机器人图层缓存。"""
+        """电池状态更新后重绘基站和机器人标记。"""
+        self._notify_image_updated()
+
+    def _notify_image_updated(self, *, write_state: bool = True) -> None:
+        """两种画面共用地图数据；更新缓存并通知已经注册的实体。"""
         self._cached_png = None
+        self._cached_clean_png = None
+        if not write_state:
+            return
         self.async_write_ha_state()
+        if self._clean_camera is not None and self._clean_camera.entity_id is not None:
+            self._clean_camera.async_write_ha_state()
 
     def _get_battery_connected(self) -> bool | None:
         """读取当前是否已连接充电器。"""
@@ -1041,15 +1124,22 @@ class TerraMowMapCamera(Camera):
         current_map_id = _coerce_int(map_data.get("id"))
         raw_current_path_points = _extract_path_points(path_data)
         raw_history_path_points = _extract_path_points(history_path_data)
-        current_path_points = _filter_cleaning_path_points(raw_current_path_points)
-        history_path_points = _filter_cleaning_path_points(raw_history_path_points)
+        current_path_points = raw_current_path_points
+        history_path_points = raw_history_path_points
         current_path_map_id = _path_map_id(path_data)
         history_path_map_id = _path_map_id(history_path_data)
         target_map_id = current_map_id
         if target_map_id is None:
-            if current_path_points and current_path_map_id is not None:
+            # 没有地图 ID 时，转移点不能优先于另一份路径中的可绘制割草点。
+            if current_path_map_id is not None and any(
+                point["type"] == "PATH_POINT_TYPE_CLEANING"
+                for point in current_path_points
+            ):
                 target_map_id = current_path_map_id
-            elif history_path_points and history_path_map_id is not None:
+            elif history_path_map_id is not None and any(
+                point["type"] == "PATH_POINT_TYPE_CLEANING"
+                for point in history_path_points
+            ):
                 target_map_id = history_path_map_id
 
         path_map_mismatch = False
@@ -1104,9 +1194,18 @@ class TerraMowMapCamera(Camera):
             "path_points": combined_path_points,
             "current_path_points": current_path_points,
             "history_path_points": history_path_points,
+            # 分段仍需非割草点；诊断计数继续表示最终未绘制的原始点数。
             "filtered_non_cleaning_point_count": {
-                "current": len(raw_current_path_points) - len(current_path_points),
-                "history": len(raw_history_path_points) - len(history_path_points),
+                "current": len(raw_current_path_points)
+                - sum(
+                    point["type"] == "PATH_POINT_TYPE_CLEANING"
+                    for point in current_path_points
+                ),
+                "history": len(raw_history_path_points)
+                - sum(
+                    point["type"] == "PATH_POINT_TYPE_CLEANING"
+                    for point in history_path_points
+                ),
             },
             "path_display_id": display_path_data.get("id"),
             "path_display_type": display_path_data.get("type"),
@@ -1260,8 +1359,10 @@ class TerraMowMapCamera(Camera):
                 if scene["move_target_point"] is not None:
                     all_points.append(scene["move_target_point"])
 
+        # 隐藏路径点只用于拆分作业段，不能把画面缩放到未绘制的转移路线。
         for path_point in scene["path_points"]:
-            all_points.append((path_point["x"], path_point["y"]))
+            if path_point["type"] == "PATH_POINT_TYPE_CLEANING":
+                all_points.append((path_point["x"], path_point["y"]))
 
         scene["all_points"] = _dedupe_points(all_points)
         scene["scene_counts"] = {
@@ -1449,49 +1550,47 @@ class TerraMowMapCamera(Camera):
 
         if not self._map_data and not self._path_data and not self._history_path_data:
             self._static_image = None
+            self._static_clean_image = None
             self._transformer = None
             return
 
-        image = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), COLOR_APP_BG)
-        self._draw_background(image)
-
+        # 先在纯色画布绘制一次地图，再将其嵌入带信息面板的原画面。
+        clean_image = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), COLOR_MAP_BG)
         if scene["all_points"]:
             self._transformer = CoordinateTransformer(
-                scene["all_points"],
-                MAP_RECT,
-                padding=MAP_PADDING,
+                scene["all_points"], MAP_RECT, padding=MAP_PADDING
             )
-            self._draw_scene(image, scene)
+            self._draw_scene(clean_image, scene)
         else:
             self._transformer = None
-            self._draw_empty_map_card(image, scene)
+            self._draw_empty_map_card(clean_image, scene)
+        self._static_clean_image = clean_image
 
+        image = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), COLOR_APP_BG)
+        self._draw_background(image)
+        map_size = (MAP_RECT[2] - MAP_RECT[0], MAP_RECT[3] - MAP_RECT[1])
+        mask = Image.new("L", map_size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle(
+            (0, 0, map_size[0], map_size[1]), radius=MAP_RADIUS, fill=255
+        )
+        image.paste(clean_image.crop(MAP_RECT), MAP_RECT[:2], mask)
+        self._draw_map_chips(ImageDraw.Draw(image, "RGBA"), scene)
         self._draw_summary_panel(image, scene)
         self._static_image = image
 
     def _draw_background(self, image: Image.Image) -> None:
-        """绘制画布底色和卡片。"""
+        """绘制地图底色和信息面板。"""
         draw = ImageDraw.Draw(image, "RGBA")
         draw.rounded_rectangle(
             MAP_RECT, radius=MAP_RADIUS, fill=COLOR_MAP_BG, outline=COLOR_CARD_BORDER
         )
         draw.rounded_rectangle(
-            (MAP_RECT[0], MAP_RECT[1] + 10, MAP_RECT[2], MAP_RECT[3] + 10),
-            radius=MAP_RADIUS,
-            fill=COLOR_SHADOW,
-        )
-        draw.rounded_rectangle(MAP_RECT, radius=MAP_RADIUS, fill=COLOR_MAP_BG)
-        draw.rounded_rectangle(
-            (
-                SUMMARY_RECT[0],
-                SUMMARY_RECT[1] + 10,
-                SUMMARY_RECT[2],
-                SUMMARY_RECT[3] + 10,
-            ),
+            SUMMARY_RECT,
             radius=CARD_RADIUS,
-            fill=COLOR_SHADOW,
+            fill=COLOR_PANEL_BG,
+            outline=COLOR_CARD_BORDER,
+            width=1,
         )
-        draw.rounded_rectangle(SUMMARY_RECT, radius=CARD_RADIUS, fill=COLOR_CARD_BG)
 
     def _draw_empty_map_card(self, image: Image.Image, scene: dict[str, Any]) -> None:
         """没有空间数据时的空地图。"""
@@ -1516,7 +1615,6 @@ class TerraMowMapCamera(Camera):
             fill=COLOR_TEXT_SUBTLE,
             font=body_font,
         )
-        self._draw_map_chips(draw, scene)
 
     def _draw_scene(self, image: Image.Image, scene: dict[str, Any]) -> None:
         """绘制完整场景。"""
@@ -1524,12 +1622,14 @@ class TerraMowMapCamera(Camera):
         transformer = self._transformer
         if transformer is None:
             return
+        order_badges: list[tuple[tuple[int, int], int]] = []
+        custom_param_markers: list[tuple[int, int]] = []
 
         if scene["map_extent"]:
             pixels = transformer.to_pixels(scene["map_extent"])
             draw.polygon(
                 pixels,
-                fill=COLOR_MAP_DEFAULT_FILL,
+                fill=COLOR_MAP_BG,
                 outline=COLOR_MAP_DEFAULT_OUTLINE,
             )
 
@@ -1539,17 +1639,14 @@ class TerraMowMapCamera(Camera):
                 if len(boundary) < 3:
                     continue
                 pixels = transformer.to_pixels(boundary)
-                fill = (
-                    COLOR_REQUIRED_FILL
-                    if sub_region["selected"]
-                    else COLOR_MAP_DEFAULT_FILL
+                self._draw_polygon_pixels(
+                    image,
+                    draw,
+                    pixels,
+                    COLOR_MAP_DEFAULT_FILL,
+                    COLOR_MAP_DEFAULT_OUTLINE,
+                    1,
                 )
-                outline = (
-                    COLOR_REQUIRED_OUTLINE
-                    if sub_region["selected"]
-                    else COLOR_MAP_DEFAULT_OUTLINE
-                )
-                self._draw_polygon_pixels(image, draw, pixels, fill, outline, 1)
                 for inner in sub_region["inner_boundaries"]:
                     inner_pixels = transformer.to_pixels(inner)
                     draw.polygon(
@@ -1567,23 +1664,15 @@ class TerraMowMapCamera(Camera):
                     and sub_region["order"]
                     and sub_region["order"] > 0
                 ):
-                    self._draw_order_badge(
-                        draw,
-                        transformer.to_pixel(center[0], center[1]),
-                        sub_region["order"],
+                    order_badges.append(
+                        (
+                            transformer.to_pixel(center[0], center[1]),
+                            sub_region["order"],
+                        )
                     )
                 if center is not None and sub_region["has_custom_param"]:
-                    center_px = transformer.to_pixel(center[0], center[1])
-                    draw.ellipse(
-                        [
-                            center_px[0] + 12,
-                            center_px[1] - 18,
-                            center_px[0] + 22,
-                            center_px[1] - 8,
-                        ],
-                        fill=COLOR_PASS_THROUGH_OUTLINE,
-                        outline=COLOR_TEXT_WHITE,
-                        width=2,
+                    custom_param_markers.append(
+                        transformer.to_pixel(center[0], center[1])
                     )
 
             if len(region["boundary"]) >= 3:
@@ -1606,14 +1695,13 @@ class TerraMowMapCamera(Camera):
             )
 
         for polygon in scene["pass_through_zones"]:
-            self._draw_polygon(
+            self._draw_dashed_zone(
                 image,
                 draw,
                 transformer,
                 polygon,
                 COLOR_PASS_THROUGH_FILL,
                 COLOR_PASS_THROUGH_OUTLINE,
-                3,
             )
 
         for polygon in scene["forbidden_zones"]:
@@ -1624,7 +1712,7 @@ class TerraMowMapCamera(Camera):
                 polygon,
                 COLOR_RESTRICTED_FILL,
                 COLOR_RESTRICTED_OUTLINE,
-                3,
+                1,
             )
 
         for polygon in scene["physical_forbidden_zones"]:
@@ -1633,12 +1721,9 @@ class TerraMowMapCamera(Camera):
                 draw,
                 transformer,
                 polygon,
-                COLOR_RESTRICTED_FILL,
-                COLOR_RESTRICTED_OUTLINE,
-                4,
-            )
-            self._apply_hatch(
-                image, transformer.to_pixels(polygon), COLOR_HATCH, spacing=12
+                COLOR_PHYSICAL_RESTRICTED_FILL,
+                COLOR_PHYSICAL_RESTRICTED_OUTLINE,
+                1,
             )
 
         for polygon in scene["obstacles"]:
@@ -1649,7 +1734,7 @@ class TerraMowMapCamera(Camera):
                 polygon,
                 COLOR_OBSTACLE_FILL,
                 COLOR_OBSTACLE_OUTLINE,
-                2,
+                1,
             )
 
         for polygon in scene["draw_region_polygons"]:
@@ -1661,7 +1746,9 @@ class TerraMowMapCamera(Camera):
 
         for wall in scene["virtual_walls"]:
             pixels = transformer.to_pixels(wall)
-            self._draw_dashed_polyline(draw, pixels, COLOR_RESTRICTED_OUTLINE, 4, 12, 8)
+            self._draw_dashed_polyline(
+                draw, pixels, COLOR_PHYSICAL_RESTRICTED_OUTLINE, 3, 12, 8
+            )
 
         for tunnel in scene["cross_boundary_tunnels"]:
             self._draw_tunnel(
@@ -1669,7 +1756,13 @@ class TerraMowMapCamera(Camera):
             )
         for tunnel in scene["virtual_cross_boundary_tunnels"]:
             self._draw_tunnel(
-                image, draw, transformer, tunnel, COLOR_CHANNEL_SOFT, COLOR_CHANNEL
+                image,
+                draw,
+                transformer,
+                tunnel,
+                COLOR_CHANNEL_SOFT,
+                COLOR_CHANNEL,
+                virtual=True,
             )
 
         for marker in scene["cross_boundary_markers"]:
@@ -1702,15 +1795,21 @@ class TerraMowMapCamera(Camera):
                 ),
             )
 
-        if scene["station_pose"] is not None:
-            self._draw_station(image, scene["station_pose"])
-
-        if scene["origin"] is not None:
-            self._draw_origin(
-                draw, transformer.to_pixel(scene["origin"][0], scene["origin"][1])
+        # 编号和参数标记位于路径之上，作业轨迹经过时仍可辨认。
+        for center_px in custom_param_markers:
+            draw.ellipse(
+                [
+                    center_px[0] + 12,
+                    center_px[1] - 18,
+                    center_px[0] + 22,
+                    center_px[1] - 8,
+                ],
+                fill=COLOR_PASS_THROUGH_OUTLINE,
+                outline=COLOR_TEXT_WHITE,
+                width=2,
             )
-
-        self._draw_map_chips(draw, scene)
+        for center_px, order in order_badges:
+            self._draw_order_badge(draw, center_px, order)
 
     def _composite_draw(
         self,
@@ -1766,6 +1865,22 @@ class TerraMowMapCamera(Camera):
         pixels = transformer.to_pixels(polygon)
         self._draw_polygon_pixels(image, draw, pixels, fill, outline, width)
 
+    def _draw_dashed_zone(
+        self,
+        image: Image.Image,
+        draw: ImageDraw.ImageDraw,
+        transformer: CoordinateTransformer,
+        polygon: list[tuple[float, float]],
+        fill: tuple[int, int, int, int],
+        outline: tuple[int, int, int, int],
+    ) -> None:
+        """半透明填充与虚线边界分别绘制，保持相邻区域可辨。"""
+        if len(polygon) < 3:
+            return
+        pixels = transformer.to_pixels(polygon)
+        self._composite_polygon_fill(image, pixels, fill)
+        self._draw_dashed_polyline(draw, pixels + [pixels[0]], outline, 2, 10, 8)
+
     def _draw_polyline(
         self,
         draw: ImageDraw.ImageDraw,
@@ -1816,43 +1931,6 @@ class TerraMowMapCamera(Camera):
                 )
                 position += dash + gap
 
-    def _apply_hatch(
-        self,
-        image: Image.Image,
-        polygon_pixels: list[tuple[int, int]],
-        color: tuple[int, int, int, int],
-        spacing: int = 12,
-    ) -> None:
-        """给区域叠加斜线纹理。"""
-        if len(polygon_pixels) < 3:
-            return
-        mask = Image.new("L", (IMAGE_WIDTH, IMAGE_HEIGHT), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.polygon(polygon_pixels, fill=255)
-
-        overlay = Image.new("RGBA", (IMAGE_WIDTH, IMAGE_HEIGHT), (0, 0, 0, 0))
-        overlay_draw = ImageDraw.Draw(overlay)
-        min_x = min(point[0] for point in polygon_pixels)
-        max_x = max(point[0] for point in polygon_pixels)
-        min_y = min(point[1] for point in polygon_pixels)
-        max_y = max(point[1] for point in polygon_pixels)
-
-        start = min_x - (max_y - min_y) - spacing
-        end = max_x + (max_y - min_y) + spacing
-        for offset in range(int(start), int(end), spacing):
-            overlay_draw.line(
-                [
-                    (offset, max_y + spacing),
-                    (offset + (max_y - min_y) + spacing, min_y - spacing),
-                ],
-                fill=color,
-                width=1,
-            )
-
-        image.alpha_composite(
-            Image.composite(overlay, Image.new("RGBA", overlay.size), mask)
-        )
-
     def _draw_tunnel(
         self,
         image: Image.Image,
@@ -1861,23 +1939,30 @@ class TerraMowMapCamera(Camera):
         tunnel: dict[str, Any],
         fill: tuple[int, int, int, int],
         outline: tuple[int, int, int, int],
+        *,
+        virtual: bool = False,
     ) -> None:
         """绘制跨区通道。"""
         for polygon in tunnel.get("polygons", []):
             self._draw_polygon(image, draw, transformer, polygon, fill, outline, 3)
         for polyline in tunnel.get("polylines", []):
             pixels = transformer.to_pixels(polyline)
+            if virtual:
+                self._draw_dashed_polyline(draw, pixels, outline, 4, 10, 6)
+                continue
+            # 宽底色、主线和浅色中心线分别表达通道范围与方向。
             # 绑定本轮坐标，避免回调以后改为延迟执行时引用下一条通道。
             self._composite_draw(
                 image,
                 lambda overlay_draw, pixels=pixels: overlay_draw.line(
-                    pixels, fill=fill, width=10
+                    pixels, fill=fill, width=16
                 ),
             )
-            draw.line(pixels, fill=outline, width=5)
+            draw.line(pixels, fill=outline, width=6, joint="curve")
+            self._draw_dashed_polyline(draw, pixels, COLOR_CHANNEL_INNER, 2, 10, 4)
             for point in (pixels[0], pixels[-1]):
                 draw.ellipse(
-                    [point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5],
+                    [point[0] - 4, point[1] - 4, point[0] + 4, point[1] + 4],
                     fill=outline,
                 )
 
@@ -1950,12 +2035,6 @@ class TerraMowMapCamera(Camera):
         )
         draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=COLOR_BADGE_BLUE)
 
-    def _draw_origin(self, draw: ImageDraw.ImageDraw, center: tuple[int, int]) -> None:
-        """绘制原点标记。"""
-        x, y = center
-        draw.line([(x - 8, y), (x + 8, y)], fill=COLOR_ORIGIN, width=2)
-        draw.line([(x, y - 8), (x, y + 8)], fill=COLOR_ORIGIN, width=2)
-
     def _draw_path_stroke(
         self,
         draw: ImageDraw.ImageDraw,
@@ -1970,30 +2049,31 @@ class TerraMowMapCamera(Camera):
         """绘制带柔和外沿的路径。"""
         if len(pixels) < 2:
             return
-        if dash is not None and gap is not None:
-            self._draw_dashed_polyline(draw, pixels, glow_color, glow_width, dash, gap)
-            self._draw_dashed_polyline(
-                draw, pixels, inner_color, inner_width, dash, gap
-            )
-        else:
-            draw.line(pixels, fill=glow_color, width=glow_width, joint="curve")
-            draw.line(pixels, fill=inner_color, width=inner_width, joint="curve")
+        self._draw_path_stroke_layer(draw, pixels, glow_color, glow_width, dash, gap)
+        self._draw_path_stroke_layer(draw, pixels, inner_color, inner_width, dash, gap)
 
-        glow_radius = max(1, glow_width // 2)
-        inner_radius = max(1, inner_width // 2)
+    def _draw_path_stroke_layer(
+        self,
+        draw: ImageDraw.ImageDraw,
+        pixels: list[tuple[int, int]],
+        color: tuple[int, int, int, int],
+        width: int,
+        dash: int | None = None,
+        gap: int | None = None,
+    ) -> None:
+        """完成一条路径的同一颜色层，包含线段和圆帽。"""
+        if len(pixels) < 2:
+            return
+        if dash is not None and gap is not None:
+            self._draw_dashed_polyline(draw, pixels, color, width, dash, gap)
+        else:
+            draw.line(pixels, fill=color, width=width, joint="curve")
+
+        radius = max(1, width // 2)
         for x, y in pixels:
             draw.ellipse(
-                [x - glow_radius, y - glow_radius, x + glow_radius, y + glow_radius],
-                fill=glow_color,
-            )
-            draw.ellipse(
-                [
-                    x - inner_radius,
-                    y - inner_radius,
-                    x + inner_radius,
-                    y + inner_radius,
-                ],
-                fill=inner_color,
+                [x - radius, y - radius, x + radius, y + radius],
+                fill=color,
             )
 
     def _draw_path_layer(
@@ -2002,7 +2082,7 @@ class TerraMowMapCamera(Camera):
         path_points: list[dict[str, Any]],
         variant: str,
     ) -> None:
-        """按通道样式绘制一层路径。"""
+        """按点类型拆分一层路径，只绘制连续的割草段。"""
         transformer = self._transformer
         if transformer is None or len(path_points) < 2:
             return
@@ -2022,22 +2102,35 @@ class TerraMowMapCamera(Camera):
             simplify_epsilon = 0.9
             simplify_min_segment = 1.0
 
-        pixels = [transformer.to_pixel(point["x"], point["y"]) for point in path_points]
-        pixels = _simplify_path_pixels(pixels, simplify_epsilon, simplify_min_segment)
-        if len(pixels) < 2:
+        # 非割草点仍用于分段，避免把转移或恢复间隔接成一条割草直线。
+        pixel_segments: list[list[tuple[int, int]]] = []
+        for point_type, segment in _split_path_segments(path_points):
+            if point_type != "PATH_POINT_TYPE_CLEANING" or len(segment) < 2:
+                continue
+            pixels = [transformer.to_pixel(point["x"], point["y"]) for point in segment]
+            pixels = _simplify_path_pixels(
+                pixels, simplify_epsilon, simplify_min_segment
+            )
+            if len(pixels) < 2:
+                continue
+            pixels = _smooth_path_pixels(pixels)
+            pixel_segments.append(pixels)
+
+        if not pixel_segments:
             return
 
-        self._composite_draw(
-            image,
-            lambda overlay_draw: self._draw_path_stroke(
-                overlay_draw,
-                pixels,
-                default_inner,
-                default_inner_width,
-                default_glow,
-                default_glow_width,
-            ),
-        )
+        def draw_segments(overlay_draw: ImageDraw.ImageDraw) -> None:
+            # 所有外沿先于所有内层，避免后段圆帽盖掉前段的内层颜色。
+            for pixels in pixel_segments:
+                self._draw_path_stroke_layer(
+                    overlay_draw, pixels, default_glow, default_glow_width
+                )
+            for pixels in pixel_segments:
+                self._draw_path_stroke_layer(
+                    overlay_draw, pixels, default_inner, default_inner_width
+                )
+
+        self._composite_draw(image, draw_segments)
 
     def _draw_path(self, image: Image.Image, scene: dict[str, Any]) -> None:
         """按历史路径和当前路径分别绘制轨迹。"""
@@ -2057,6 +2150,7 @@ class TerraMowMapCamera(Camera):
         pixels = _simplify_path_pixels(pixels, 0.9, 1.0)
         if len(pixels) < 2:
             return
+        pixels = _smooth_path_pixels(pixels)
         self._draw_path_stroke(
             draw,
             pixels,
@@ -2067,49 +2161,24 @@ class TerraMowMapCamera(Camera):
         )
 
     def _draw_station(self, image: Image.Image, pose: dict[str, float]) -> None:
-        """绘制基站。"""
+        """按充电连接状态绘制基站标记。"""
         transformer = self._transformer
         if transformer is None:
             return
 
-        x = 20
-        y = 20
-
-        w = 40
-        h = 40
-
-        station = Image.new("RGBA", (w, h), COLOR_TRANSPARENT)
-        draw = ImageDraw.Draw(station, "RGBA")
-
-        draw.rounded_rectangle(
-            [x - 14, y - 18, x + 14, y + 18],
-            radius=10,
-            fill=COLOR_STATION_BODY,
-        )
-        draw.rounded_rectangle(
-            [x - 10, y - 10, x + 10, y + 12],
-            radius=8,
-            fill=COLOR_STATION_TOP,
-            outline=COLOR_STATION_BORDER,
-            width=1,
-        )
-        draw.ellipse([x - 4, y - 13, x + 4, y - 5], fill=COLOR_STATION_LED)
-
-        station_mask = station.copy()
-        draw_mask = ImageDraw.Draw(station_mask)
-        draw_mask.rounded_rectangle(
-            [x - 14, y - 18, x + 14, y + 18],
-            radius=10,
-            fill=COLOR_STATION_BODY,
+        station = _load_marker_image(
+            "station_charging.png"
+            if self._get_battery_connected()
+            else "station_idle.png",
+            _marker_display_size(transformer),
         )
 
         theta = _coerce_angle_radians(pose.get("theta"), milli_radian=True)
-        deg = theta * 180 / math.pi
-        deg = deg - 90
-
-        station_rotated = station.rotate(-deg, expand=True, fillcolor=COLOR_TRANSPARENT)
-        station_mask_rotated = station_mask.rotate(
-            -deg, expand=True, fillcolor=COLOR_TRANSPARENT
+        # 未收到朝向时仍显示基站位置，避免整张地图渲染失败。
+        if theta is None:
+            theta = 0.0
+        station_rotated = station.rotate(
+            -math.degrees(theta), expand=True, fillcolor=COLOR_TRANSPARENT
         )
 
         cx, cy = transformer.to_pixel(pose["x"], pose["y"])
@@ -2117,7 +2186,7 @@ class TerraMowMapCamera(Camera):
         image.paste(
             station_rotated,
             (cx - station_rotated.width // 2, cy - station_rotated.height // 2),
-            station_mask_rotated,
+            station_rotated.getchannel("A"),
         )
 
     def _draw_robot(self, image: Image.Image) -> None:
@@ -2133,25 +2202,7 @@ class TerraMowMapCamera(Camera):
         x = display_pose["x"]
         y = display_pose["y"]
 
-        if self._robot_image is None:
-            px = 20
-            py = 20
-
-            w = 40
-            h = 40
-
-            self._robot_image = Image.new("RGBA", (w, h), COLOR_TRANSPARENT)
-            draw = ImageDraw.Draw(self._robot_image, "RGBA")
-
-            draw.ellipse([px - 16, py - 20, px + 16, py + 20], fill=COLOR_ROBOT_BODY)
-            draw.ellipse([px - 12, py - 15, px + 12, py + 4], fill=COLOR_ROBOT_TOP)
-            draw.rectangle([px - 14, py + 5, px + 14, py + 12], fill=COLOR_ROBOT_DETAIL)
-
-            self._robot_image_mask = self._robot_image.copy()
-            draw_mask = ImageDraw.Draw(self._robot_image_mask)
-            draw_mask.ellipse(
-                [px - 16, py - 20, px + 16, py + 20], fill=COLOR_ROBOT_BODY
-            )
+        robot_image = _load_marker_image("mower.png", _marker_display_size(transformer))
 
         yaw = display_pose.get("yaw")
         if yaw is None:
@@ -2159,21 +2210,22 @@ class TerraMowMapCamera(Camera):
 
         cx, cy = transformer.to_pixel(x, y)
 
-        deg = yaw * 180 / math.pi
-        deg = deg - 90
-
-        robot_rotated = self._robot_image.rotate(
-            -deg, expand=True, fillcolor=COLOR_TRANSPARENT
-        )
-        robot_mask_rotated = self._robot_image_mask.rotate(
-            -deg, expand=True, fillcolor=COLOR_TRANSPARENT
+        robot_rotated = robot_image.rotate(
+            -math.degrees(yaw), expand=True, fillcolor=COLOR_TRANSPARENT
         )
 
         image.paste(
             robot_rotated,
             (cx - robot_rotated.width // 2, cy - robot_rotated.height // 2),
-            robot_mask_rotated,
+            robot_rotated.getchannel("A"),
         )
+
+    def _draw_dynamic_markers(self, image: Image.Image) -> None:
+        """最终输出时绘制会随设备状态变化的标记。"""
+        station_pose = _pose_tuple(self._map_data.get("station_pose"))
+        if station_pose is not None:
+            self._draw_station(image, station_pose)
+        self._draw_robot(image)
 
     def _draw_map_chips(self, draw: ImageDraw.ImageDraw, scene: dict[str, Any]) -> None:
         """绘制地图上方摘要标签。"""
@@ -2335,13 +2387,82 @@ class TerraMowMapCamera(Camera):
             return _render_placeholder()
 
         image = self._static_image.copy()
-        self._draw_robot(image)
+        self._draw_dynamic_markers(image)
 
         buffer = io.BytesIO()
         image.convert("RGB").save(buffer, format="PNG")
         result = buffer.getvalue()
         self._cached_png = result
         return result
+
+    def _render_clean_image(self) -> bytes:
+        """输出地图本身，不包含卡片边框、角标和信息面板。"""
+        if self._cached_clean_png is not None:
+            return self._cached_clean_png
+
+        if self._static_clean_image is None:
+            return _render_placeholder(
+                size=(MAP_RECT[2] - MAP_RECT[0], MAP_RECT[3] - MAP_RECT[1])
+            )
+
+        image = self._static_clean_image.copy()
+        self._draw_dynamic_markers(image)
+        buffer = io.BytesIO()
+        image.crop(MAP_RECT).convert("RGB").save(buffer, format="PNG")
+        self._cached_clean_png = buffer.getvalue()
+        return self._cached_clean_png
+
+
+class TerraMowCleanMapCamera(Camera):
+    """复用地图画面，提供适合仪表盘嵌入的纯地图相机。"""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_icon = "mdi:map-outline"
+    _attr_translation_key = "clean_map_camera"
+
+    def __init__(
+        self,
+        basic_data: TerraMowBasicData,
+        hass: HomeAssistant,
+        map_camera: TerraMowMapCamera,
+    ) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.hass = hass
+        self._map_camera = map_camera
+
+    async def async_added_to_hass(self) -> None:
+        """仅在实体启用期间接收原相机的画面刷新通知。"""
+        await super().async_added_to_hass()
+        self._map_camera._clean_camera = self
+        self.async_on_remove(self._detach_from_map_camera)
+
+    def _detach_from_map_camera(self) -> None:
+        """禁用或移除后断开引用，避免向已卸载实体写入状态。"""
+        if self._map_camera._clean_camera is self:
+            self._map_camera._clean_camera = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.clean_map_camera"
+
+    @property
+    def available(self) -> bool:
+        return self.basic_data.lawn_mower is not None
+
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        return await self.hass.async_add_executor_job(
+            self._map_camera._render_clean_image
+        )
 
 
 async def async_setup_entry(
@@ -2351,4 +2472,6 @@ async def async_setup_entry(
 ) -> None:
     """初始化 camera 平台。"""
     basic_data = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities([TerraMowMapCamera(basic_data, hass)])
+    map_camera = TerraMowMapCamera(basic_data, hass)
+    clean_camera = TerraMowCleanMapCamera(basic_data, hass, map_camera)
+    async_add_entities([map_camera, clean_camera])

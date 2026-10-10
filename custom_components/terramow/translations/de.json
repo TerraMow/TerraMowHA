@@ -45,6 +45,14 @@
             "battery": {
                 "name": "Akku"
             },
+            "battery_temperature_state": {
+                "name": "Akkutemperaturstatus",
+                "state": {
+                    "normal": "Normal",
+                    "overheat": "Überhitzt",
+                    "underheat": "Zu kalt"
+                }
+            },
             "map_status": {
                 "name": "Kartenstatus",
                 "state": {
@@ -179,6 +187,9 @@
         "camera": {
             "map_camera": {
                 "name": "Karte"
+            },
+            "clean_map_camera": {
+                "name": "Karte ohne Infobereich"
             }
         },
         "binary_sensor": {

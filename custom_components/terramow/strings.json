@@ -39,6 +39,14 @@
       "battery": {
         "name": "Battery"
       },
+      "battery_temperature_state": {
+        "name": "Battery Temperature State",
+        "state": {
+          "normal": "Normal",
+          "overheat": "Overheated",
+          "underheat": "Too Cold"
+        }
+      },
       "map_status": {
         "name": "Map Status",
         "state": {
@@ -141,6 +149,9 @@
     "camera": {
       "map_camera": {
         "name": "Map"
+      },
+      "clean_map_camera": {
+        "name": "Clean Map"
       }
     },
     "binary_sensor": {

@@ -45,6 +45,14 @@
             "battery": {
                 "name": "电池"
             },
+            "battery_temperature_state": {
+                "name": "电池温度状态",
+                "state": {
+                    "normal": "正常",
+                    "overheat": "过热",
+                    "underheat": "过冷"
+                }
+            },
             "map_status": {
                 "name": "地图状态",
                 "state": {
@@ -179,6 +187,9 @@
         "camera": {
             "map_camera": {
                 "name": "地图"
+            },
+            "clean_map_camera": {
+                "name": "纯地图"
             }
         },
         "binary_sensor": {
