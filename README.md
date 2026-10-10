@@ -18,10 +18,10 @@ This is a Home Assistant integration for TerraMow robotic lawn mowers.
 
 - Control lawn mower (start, pause, and dock)
 - Start mowing a single zone
-- Monitor battery status and activity
+- Monitor battery level, temperature state, and activity
 - Track the current session: mowed area, mowing time, and progress
 - Diagnose problems with the latest event, active fault, and mission status sensors
-- View the map status and a map image with the mowing path and robot position
+- View the map status and full or clean map images with the mowing path and robot position
 - Adjust mowing height, speed, blade speed, edge cutting distance, spacing, and main direction
 - Track blade and base station maintenance and the next scheduled start
 - MQTT based real-time communication

@@ -186,6 +186,69 @@ class BatterySensor(SensorEntity):
         }
 
 
+_BATTERY_TEMPERATURE_STATES = {
+    "BATTERY_TEMPRETURE_NORMAL": "normal",
+    "BATTERY_TEMPRETURE_OVERHEAT": "overheat",
+    "BATTERY_TEMPRETURE_UNDERHEAT": "underheat",
+    "BATTERY_TEMPERATURE_NORMAL": "normal",
+    "BATTERY_TEMPERATURE_OVERHEAT": "overheat",
+    "BATTERY_TEMPERATURE_UNDERHEAT": "underheat",
+}
+
+
+class BatteryTemperatureStateSensor(SensorEntity):
+    """将设备上报的电池温度等级展示为独立诊断实体。"""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_icon = "mdi:thermometer"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["normal", "overheat", "underheat"]
+    _attr_translation_key = "battery_temperature_state"
+
+    def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.hass = hass
+        self._attr_unique_id = (
+            f"lawn_mower.terramow@{basic_data.stable_id}.battery_temperature_state"
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """监听电池报告和连接变化，移除实体时同时撤销监听。"""
+        await super().async_added_to_hass()
+        for name in ("battery_status", "map_status"):
+            self.async_on_remove(
+                async_dispatcher_connect(
+                    self.hass,
+                    f"terramow_{self.basic_data.host}_{name}",
+                    self.async_write_ha_state,
+                )
+            )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
+
+    @property
+    def available(self) -> bool:
+        mower = self.basic_data.lawn_mower
+        return mower is not None and mower.mqtt_connected
+
+    @property
+    def native_value(self) -> str | None:
+        mower = self.basic_data.lawn_mower
+        if mower is None or not mower.battery_status_fresh:
+            return None
+        raw = mower.battery_status.get("tempreture")
+        if not isinstance(raw, str):
+            return None
+        return _BATTERY_TEMPERATURE_STATES.get(raw)
+
+
 class TotalMowingTimeSensor(SensorEntity):
     """Total mowing time sensor - uses dp_124 data"""
 
@@ -1027,6 +1090,7 @@ async def async_setup_entry(
         TerraMowFeedbackSensor(basic_data, "active_fault"),
         # 基本传感器
         BatterySensor(basic_data, hass),
+        BatteryTemperatureStateSensor(basic_data, hass),
         TerraMowPoseSensor(basic_data, hass),
         # 地图相关传感器
         TerraMowMapStatusSensor(basic_data, hass),

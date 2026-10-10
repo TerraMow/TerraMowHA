@@ -105,6 +105,8 @@ reported its map status.
 The **Map** camera draws the lawn map with its zones and obstacles, the mowing
 path, the station, and the robot's position when it is known. See
 [Map and Path Capabilities](developers/map_path.md) for the data behind it.
+The **Clean Map** camera shows the same map layers without the surrounding
+information panel or map labels, for compact dashboard cards.
 
 ## Maintenance and schedule
 
@@ -136,7 +138,10 @@ not raise an error if the robot does not apply one.
 
 **Battery** shows the battery level in percent. Its attributes include `state`,
 `temperature`, `charger_connected`, and `is_switch_on`. **Charging State** is on
-when the robot reports its charger as connected. **Pose** reports the robot's
+when the robot reports its charger as connected. **Battery Temperature State**
+reports Normal, Overheated, or Too Cold from the robot's battery status; the
+robot does not provide a temperature in degrees. It is unavailable while
+disconnected and unknown until a fresh battery report arrives. **Pose** reports the robot's
 position and heading: its state is the yaw, and the attributes hold `x`, `y`,
 `yaw`, `timestamp_ms`, and `frame`. **Total Mowing Time** shows the total mowing
 time reported by the robot. **Version Compatibility** compares the robot's

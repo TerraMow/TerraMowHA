@@ -36,6 +36,7 @@ jobs:
         run: >-
           uv pip install
           pytest-homeassistant-custom-component==${{ matrix.pytest_plugin }}
+          PyTurboJPEG==1.8.3
           ${{ matrix.extra_requirement }}
       - name: Run tests
         run: .venv/bin/python -m pytest

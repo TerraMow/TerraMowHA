@@ -203,12 +203,14 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._blade_time: dict[str, Any] = {}  # 存储dp_126刀盘使用时间
         self._schedule_data: dict[str, Any] = {}  # 存储dp_138即将到来的预约
         self._battery_status: dict[str, Any] = {}  # Store dp_108 battery status
+        self._battery_status_fresh = False
         self._device_model: str = "TerraMow S1200"  # 默认型号名称，保持向后兼容
         self.basic_data.lawn_mower = self
         self.mission_signal = f"terramow_{self.host}_mission"
         self.map_status_signal = f"terramow_{self.host}_map_status"
         self.current_work_data_signal = f"terramow_{self.host}_current_work_data"
         self.work_mode_signal = f"terramow_{self.host}_work_mode"
+        self.battery_status_signal = f"terramow_{self.host}_battery_status"
 
         # 机器人状态
         self.mission = Mission.MISSION_IDLE
@@ -529,11 +531,15 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.error("Invalid JSON payload for dp_138: %s", payload)
 
     async def on_battery_status(self, payload: str):
-        """Handle battery status updates (dp_108)."""
+        """保存 dp_108 电池状态，并通知依赖该数据的实体。"""
         _LOGGER.debug("Raw battery status payload: %s", payload)
         try:
             data = json.loads(payload)
+            if not isinstance(data, dict):
+                return
             self._battery_status = data
+            self._battery_status_fresh = True
+            async_dispatcher_send(self.hass, self.battery_status_signal)
             _LOGGER.info("Battery status updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_108: %s", payload)
@@ -680,8 +686,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Callback when connected to MQTT Broker."""
         if rc == 0:
             self.mqtt_connected = True
-            # 新连接重新等待 dp_117，避免断线前的缓存恢复为在线状态。
+            # 新连接重新等待地图和电池报告；保留旧电池属性供已有实体使用。
             self._map_status = {}
+            self._battery_status_fresh = False
             self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
             _LOGGER.info("MQTT connected")
             # 订阅主题
@@ -716,6 +723,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         else:
             self.mqtt_connected = False
             self._map_status = {}
+            self._battery_status_fresh = False
             self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
             _LOGGER.error(f"MQTT connection failed with code {rc}")
             # 设置错误状态
@@ -725,8 +733,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def on_mqtt_disconnect(self, _client, _userdata, rc):  # type: ignore[misc]
         """Callback when disconnected from MQTT Broker."""
         self.mqtt_connected = False
-        # 重连后必须等待新上报，避免旧地图标志重新变成有效状态。
+        # 地图缓存清空；电池报告仅标为过期，避免改变已有电池属性。
         self._map_status = {}
+        self._battery_status_fresh = False
         # MQTT 回调来自后台线程，交给 HA 事件循环刷新实体可用性。
         self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
         self.hass.add_job(self.feedback.disconnected)
@@ -1381,6 +1390,11 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
     def battery_status(self) -> dict:
         """Get current battery status from dp_108."""
         return self._battery_status
+
+    @property
+    def battery_status_fresh(self) -> bool:
+        """本次连接是否已经收到新的电池状态报告。"""
+        return self._battery_status_fresh
 
     @property
     def compatibility_status(self) -> str:
