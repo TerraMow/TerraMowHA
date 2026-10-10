@@ -20,7 +20,7 @@ returning to the station, and `active_faults` lists the current faults.
 
 ### Command confirmation
 
-Start, pause, dock, and zone mowing commands wait up to five seconds for a
+Start, pause, dock, zone mowing, and edge cutting commands wait up to five seconds for a
 matching robot reply. A rejected command raises a Home Assistant error. A timeout
 means the result is unconfirmed, and the integration does not retry
 automatically. Firmware that does not send command replies also reports an
@@ -32,10 +32,14 @@ apart. Otherwise Home Assistant reports an error.
 
 ### Zone mowing
 
-**Zone Select** lists **All zones** and the zones of the current map, or **No
-zones available** until the robot reports a map with zones. Choosing a zone starts
-mowing that zone and is confirmed like the commands above. Choosing **All zones**
-only changes the selection and sends nothing to the robot.
+**Zone Select** lists **All zones**, **Edge cutting**, and the zones of the current
+map. If the reported map has no zones, **Edge cutting** remains available beside
+**No zones available**; until a map is reported, only **No zones available** is
+shown. Choosing a zone starts mowing that zone; choosing **Edge cutting** requests
+an edge cutting job. Both commands wait for the robot's confirmation. Edge cutting
+requires firmware control version 8 or later. Choosing **All zones** only changes
+the selection and sends nothing to the robot. Use the lawn mower's Start command
+to start global mowing.
 
 ## Events and faults
 

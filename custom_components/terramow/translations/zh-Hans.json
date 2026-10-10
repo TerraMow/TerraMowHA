@@ -200,7 +200,8 @@
                 "name": "分区选择",
                 "state": {
                     "no_zones_available": "无分区可选",
-                    "all_zones": "全部分区"
+                    "all_zones": "全部分区",
+                    "edge_cutting": "沿边割草"
                 }
             },
             "mow_speed_setting": {

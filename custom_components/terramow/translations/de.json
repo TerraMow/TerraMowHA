@@ -200,7 +200,8 @@
                 "name": "Zonenauswahl",
                 "state": {
                     "no_zones_available": "Keine Zonen verfügbar",
-                    "all_zones": "Alle Zonen"
+                    "all_zones": "Alle Zonen",
+                    "edge_cutting": "Kantenmähen"
                 }
             },
             "mow_speed_setting": {
