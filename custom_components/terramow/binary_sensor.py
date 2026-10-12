@@ -31,6 +31,8 @@ async def async_setup_entry(
         TerraMowMapDetectedBinarySensor(basic_data, hass),
         TerraMowMapBuildableBinarySensor(basic_data, hass),
         TerraMowMapBackingUpBinarySensor(basic_data, hass),
+        TerraMowLiftAlarmBinarySensor(basic_data, hass),
+        TerraMowAntiTheftBoundaryAlarmBinarySensor(basic_data, hass),
     ]
 
     async_add_entities(entities)
@@ -170,3 +172,68 @@ class TerraMowMapBackingUpBinarySensor(_MapStatusBinarySensorBase):
     _attr_icon = "mdi:cloud-upload-outline"
     _map_status_field = "is_backing_up_map"
     _unique_suffix = "map_backing_up"
+
+
+class _FaultSnapshotBinarySensorBase(BinarySensorEntity):
+    """展示完整故障集合中的指定告警，单条故障通知不改变其开关。"""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_device_class = BinarySensorDeviceClass.TAMPER
+
+    _fault_codes: frozenset[int] = frozenset()
+    _unique_suffix: str = ""
+
+    def __init__(self, basic_data: TerraMowBasicData, hass: HomeAssistant) -> None:
+        super().__init__()
+        self.basic_data = basic_data
+        self.hass = hass
+
+    async def async_added_to_hass(self) -> None:
+        """使用稳定的反馈信号，允许传感器早于割草机实体装载。"""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                f"terramow_{self.basic_data.host}_feedback",
+                self.async_write_ha_state,
+            )
+        )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={("TerraMowLawnMower", self.basic_data.stable_id)}
+        )
+
+    @property
+    def unique_id(self) -> str:
+        return f"lawn_mower.terramow@{self.basic_data.stable_id}.{self._unique_suffix}"
+
+    @property
+    def available(self) -> bool:
+        mower = self.basic_data.lawn_mower
+        return mower is not None and mower.mqtt_connected
+
+    @property
+    def is_on(self) -> bool | None:
+        mower = self.basic_data.lawn_mower
+        if mower is None or mower.feedback.snapshot_error_codes is None:
+            return None
+        return not self._fault_codes.isdisjoint(mower.feedback.snapshot_error_codes)
+
+
+class TerraMowLiftAlarmBinarySensor(_FaultSnapshotBinarySensorBase):
+    """驱动轮离地告警。"""
+
+    _attr_translation_key = "lift_alarm"
+    _fault_codes = frozenset((201, 202))
+    _unique_suffix = "lift_alarm"
+
+
+class TerraMowAntiTheftBoundaryAlarmBinarySensor(_FaultSnapshotBinarySensorBase):
+    """防盗越界告警。"""
+
+    _attr_translation_key = "anti_theft_boundary_alarm"
+    _fault_codes = frozenset((1409,))
+    _unique_suffix = "anti_theft_boundary_alarm"

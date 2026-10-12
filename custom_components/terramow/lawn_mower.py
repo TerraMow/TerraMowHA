@@ -684,8 +684,10 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
     def on_mqtt_connect(self, client, _userdata, _flags, rc):  # type: ignore[misc]
         """Callback when connected to MQTT Broker."""
+        # MQTT 回调来自后台线程；先确定可用性，避免告警刷新先执行并停在不可用。
+        self.mqtt_connected = rc == 0
+        self.hass.add_job(self.feedback.reset_fault_snapshot)
         if rc == 0:
-            self.mqtt_connected = True
             # 新连接重新等待地图和电池报告；保留旧电池属性供已有实体使用。
             self._map_status = {}
             self._battery_status_fresh = False
@@ -721,7 +723,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
             self.update_activity_from_state()
         else:
-            self.mqtt_connected = False
             self._map_status = {}
             self._battery_status_fresh = False
             self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)

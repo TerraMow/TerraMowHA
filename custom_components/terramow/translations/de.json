@@ -204,6 +204,12 @@
             },
             "map_backing_up": {
                 "name": "Karte wird gesichert"
+            },
+            "lift_alarm": {
+                "name": "Anhebealarm"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Diebstahlalarm bei Grenzübertritt"
             }
         },
         "select": {

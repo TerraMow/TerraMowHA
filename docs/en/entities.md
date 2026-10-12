@@ -4,9 +4,9 @@ This page describes the entities that the integration adds to Home Assistant and
 when they show an unknown or unavailable state. Entity names come from the
 integration's translations; this page uses the English names.
 
-All sensors and binary sensors are diagnostic entities, so Home Assistant lists
-them in the **Diagnostic** section of the device page. The selects and numbers
-are configuration entities.
+Sensors and the existing status binary sensors are diagnostic entities. The
+security alarm binary sensors appear in the main device section, so they are
+easy to find for automations. The selects and numbers are configuration entities.
 
 ## Lawn mower
 
@@ -51,6 +51,13 @@ the robot has sent feedback.
 
 A current fault sets the mower activity to `error`; clearing the fault restores
 the reported mission state. Historical events do not set the current fault state.
+
+**Lift Alarm** turns on when the robot's current fault list contains code `201`
+or `202`. **Anti-Theft Boundary Alarm** turns on for code `1409`. Each turns off
+when its code is absent from the next complete fault list. A single fault
+notification or a historical event cannot turn either alarm on. Both alarms are
+unknown until a fault list arrives, unavailable while disconnected, and unknown
+again after reconnecting until a new list arrives.
 
 ## Mission status
 

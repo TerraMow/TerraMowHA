@@ -50,6 +50,8 @@ class TerraMowFeedback:
         self.latest_event: dict[str, Any] | None = None
         # None 表示尚未收到故障信息；空字典表示设备已明确报告没有故障。
         self.active_errors: dict[int, dict[str, Any]] | None = None
+        # 告警只依据完整快照；单条实时故障仍可更新通用故障展示。
+        self.snapshot_error_codes: frozenset[int] | None = None
         self._pending: dict[tuple[int, int], PendingCommand] = {}
         self._last_live_event: tuple[float, int] | None = None
         self._history_time: datetime | None = None
@@ -239,7 +241,8 @@ class TerraMowFeedback:
     async def on_error_list(self, payload: str) -> None:
         """当前故障集合是权威快照；清空时解除故障，不从事件历史反推故障。"""
         data = self._decode(payload)
-        if data is None:
+        # protobuf 可将空列表序列化为 {}，但其他缺字段对象不是清空快照。
+        if data is None or (data and "error_list" not in data):
             return
         items = data.get("error_list", [])
         if not isinstance(items, list) or any(
@@ -247,6 +250,7 @@ class TerraMowFeedback:
             for e in items
         ):
             return
+        self.snapshot_error_codes = frozenset(e["code"] for e in items)
         self.active_errors = {
             e["code"]: {
                 "code": e["code"],
@@ -263,8 +267,15 @@ class TerraMowFeedback:
         async_dispatcher_send(self.mower.hass, self.signal)
 
     @callback
+    def reset_fault_snapshot(self) -> None:
+        """新连接须等待本次故障快照，避免把旧连接的告警当成当前状态。"""
+        self.snapshot_error_codes = None
+        async_dispatcher_send(self.mower.hass, self.signal)
+
+    @callback
     def disconnected(self) -> None:
         """掉线或卸载时及时结束等待，不把旧连接的回复留给重连后的请求。"""
+        self.reset_fault_snapshot()
         for pending in self._pending.values():
             if not pending.future.done():
                 pending.future.set_exception(

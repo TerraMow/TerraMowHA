@@ -204,6 +204,12 @@
             },
             "map_backing_up": {
                 "name": "正在备份地图"
+            },
+            "lift_alarm": {
+                "name": "抬起告警"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "防盗越界告警"
             }
         },
         "select": {
