@@ -209,6 +209,30 @@ async def test_alarm_waits_for_new_snapshot_after_reconnect(
     assert writes == old_writes
 
 
+async def test_connect_sets_availability_before_fault_reset(
+    mower: TerraMowLawnMowerEntity,
+) -> None:
+    """即使刷新任务立刻执行，重连后的告警也应先变为可用且状态未知。"""
+    alarm = TerraMowLiftAlarmBinarySensor(mower.basic_data, mower.hass)
+    mower.mqtt_connected = False
+    mower.feedback.snapshot_error_codes = frozenset({201})
+    observed: list[tuple[bool, bool | None]] = []
+
+    def run_reset_immediately(job, *args) -> None:
+        if job == mower.feedback.reset_fault_snapshot:
+            job(*args)
+            observed.append((alarm.available, alarm.is_on))
+
+    with (
+        patch.object(mower.hass, "add_job", side_effect=run_reset_immediately),
+        patch.object(mower, "_request_compatibility_info"),
+        patch.object(mower, "update_activity_from_state"),
+    ):
+        mower.on_mqtt_connect(MagicMock(), None, None, 0)
+
+    assert observed == [(True, None)]
+
+
 @pytest.mark.parametrize(
     "file_name",
     (
