@@ -204,6 +204,12 @@
             },
             "map_backing_up": {
                 "name": "Map Backing Up"
+            },
+            "lift_alarm": {
+                "name": "Lift Alarm"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Anti-Theft Boundary Alarm"
             }
         },
         "select": {

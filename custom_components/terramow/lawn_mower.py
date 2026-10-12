@@ -684,6 +684,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
 
     def on_mqtt_connect(self, client, _userdata, _flags, rc):  # type: ignore[misc]
         """Callback when connected to MQTT Broker."""
+        # MQTT 回调来自后台线程；先清空旧快照，再接收本次连接的上报。
+        self.hass.add_job(self.feedback.reset_fault_snapshot)
         if rc == 0:
             self.mqtt_connected = True
             # 新连接重新等待地图和电池报告；保留旧电池属性供已有实体使用。
