@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Urządzenie jest już skonfigurowane",
+            "reconfigure_successful": "Rekonfiguracja powiodła się",
+            "unknown": "Nieoczekiwany błąd"
+        },
+        "error": {
+            "already_configured": "Urządzenie jest już skonfigurowane",
+            "cannot_connect": "Nie udało się połączyć",
+            "invalid_auth": "Nieprawidłowe uwierzytelnienie",
+            "unknown": "Nieoczekiwany błąd"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Hasło",
+                    "username": "Nazwa użytkownika"
+                }
+            },
+            "reconfigure": {
+                "title": "Skonfiguruj ponownie TerraMow",
+                "description": "Zaktualizuj adres IP/nazwę hosta lub hasło swojego TerraMow.",
+                "data": {
+                    "host": "Host",
+                    "password": "Hasło"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Kosiarka"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Ostatnie zdarzenie"
+            },
+            "active_fault": {
+                "name": "Usterka"
+            },
+            "battery": {
+                "name": "Bateria"
+            },
+            "battery_temperature_state": {
+                "name": "Stan temperatury baterii",
+                "state": {
+                    "normal": "Normalna",
+                    "overheat": "Przegrzana",
+                    "underheat": "Zbyt zimna"
+                }
+            },
+            "map_status": {
+                "name": "Stan mapy",
+                "state": {
+                    "map_state_empty": "Brak mapy",
+                    "map_state_incomplete": "Mapa niekompletna",
+                    "map_state_complete": "Mapa kompletna"
+                }
+            },
+            "map_area": {
+                "name": "Powierzchnia mapy"
+            },
+            "mow_height": {
+                "name": "Wysokość cięcia"
+            },
+            "mow_speed": {
+                "name": "Prędkość przemieszczania",
+                "state": {
+                    "mow_speed_type_low": "Dokładny",
+                    "mow_speed_type_medium": "Domyślny",
+                    "mow_speed_type_adaptive_high": "Adaptacyjny",
+                    "mow_speed_type_auto": "Automatyczna"
+                }
+            },
+            "clean_mode": {
+                "name": "Tryb koszenia",
+                "state": {
+                    "map_clean_info_mode_global": "Automatyczne koszenie.",
+                    "map_clean_info_mode_select_region": "Koszenie strefowe",
+                    "map_clean_info_mode_draw_region": "Koszenie skrzynkowe",
+                    "map_clean_info_mode_move_to_target_point": "Przejazd do punktu docelowego"
+                }
+            },
+            "pose": {
+                "name": "Pozycja"
+            },
+            "total_mowing_time": {
+                "name": "Całkowity czas koszenia"
+            },
+            "current_session_area": {
+                "name": "Powierzchnia bieżącej sesji"
+            },
+            "current_session_progress": {
+                "name": "Postęp bieżącej sesji"
+            },
+            "current_session_time": {
+                "name": "Czas bieżącej sesji"
+            },
+            "remaining_blade_time": {
+                "name": "Pozostały czas pracy ostrzy"
+            },
+            "remaining_base_station_time": {
+                "name": "Pozostały czas pracy stacji bazowej"
+            },
+            "next_scheduled_start": {
+                "name": "Następny zaplanowany start"
+            },
+            "version_compatibility": {
+                "name": "Zgodność wersji",
+                "state": {
+                    "compatible": "Zgodna",
+                    "upgrade_required": "Wymagana aktualizacja",
+                    "downgrade_recommended": "Zalecany downgrade",
+                    "incompatible": "Niezgodna",
+                    "unknown": "Nieznana"
+                }
+            },
+            "main_direction_status": {
+                "name": "Stan kierunku głównego",
+                "state": {
+                    "main_direction_mode_single": "Pojedynczy",
+                    "main_direction_mode_multiple": "Podwójny",
+                    "main_direction_mode_auto_rotate": "Automatycznie obracający się",
+                    "unavailable": "Niedostępny",
+                    "no_config": "Brak konfiguracji"
+                }
+            },
+            "mission": {
+                "name": "Misja",
+                "state": {
+                    "mission_idle": "Bezczynność",
+                    "mission_recharge": "Ładowanie",
+                    "mission_global_clean": "Automatyczne koszenie.",
+                    "mission_build_map": "Mapowanie",
+                    "mission_build_map_and_clean": "Tworzenie mapy i koszenie",
+                    "mission_temporary_clean": "Koszenie tymczasowe",
+                    "mission_back_to_starting_point": "Powrót do punktu startowego",
+                    "mission_remote_control_clean": "Koszenie zdalnie sterowane",
+                    "mission_schedule_global_clean": "Zaplanowane koszenie całości",
+                    "mission_schedule_build_map_and_clean": "Zaplanowane mapowanie i koszenie",
+                    "mission_select_region_clean": "Koszenie strefowe",
+                    "mission_create_custom_passage": "Tworzenie własnego przejścia",
+                    "mission_backup_map": "Kopia zapasowa mapy",
+                    "mission_relocate_base_station": "Przenoszenie stacji bazowej",
+                    "mission_user_auto_calibration": "Automatyczna kalibracja",
+                    "mission_restore_backup_map": "Przywracanie mapy",
+                    "mission_schedule_select_region_clean": "Zaplanowane koszenie stref",
+                    "mission_draw_region_clean": "Koszenie skrzynkowe",
+                    "mission_edge_trim_clean": "Koszenie krawędzi",
+                    "mission_update_backup_map": "Aktualizacja kopii mapy"
+                }
+            },
+            "sub_mission": {
+                "name": "Podmisja",
+                "state": {
+                    "sub_mission_idle": "Bezczynność",
+                    "sub_mission_relocation": "Relokalizacja",
+                    "sub_mission_return_to_base": "Powrót do bazy",
+                    "sub_mission_out_of_station": "Opuszczanie stacji bazowej",
+                    "sub_mission_remote_control": "Zdalne sterowanie",
+                    "sub_mission_saving_map": "Zapisywanie mapy",
+                    "sub_mission_setting_blade_height": "Regulacja wysokości ostrzy",
+                    "sub_mission_charging": "Ładowanie",
+                    "sub_mission_remote_control_clean": "Koszenie zdalnie sterowane",
+                    "sub_mission_defogging": "Usuwanie zaparowania",
+                    "sub_mission_wait_for_daylight": "Oczekiwanie na światło dzienne",
+                    "sub_mission_cooling_down_motor": "Chłodzenie silnika",
+                    "sub_mission_wait_for_rain_to_stop": "Oczekiwanie na koniec deszczu",
+                    "sub_mission_flexible_station_wait": "Oczekiwanie w stacji bazowej"
+                }
+            },
+            "mission_state": {
+                "name": "Stan misji",
+                "state": {
+                    "mission_state_idle": "Bezczynność",
+                    "mission_state_running": "W trakcie",
+                    "mission_state_pause": "Wstrzymana",
+                    "mission_state_abort": "Przerwana",
+                    "mission_state_complete": "Zakończona"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Mapa"
+            },
+            "clean_map_camera": {
+                "name": "Mapa (czysta)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Stan ładowania"
+            },
+            "map_detected": {
+                "name": "Wykryto mapę"
+            },
+            "map_buildable": {
+                "name": "Można utworzyć mapę"
+            },
+            "map_backing_up": {
+                "name": "Trwa kopia zapasowa mapy"
+            },
+            "lift_alarm": {
+                "name": "Alarm podniesienia"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Alarm granicy antykradzieżowej"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Wybór strefy",
+                "state": {
+                    "no_zones_available": "Brak dostępnych stref",
+                    "all_zones": "Wszystkie strefy",
+                    "edge_cutting": "Koszenie krawędzi"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Prędkość przemieszczania",
+                "state": {
+                    "mow_speed_type_low": "Dokładny",
+                    "mow_speed_type_medium": "Domyślny",
+                    "mow_speed_type_adaptive_high": "Adaptacyjny",
+                    "mow_speed_type_auto": "Prędkość automatyczna"
+                }
+            },
+            "blade_speed": {
+                "name": "Ustawienie prędkości ostrzy",
+                "state": {
+                    "blade_disk_speed_type_low": "Niska prędkość",
+                    "blade_disk_speed_type_medium": "Średnia prędkość",
+                    "blade_disk_speed_type_high": "Wysoka prędkość"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Tryb kierunku głównego",
+                "state": {
+                    "main_direction_mode_single": "Pojedynczy",
+                    "main_direction_mode_multiple": "Podwójny",
+                    "main_direction_mode_auto_rotate": "Automatycznie obracający się"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Ustawienie wysokości koszenia"
+            },
+            "edge_cutting_distance": {
+                "name": "Odległość koszenia krawędzi"
+            },
+            "mowing_spacing": {
+                "name": "Ustawienie odstępu koszenia"
+            },
+            "main_direction_single_angle": {
+                "name": "Kąt jednego kierunku"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Interwał kąta automatycznego obrotu"
+            },
+            "multiple_direction_angle1": {
+                "name": "Kąt pierwszego kierunku"
+            },
+            "multiple_direction_angle2": {
+                "name": "Kąt drugiego kierunku"
+            }
+        }
+    }
+}

@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Naprava je že konfigurirana",
+            "reconfigure_successful": "Ponovna konfiguracija je bila uspešna",
+            "unknown": "Nepričakovana napaka"
+        },
+        "error": {
+            "already_configured": "Naprava je že konfigurirana",
+            "cannot_connect": "Povezava ni uspela",
+            "invalid_auth": "Neveljavna avtentikacija",
+            "unknown": "Nepričakovana napaka"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Gostitelj",
+                    "password": "Geslo",
+                    "username": "Uporabniško ime"
+                }
+            },
+            "reconfigure": {
+                "title": "Ponovno konfiguriraj TerraMow",
+                "description": "Posodobite naslov IP / ime gostitelja ali geslo vaše naprave TerraMow.",
+                "data": {
+                    "host": "Gostitelj",
+                    "password": "Geslo"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Kosilnica"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Zadnji dogodek"
+            },
+            "active_fault": {
+                "name": "Okvara"
+            },
+            "battery": {
+                "name": "Baterija"
+            },
+            "battery_temperature_state": {
+                "name": "Stanje temperature baterije",
+                "state": {
+                    "normal": "Normalna",
+                    "overheat": "Pregreta",
+                    "underheat": "Podhlajena"
+                }
+            },
+            "map_status": {
+                "name": "Stanje zemljevida",
+                "state": {
+                    "map_state_empty": "Ni zemljevida",
+                    "map_state_incomplete": "Zemljevid je nepopoln",
+                    "map_state_complete": "Zemljevid je popoln"
+                }
+            },
+            "map_area": {
+                "name": "Površina zemljevida"
+            },
+            "mow_height": {
+                "name": "Višina košnje"
+            },
+            "mow_speed": {
+                "name": "Hitrost gibanja",
+                "state": {
+                    "mow_speed_type_low": "Natančno",
+                    "mow_speed_type_medium": "Privzeto",
+                    "mow_speed_type_adaptive_high": "Prilagodljivo",
+                    "mow_speed_type_auto": "Samodejna"
+                }
+            },
+            "clean_mode": {
+                "name": "Način košnje",
+                "state": {
+                    "map_clean_info_mode_global": "Samodejna košnja",
+                    "map_clean_info_mode_select_region": "Cone košnje",
+                    "map_clean_info_mode_draw_region": "Košnja z MowBoxom",
+                    "map_clean_info_mode_move_to_target_point": "Premik na ciljno točko"
+                }
+            },
+            "pose": {
+                "name": "Položaj"
+            },
+            "total_mowing_time": {
+                "name": "Skupni čas košnje"
+            },
+            "current_session_area": {
+                "name": "Površina trenutne seje"
+            },
+            "current_session_progress": {
+                "name": "Napredek trenutne seje"
+            },
+            "current_session_time": {
+                "name": "Trajanje trenutne seje"
+            },
+            "remaining_blade_time": {
+                "name": "Preostali čas rezil"
+            },
+            "remaining_base_station_time": {
+                "name": "Preostali čas bazne postaje"
+            },
+            "next_scheduled_start": {
+                "name": "Naslednji načrtovani zagon"
+            },
+            "version_compatibility": {
+                "name": "Združljivost različic",
+                "state": {
+                    "compatible": "Združljivo",
+                    "upgrade_required": "Potrebna je nadgradnja",
+                    "downgrade_recommended": "Priporočena je starejša različica",
+                    "incompatible": "Nezdružljivo",
+                    "unknown": "Neznano"
+                }
+            },
+            "main_direction_status": {
+                "name": "Stanje glavne smeri",
+                "state": {
+                    "main_direction_mode_single": "Enojna smer",
+                    "main_direction_mode_multiple": "Dvojna smer",
+                    "main_direction_mode_auto_rotate": "Samodejno vrtenje",
+                    "unavailable": "Ni na voljo",
+                    "no_config": "Brez konfiguracije"
+                }
+            },
+            "mission": {
+                "name": "Misija",
+                "state": {
+                    "mission_idle": "Nedejavna",
+                    "mission_recharge": "Polnjenje",
+                    "mission_global_clean": "Samodejna košnja",
+                    "mission_build_map": "Kartiranje",
+                    "mission_build_map_and_clean": "Izdelava zemljevida in košnja",
+                    "mission_temporary_clean": "Začasna košnja",
+                    "mission_back_to_starting_point": "Vračanje na izhodiščno točko",
+                    "mission_remote_control_clean": "Košnja z daljinskim upravljanjem",
+                    "mission_schedule_global_clean": "Načrtovana košnja celotne površine",
+                    "mission_schedule_build_map_and_clean": "Načrtovana izdelava zemljevida in košnja",
+                    "mission_select_region_clean": "Cone košnje",
+                    "mission_create_custom_passage": "Ustvarjanje prehoda po meri",
+                    "mission_backup_map": "Varnostno kopiranje zemljevida",
+                    "mission_relocate_base_station": "Premeščanje bazne postaje",
+                    "mission_user_auto_calibration": "Samodejna kalibracija",
+                    "mission_restore_backup_map": "Obnavljanje varnostne kopije zemljevida",
+                    "mission_schedule_select_region_clean": "Načrtovana košnja območij",
+                    "mission_draw_region_clean": "Košnja z MowBoxom",
+                    "mission_edge_trim_clean": "Košnja robov",
+                    "mission_update_backup_map": "Posodabljanje varnostne kopije zemljevida"
+                }
+            },
+            "sub_mission": {
+                "name": "Podmisija",
+                "state": {
+                    "sub_mission_idle": "Nedejavna",
+                    "sub_mission_relocation": "Ponovno določanje položaja",
+                    "sub_mission_return_to_base": "Vračanje na bazo",
+                    "sub_mission_out_of_station": "Zapuščanje bazne postaje",
+                    "sub_mission_remote_control": "Daljinsko upravljanje",
+                    "sub_mission_saving_map": "Shranjevanje zemljevida",
+                    "sub_mission_setting_blade_height": "Nastavljanje višine rezil",
+                    "sub_mission_charging": "Polnjenje",
+                    "sub_mission_remote_control_clean": "Košnja z daljinskim upravljanjem",
+                    "sub_mission_defogging": "Odstranjevanje rose",
+                    "sub_mission_wait_for_daylight": "Čakanje na dnevno svetlobo",
+                    "sub_mission_cooling_down_motor": "Hlajenje motorja",
+                    "sub_mission_wait_for_rain_to_stop": "Čakanje, da dež preneha",
+                    "sub_mission_flexible_station_wait": "Čakanje na bazni postaji"
+                }
+            },
+            "mission_state": {
+                "name": "Stanje misije",
+                "state": {
+                    "mission_state_idle": "Nedejavno",
+                    "mission_state_running": "V teku",
+                    "mission_state_pause": "Začasno ustavljeno",
+                    "mission_state_abort": "Prekinjeno",
+                    "mission_state_complete": "Zaključeno"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Zemljevid"
+            },
+            "clean_map_camera": {
+                "name": "Zemljevid (čist)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Stanje polnjenja"
+            },
+            "map_detected": {
+                "name": "Zaznan zemljevid"
+            },
+            "map_buildable": {
+                "name": "Zemljevid je mogoče izdelati"
+            },
+            "map_backing_up": {
+                "name": "Varnostno kopiranje zemljevida v teku"
+            },
+            "lift_alarm": {
+                "name": "Alarm dviga"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Alarm meje proti kraji"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Izbira območja",
+                "state": {
+                    "no_zones_available": "Ni razpoložljivih območij",
+                    "all_zones": "Vsa območja",
+                    "edge_cutting": "Košnja robov"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Hitrost gibanja",
+                "state": {
+                    "mow_speed_type_low": "Natančno",
+                    "mow_speed_type_medium": "Privzeto",
+                    "mow_speed_type_adaptive_high": "Prilagodljivo",
+                    "mow_speed_type_auto": "Samodejna hitrost"
+                }
+            },
+            "blade_speed": {
+                "name": "Nastavitev hitrosti rezil",
+                "state": {
+                    "blade_disk_speed_type_low": "Nizka hitrost",
+                    "blade_disk_speed_type_medium": "Srednja hitrost",
+                    "blade_disk_speed_type_high": "Visoka hitrost"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Način glavne smeri",
+                "state": {
+                    "main_direction_mode_single": "Enojna smer",
+                    "main_direction_mode_multiple": "Dvojna smer",
+                    "main_direction_mode_auto_rotate": "Samodejno vrtenje"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Nastavitev višine košnje"
+            },
+            "edge_cutting_distance": {
+                "name": "Razdalja košnje robov"
+            },
+            "mowing_spacing": {
+                "name": "Nastavitev razmika košnje"
+            },
+            "main_direction_single_angle": {
+                "name": "Kot ene smeri"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Interval samodejnega vrtenja kota"
+            },
+            "multiple_direction_angle1": {
+                "name": "Kot prve smeri"
+            },
+            "multiple_direction_angle2": {
+                "name": "Kot druge smeri"
+            }
+        }
+    }
+}

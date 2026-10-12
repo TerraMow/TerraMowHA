@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "L'appareil est déjà configuré",
+            "reconfigure_successful": "La reconfiguration a réussi",
+            "unknown": "Erreur inattendue"
+        },
+        "error": {
+            "already_configured": "L'appareil est déjà configuré",
+            "cannot_connect": "Échec de connexion",
+            "invalid_auth": "Authentification invalide",
+            "unknown": "Erreur inattendue"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Hôte",
+                    "password": "Mot de passe",
+                    "username": "Nom d'utilisateur"
+                }
+            },
+            "reconfigure": {
+                "title": "Reconfigurer TerraMow",
+                "description": "Mettez à jour l'adresse IP / le nom d'hôte ou le mot de passe de votre TerraMow.",
+                "data": {
+                    "host": "Hôte",
+                    "password": "Mot de passe"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Tondeuse"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Dernier événement"
+            },
+            "active_fault": {
+                "name": "Défaut"
+            },
+            "battery": {
+                "name": "Batterie"
+            },
+            "battery_temperature_state": {
+                "name": "État de température de la batterie",
+                "state": {
+                    "normal": "Normale",
+                    "overheat": "Surchauffe",
+                    "underheat": "Trop froide"
+                }
+            },
+            "map_status": {
+                "name": "État de la carte",
+                "state": {
+                    "map_state_empty": "Aucune carte",
+                    "map_state_incomplete": "Carte incomplète",
+                    "map_state_complete": "Carte complète"
+                }
+            },
+            "map_area": {
+                "name": "Surface de la carte"
+            },
+            "mow_height": {
+                "name": "Hauteur de coupe"
+            },
+            "mow_speed": {
+                "name": "Vitesse de déplacement",
+                "state": {
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Par défaut",
+                    "mow_speed_type_adaptive_high": "Adaptatif",
+                    "mow_speed_type_auto": "Auto"
+                }
+            },
+            "clean_mode": {
+                "name": "Mode de tonte",
+                "state": {
+                    "map_clean_info_mode_global": "Tonte automatique",
+                    "map_clean_info_mode_select_region": "Tonte par zone",
+                    "map_clean_info_mode_draw_region": "Tonte MowBox",
+                    "map_clean_info_mode_move_to_target_point": "Déplacement vers un point cible"
+                }
+            },
+            "pose": {
+                "name": "Position"
+            },
+            "total_mowing_time": {
+                "name": "Temps de tonte total"
+            },
+            "current_session_area": {
+                "name": "Surface de la session en cours"
+            },
+            "current_session_progress": {
+                "name": "Progression de la session en cours"
+            },
+            "current_session_time": {
+                "name": "Durée de la session en cours"
+            },
+            "remaining_blade_time": {
+                "name": "Durée restante des lames"
+            },
+            "remaining_base_station_time": {
+                "name": "Durée restante de la station de base"
+            },
+            "next_scheduled_start": {
+                "name": "Prochain démarrage programmé"
+            },
+            "version_compatibility": {
+                "name": "Compatibilité des versions",
+                "state": {
+                    "compatible": "Compatible",
+                    "upgrade_required": "Mise à niveau requise",
+                    "downgrade_recommended": "Rétrogradation recommandée",
+                    "incompatible": "Incompatible",
+                    "unknown": "Inconnue"
+                }
+            },
+            "main_direction_status": {
+                "name": "État de la direction principale",
+                "state": {
+                    "main_direction_mode_single": "Unique",
+                    "main_direction_mode_multiple": "Double",
+                    "main_direction_mode_auto_rotate": "Rotation automatique",
+                    "unavailable": "Indisponible",
+                    "no_config": "Aucune configuration"
+                }
+            },
+            "mission": {
+                "name": "Mission",
+                "state": {
+                    "mission_idle": "Inactif",
+                    "mission_recharge": "En charge",
+                    "mission_global_clean": "Tonte automatique",
+                    "mission_build_map": "Cartographie",
+                    "mission_build_map_and_clean": "Cartographie et tonte",
+                    "mission_temporary_clean": "Tonte temporaire",
+                    "mission_back_to_starting_point": "Retour au point de départ",
+                    "mission_remote_control_clean": "Tonte télécommandée",
+                    "mission_schedule_global_clean": "Tonte globale programmée",
+                    "mission_schedule_build_map_and_clean": "Cartographie et tonte programmées",
+                    "mission_select_region_clean": "Tonte par zone",
+                    "mission_create_custom_passage": "Création d'un passage personnalisé",
+                    "mission_backup_map": "Sauvegarde de la carte",
+                    "mission_relocate_base_station": "Déplacement de la station de base",
+                    "mission_user_auto_calibration": "Calibration automatique",
+                    "mission_restore_backup_map": "Restauration de la carte",
+                    "mission_schedule_select_region_clean": "Tonte de zone programmée",
+                    "mission_draw_region_clean": "Tonte MowBox",
+                    "mission_edge_trim_clean": "Tonte des bordures",
+                    "mission_update_backup_map": "Mise à jour de la sauvegarde de carte"
+                }
+            },
+            "sub_mission": {
+                "name": "Sous-mission",
+                "state": {
+                    "sub_mission_idle": "Inactif",
+                    "sub_mission_relocation": "Relocalisation",
+                    "sub_mission_return_to_base": "Retour à la base",
+                    "sub_mission_out_of_station": "Sortie de la station",
+                    "sub_mission_remote_control": "Télécommande",
+                    "sub_mission_saving_map": "Enregistrement de la carte",
+                    "sub_mission_setting_blade_height": "Réglage de la hauteur de coupe",
+                    "sub_mission_charging": "En charge",
+                    "sub_mission_remote_control_clean": "Tonte télécommandée",
+                    "sub_mission_defogging": "Désembuage",
+                    "sub_mission_wait_for_daylight": "Attente de la lumière du jour",
+                    "sub_mission_cooling_down_motor": "Refroidissement du moteur",
+                    "sub_mission_wait_for_rain_to_stop": "Attente de la fin de la pluie",
+                    "sub_mission_flexible_station_wait": "Attente à la station de base"
+                }
+            },
+            "mission_state": {
+                "name": "État de la mission",
+                "state": {
+                    "mission_state_idle": "Inactif",
+                    "mission_state_running": "En cours",
+                    "mission_state_pause": "En pause",
+                    "mission_state_abort": "Interrompue",
+                    "mission_state_complete": "Terminée"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Carte"
+            },
+            "clean_map_camera": {
+                "name": "Carte (épurée)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "État de charge"
+            },
+            "map_detected": {
+                "name": "Carte détectée"
+            },
+            "map_buildable": {
+                "name": "Carte constructible"
+            },
+            "map_backing_up": {
+                "name": "Sauvegarde de la carte en cours"
+            },
+            "lift_alarm": {
+                "name": "Alarme de soulèvement"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Alarme de franchissement antivol"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Sélection de zone",
+                "state": {
+                    "no_zones_available": "Aucune zone disponible",
+                    "all_zones": "Toutes les zones",
+                    "edge_cutting": "Tonte des bordures"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Vitesse de déplacement",
+                "state": {
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Par défaut",
+                    "mow_speed_type_adaptive_high": "Adaptatif",
+                    "mow_speed_type_auto": "Vitesse automatique"
+                }
+            },
+            "blade_speed": {
+                "name": "Réglage de la vitesse des lames",
+                "state": {
+                    "blade_disk_speed_type_low": "Vitesse lente",
+                    "blade_disk_speed_type_medium": "Vitesse moyenne",
+                    "blade_disk_speed_type_high": "Vitesse rapide"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Mode de direction principale",
+                "state": {
+                    "main_direction_mode_single": "Unique",
+                    "main_direction_mode_multiple": "Double",
+                    "main_direction_mode_auto_rotate": "Rotation automatique"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Réglage de la hauteur de coupe"
+            },
+            "edge_cutting_distance": {
+                "name": "Distance de coupe des bordures"
+            },
+            "mowing_spacing": {
+                "name": "Réglage de l'espacement de tonte"
+            },
+            "main_direction_single_angle": {
+                "name": "Angle de direction unique"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Intervalle d'angle de rotation automatique"
+            },
+            "multiple_direction_angle1": {
+                "name": "Angle de la première direction"
+            },
+            "multiple_direction_angle2": {
+                "name": "Angle de la seconde direction"
+            }
+        }
+    }
+}

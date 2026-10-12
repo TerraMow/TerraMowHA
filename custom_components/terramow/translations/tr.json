@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Cihaz zaten yapılandırılmış",
+            "reconfigure_successful": "Yeniden yapılandırma başarılı oldu",
+            "unknown": "Beklenmeyen hata"
+        },
+        "error": {
+            "already_configured": "Cihaz zaten yapılandırılmış",
+            "cannot_connect": "Bağlantı kurulamadı",
+            "invalid_auth": "Geçersiz kimlik doğrulama",
+            "unknown": "Beklenmeyen hata"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Ana bilgisayar",
+                    "password": "Parola",
+                    "username": "Kullanıcı adı"
+                }
+            },
+            "reconfigure": {
+                "title": "TerraMow'u yeniden yapılandır",
+                "description": "TerraMow cihazınızın IP adresini / ana bilgisayar adını veya parolasını güncelleyin.",
+                "data": {
+                    "host": "Ana bilgisayar",
+                    "password": "Parola"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Çim Biçme Robotu"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Son olay"
+            },
+            "active_fault": {
+                "name": "Arıza"
+            },
+            "battery": {
+                "name": "Pil"
+            },
+            "battery_temperature_state": {
+                "name": "Pil Sıcaklık Durumu",
+                "state": {
+                    "normal": "Normal",
+                    "overheat": "Aşırı Isınma",
+                    "underheat": "Aşırı Soğuk"
+                }
+            },
+            "map_status": {
+                "name": "Harita Durumu",
+                "state": {
+                    "map_state_empty": "Harita Yok",
+                    "map_state_incomplete": "Harita Tamamlanmamış",
+                    "map_state_complete": "Harita Tamamlandı"
+                }
+            },
+            "map_area": {
+                "name": "Harita Alanı"
+            },
+            "mow_height": {
+                "name": "Biçme Yüksekliği"
+            },
+            "mow_speed": {
+                "name": "Biçme Hızı",
+                "state": {
+                    "mow_speed_type_low": "Düşük",
+                    "mow_speed_type_medium": "Orta",
+                    "mow_speed_type_adaptive_high": "Uyarlanabilir Yüksek",
+                    "mow_speed_type_auto": "Otomatik"
+                }
+            },
+            "clean_mode": {
+                "name": "Çalışma Modu",
+                "state": {
+                    "map_clean_info_mode_global": "Genel Çalışma",
+                    "map_clean_info_mode_select_region": "Bölge Seçerek Çalışma",
+                    "map_clean_info_mode_draw_region": "Bölge Çizerek Çalışma",
+                    "map_clean_info_mode_move_to_target_point": "Hedef Noktaya Git"
+                }
+            },
+            "pose": {
+                "name": "Konum ve Yön"
+            },
+            "total_mowing_time": {
+                "name": "Toplam Biçme Süresi"
+            },
+            "current_session_area": {
+                "name": "Geçerli Oturum Alanı"
+            },
+            "current_session_progress": {
+                "name": "Geçerli Oturum İlerlemesi"
+            },
+            "current_session_time": {
+                "name": "Geçerli Oturum Süresi"
+            },
+            "remaining_blade_time": {
+                "name": "Kalan Bıçak Süresi"
+            },
+            "remaining_base_station_time": {
+                "name": "Kalan Baz İstasyonu Süresi"
+            },
+            "next_scheduled_start": {
+                "name": "Sonraki Planlanan Başlangıç"
+            },
+            "version_compatibility": {
+                "name": "Sürüm Uyumluluğu",
+                "state": {
+                    "compatible": "Uyumlu",
+                    "upgrade_required": "Yükseltme Gerekli",
+                    "downgrade_recommended": "Sürüm Düşürme Önerilir",
+                    "incompatible": "Uyumsuz",
+                    "unknown": "Bilinmiyor"
+                }
+            },
+            "main_direction_status": {
+                "name": "Ana Yön Durumu",
+                "state": {
+                    "main_direction_mode_single": "Tek Yön",
+                    "main_direction_mode_multiple": "Çoklu Yön",
+                    "main_direction_mode_auto_rotate": "Otomatik Dönen Yön",
+                    "unavailable": "Kullanılamıyor",
+                    "no_config": "Yapılandırma Yok"
+                }
+            },
+            "mission": {
+                "name": "Görev",
+                "state": {
+                    "mission_idle": "Boşta",
+                    "mission_recharge": "Şarj Oluyor",
+                    "mission_global_clean": "Genel Biçme",
+                    "mission_build_map": "Harita Oluşturuluyor",
+                    "mission_build_map_and_clean": "Harita Oluşturma ve Biçme",
+                    "mission_temporary_clean": "Geçici Biçme",
+                    "mission_back_to_starting_point": "Başlangıç Noktasına Dönüyor",
+                    "mission_remote_control_clean": "Uzaktan Kumandalı Biçme",
+                    "mission_schedule_global_clean": "Planlanmış Genel Biçme",
+                    "mission_schedule_build_map_and_clean": "Planlanmış Harita Oluşturma ve Biçme",
+                    "mission_select_region_clean": "Bölge Biçme",
+                    "mission_create_custom_passage": "Özel Geçit Oluşturuluyor",
+                    "mission_backup_map": "Harita Yedekleniyor",
+                    "mission_relocate_base_station": "Baz İstasyonu Taşınıyor",
+                    "mission_user_auto_calibration": "Otomatik Kalibrasyon",
+                    "mission_restore_backup_map": "Yedek Harita Geri Yükleniyor",
+                    "mission_schedule_select_region_clean": "Planlanmış Bölge Biçme",
+                    "mission_draw_region_clean": "Çizilen Bölgede Biçme",
+                    "mission_edge_trim_clean": "Kenar Kesimi Biçme",
+                    "mission_update_backup_map": "Yedek Harita Güncelleniyor"
+                }
+            },
+            "sub_mission": {
+                "name": "Alt Görev",
+                "state": {
+                    "sub_mission_idle": "Boşta",
+                    "sub_mission_relocation": "Yeniden Konumlanıyor",
+                    "sub_mission_return_to_base": "İstasyona Dönüyor",
+                    "sub_mission_out_of_station": "Baz İstasyonundan Ayrılıyor",
+                    "sub_mission_remote_control": "Uzaktan Kumanda",
+                    "sub_mission_saving_map": "Harita Kaydediliyor",
+                    "sub_mission_setting_blade_height": "Bıçak Yüksekliği Ayarlanıyor",
+                    "sub_mission_charging": "Şarj Oluyor",
+                    "sub_mission_remote_control_clean": "Uzaktan Kumandalı Biçme",
+                    "sub_mission_defogging": "Buğu Gideriliyor",
+                    "sub_mission_wait_for_daylight": "Gün Işığı Bekleniyor",
+                    "sub_mission_cooling_down_motor": "Motor Soğutuluyor",
+                    "sub_mission_wait_for_rain_to_stop": "Yağmurun Dinmesi Bekleniyor",
+                    "sub_mission_flexible_station_wait": "Baz İstasyonunda Bekliyor"
+                }
+            },
+            "mission_state": {
+                "name": "Görev Durumu",
+                "state": {
+                    "mission_state_idle": "Boşta",
+                    "mission_state_running": "Çalışıyor",
+                    "mission_state_pause": "Duraklatıldı",
+                    "mission_state_abort": "İptal Edildi",
+                    "mission_state_complete": "Tamamlandı"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Harita"
+            },
+            "clean_map_camera": {
+                "name": "Harita (Sade)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Şarj Durumu"
+            },
+            "map_detected": {
+                "name": "Harita Algılandı"
+            },
+            "map_buildable": {
+                "name": "Harita Oluşturulabilir"
+            },
+            "map_backing_up": {
+                "name": "Harita Yedekleniyor"
+            },
+            "lift_alarm": {
+                "name": "Kaldırma alarmı"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Hırsızlık önleme sınır alarmı"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Bölge Seçimi",
+                "state": {
+                    "no_zones_available": "Kullanılabilir bölge yok",
+                    "all_zones": "Tüm bölgeler",
+                    "edge_cutting": "Kenar Kesimi Biçme"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Biçme Hızı Ayarı",
+                "state": {
+                    "mow_speed_type_low": "Düşük Hız",
+                    "mow_speed_type_medium": "Orta Hız",
+                    "mow_speed_type_adaptive_high": "Uyarlanabilir Yüksek Hız",
+                    "mow_speed_type_auto": "Otomatik Hız"
+                }
+            },
+            "blade_speed": {
+                "name": "Bıçak Hızı Ayarı",
+                "state": {
+                    "blade_disk_speed_type_low": "Düşük Hız",
+                    "blade_disk_speed_type_medium": "Orta Hız",
+                    "blade_disk_speed_type_high": "Yüksek Hız"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Ana Yön Modu",
+                "state": {
+                    "main_direction_mode_single": "Tek Yön",
+                    "main_direction_mode_multiple": "Çoklu Yön",
+                    "main_direction_mode_auto_rotate": "Otomatik Dönen Yön"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Biçme Yüksekliği Ayarı"
+            },
+            "edge_cutting_distance": {
+                "name": "Kenar Kesim Mesafesi"
+            },
+            "mowing_spacing": {
+                "name": "Biçme Aralığı Ayarı"
+            },
+            "main_direction_single_angle": {
+                "name": "Tek Yön Açısı"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Otomatik Dönüş Açı Aralığı"
+            },
+            "multiple_direction_angle1": {
+                "name": "Birinci Yön Açısı"
+            },
+            "multiple_direction_angle2": {
+                "name": "İkinci Yön Açısı"
+            }
+        }
+    }
+}

@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Įrenginys jau sukonfigūruotas",
+            "reconfigure_successful": "Pakartotinis konfigūravimas sėkmingas",
+            "unknown": "Netikėta klaida"
+        },
+        "error": {
+            "already_configured": "Įrenginys jau sukonfigūruotas",
+            "cannot_connect": "Nepavyko prisijungti",
+            "invalid_auth": "Neteisingas autentifikavimas",
+            "unknown": "Netikėta klaida"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Serveris",
+                    "password": "Slaptažodis",
+                    "username": "Naudotojo vardas"
+                }
+            },
+            "reconfigure": {
+                "title": "Iš naujo konfigūruoti TerraMow",
+                "description": "Atnaujinkite savo TerraMow IP adresą / serverio vardą arba slaptažodį.",
+                "data": {
+                    "host": "Serveris",
+                    "password": "Slaptažodis"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Žoliapjovė"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Paskutinis įvykis"
+            },
+            "active_fault": {
+                "name": "Gedimas"
+            },
+            "battery": {
+                "name": "Baterija"
+            },
+            "battery_temperature_state": {
+                "name": "Baterijos temperatūros būsena",
+                "state": {
+                    "normal": "Normali",
+                    "overheat": "Perkaitusi",
+                    "underheat": "Per šalta"
+                }
+            },
+            "map_status": {
+                "name": "Žemėlapio būsena",
+                "state": {
+                    "map_state_empty": "Nėra žemėlapio",
+                    "map_state_incomplete": "Žemėlapis nebaigtas",
+                    "map_state_complete": "Žemėlapis užbaigtas"
+                }
+            },
+            "map_area": {
+                "name": "Žemėlapio plotas"
+            },
+            "mow_height": {
+                "name": "Pjovimo aukštis"
+            },
+            "mow_speed": {
+                "name": "Pjovimo greitis",
+                "state": {
+                    "mow_speed_type_low": "Lygiai",
+                    "mow_speed_type_medium": "Standartiškai",
+                    "mow_speed_type_adaptive_high": "Prisitaikantis",
+                    "mow_speed_type_auto": "Automatinis"
+                }
+            },
+            "clean_mode": {
+                "name": "Pjovimo režimas",
+                "state": {
+                    "map_clean_info_mode_global": "Automatinis pjovimas",
+                    "map_clean_info_mode_select_region": "Zonų pjovimas",
+                    "map_clean_info_mode_draw_region": "MowBox pjovimas",
+                    "map_clean_info_mode_move_to_target_point": "Judėjimas į tikslo tašką"
+                }
+            },
+            "pose": {
+                "name": "Padėtis"
+            },
+            "total_mowing_time": {
+                "name": "Bendras pjovimo laikas"
+            },
+            "current_session_area": {
+                "name": "Dabartinės sesijos plotas"
+            },
+            "current_session_progress": {
+                "name": "Dabartinės sesijos eiga"
+            },
+            "current_session_time": {
+                "name": "Dabartinės sesijos laikas"
+            },
+            "remaining_blade_time": {
+                "name": "Likęs peilių laikas"
+            },
+            "remaining_base_station_time": {
+                "name": "Likęs bazinės stoties laikas"
+            },
+            "next_scheduled_start": {
+                "name": "Kitas suplanuotas paleidimas"
+            },
+            "version_compatibility": {
+                "name": "Versijų suderinamumas",
+                "state": {
+                    "compatible": "Suderinama",
+                    "upgrade_required": "Reikalingas atnaujinimas",
+                    "downgrade_recommended": "Rekomenduojama grąžinti senesnę versiją",
+                    "incompatible": "Nesuderinama",
+                    "unknown": "Nežinoma"
+                }
+            },
+            "main_direction_status": {
+                "name": "Pagrindinės krypties būsena",
+                "state": {
+                    "main_direction_mode_single": "Vieną kartą",
+                    "main_direction_mode_multiple": "dvigubas",
+                    "main_direction_mode_auto_rotate": "Auto pasisukimas",
+                    "unavailable": "Nepasiekiama",
+                    "no_config": "Nėra konfigūracijos"
+                }
+            },
+            "mission": {
+                "name": "Misija",
+                "state": {
+                    "mission_idle": "Laukiama",
+                    "mission_recharge": "Įkraunama",
+                    "mission_global_clean": "Automatinis pjovimas",
+                    "mission_build_map": "Žemėlapio sudarymas",
+                    "mission_build_map_and_clean": "Žemėlapio kūrimas ir pjovimas",
+                    "mission_temporary_clean": "Laikinas pjovimas",
+                    "mission_back_to_starting_point": "Grįžtama į pradžios tašką",
+                    "mission_remote_control_clean": "Pjovimas nuotoliniu valdymu",
+                    "mission_schedule_global_clean": "Suplanuotas visuotinis pjovimas",
+                    "mission_schedule_build_map_and_clean": "Suplanuotas žemėlapio kūrimas ir pjovimas",
+                    "mission_select_region_clean": "Zonų pjovimas",
+                    "mission_create_custom_passage": "Kuriamas pasirinktinis pravažiavimas",
+                    "mission_backup_map": "Kuriama žemėlapio atsarginė kopija",
+                    "mission_relocate_base_station": "Perkeliama bazinė stotis",
+                    "mission_user_auto_calibration": "Automatinis kalibravimas",
+                    "mission_restore_backup_map": "Atkuriama žemėlapio atsarginė kopija",
+                    "mission_schedule_select_region_clean": "Suplanuotas zonų pjovimas",
+                    "mission_draw_region_clean": "MowBox pjovimas",
+                    "mission_edge_trim_clean": "Kraštų pjovimas",
+                    "mission_update_backup_map": "Atnaujinama žemėlapio atsarginė kopija"
+                }
+            },
+            "sub_mission": {
+                "name": "Papildoma misija",
+                "state": {
+                    "sub_mission_idle": "Laukiama",
+                    "sub_mission_relocation": "Nustatoma vieta iš naujo",
+                    "sub_mission_return_to_base": "Grįžtama į bazę",
+                    "sub_mission_out_of_station": "Išvažiuojama iš bazinės stoties",
+                    "sub_mission_remote_control": "Nuotolinis valdymas",
+                    "sub_mission_saving_map": "Išsaugomas žemėlapis",
+                    "sub_mission_setting_blade_height": "Reguliuojamas peilių aukštis",
+                    "sub_mission_charging": "Kraunama",
+                    "sub_mission_remote_control_clean": "Pjovimas nuotoliniu valdymu",
+                    "sub_mission_defogging": "Šalinamas rasojimas",
+                    "sub_mission_wait_for_daylight": "Laukiama dienos šviesos",
+                    "sub_mission_cooling_down_motor": "Aušinamas variklis",
+                    "sub_mission_wait_for_rain_to_stop": "Laukiama, kol nustos lyti",
+                    "sub_mission_flexible_station_wait": "Laukiama bazinėje stotyje"
+                }
+            },
+            "mission_state": {
+                "name": "Misijos būsena",
+                "state": {
+                    "mission_state_idle": "Laukiama",
+                    "mission_state_running": "Vykdoma",
+                    "mission_state_pause": "Pristabdyta",
+                    "mission_state_abort": "Nutraukta",
+                    "mission_state_complete": "Užbaigta"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Žemėlapis"
+            },
+            "clean_map_camera": {
+                "name": "Žemėlapis (švarus)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Krovimo būsena"
+            },
+            "map_detected": {
+                "name": "Aptiktas žemėlapis"
+            },
+            "map_buildable": {
+                "name": "Žemėlapį galima kurti"
+            },
+            "map_backing_up": {
+                "name": "Kuriama žemėlapio atsarginė kopija"
+            },
+            "lift_alarm": {
+                "name": "Pakėlimo signalas"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Apsaugos nuo vagystės ribos signalas"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Zonos pasirinkimas",
+                "state": {
+                    "no_zones_available": "Nėra prieinamų zonų",
+                    "all_zones": "Visos zonos",
+                    "edge_cutting": "Kraštų pjovimas"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Pjovimo greitis",
+                "state": {
+                    "mow_speed_type_low": "Lygiai",
+                    "mow_speed_type_medium": "Standartiškai",
+                    "mow_speed_type_adaptive_high": "Prisitaikantis",
+                    "mow_speed_type_auto": "Automatinis greitis"
+                }
+            },
+            "blade_speed": {
+                "name": "Peilių greičio nustatymas",
+                "state": {
+                    "blade_disk_speed_type_low": "Mažas greitis",
+                    "blade_disk_speed_type_medium": "Vidutinis greitis",
+                    "blade_disk_speed_type_high": "Didelis greitis"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Pagrindinės krypties režimas",
+                "state": {
+                    "main_direction_mode_single": "Vieną kartą",
+                    "main_direction_mode_multiple": "dvigubas",
+                    "main_direction_mode_auto_rotate": "Auto pasisukimas"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Pjovimo aukščio nustatymas"
+            },
+            "edge_cutting_distance": {
+                "name": "Kraštų pjovimo atstumas"
+            },
+            "mowing_spacing": {
+                "name": "Pjovimo takelių tarpo nustatymas"
+            },
+            "main_direction_single_angle": {
+                "name": "Vienos krypties kampas"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Automatinio krypties keitimo kampo intervalas"
+            },
+            "multiple_direction_angle1": {
+                "name": "Pirmosios krypties kampas"
+            },
+            "multiple_direction_angle2": {
+                "name": "Antrosios krypties kampas"
+            }
+        }
+    }
+}

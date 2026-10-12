@@ -32,7 +32,7 @@
     "entity": {
         "lawn_mower": {
             "lawn_mower": {
-                "name": "Mähroboter"
+                "name": "Rasenmäher"
             }
         },
         "sensor": {
@@ -68,20 +68,20 @@
                 "name": "Schnitthöhe"
             },
             "mow_speed": {
-                "name": "Mähgeschwindigkeit",
+                "name": "Bewegungsgeschwindigkeit",
                 "state": {
                     "mow_speed_type_low": "Fein",
                     "mow_speed_type_medium": "Standard",
-                    "mow_speed_type_adaptive_high": "Adaptiv / Schnell",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
                     "mow_speed_type_auto": "Automatik"
                 }
             },
             "clean_mode": {
-                "name": "Betriebsmodus",
+                "name": "Mähmodus",
                 "state": {
-                    "map_clean_info_mode_global": "Auto",
-                    "map_clean_info_mode_select_region": "Zone",
-                    "map_clean_info_mode_draw_region": "Box",
+                    "map_clean_info_mode_global": "Automähen",
+                    "map_clean_info_mode_select_region": "Zonen–Mähen",
+                    "map_clean_info_mode_draw_region": "Box–Mähen",
                     "map_clean_info_mode_move_to_target_point": "Zum Zielpunkt bewegen"
                 }
             },
@@ -134,23 +134,23 @@
                 "state": {
                     "mission_idle": "Bereit",
                     "mission_recharge": "Lädt",
-                    "mission_global_clean": "Komplettmähen",
-                    "mission_build_map": "Karte erstellen",
+                    "mission_global_clean": "Automähen",
+                    "mission_build_map": "Kartierung",
                     "mission_build_map_and_clean": "Karte erstellen und mähen",
                     "mission_temporary_clean": "Temporäres Mähen",
-                    "mission_back_to_starting_point": "Zurück zum Startpunkt",
+                    "mission_back_to_starting_point": "Rückkehr zum Startpunkt",
                     "mission_remote_control_clean": "Mähen per Fernsteuerung",
                     "mission_schedule_global_clean": "Geplantes Komplettmähen",
                     "mission_schedule_build_map_and_clean": "Geplantes Karte erstellen und Mähen",
-                    "mission_select_region_clean": "Bereichsmähen",
+                    "mission_select_region_clean": "Zonen–Mähen",
                     "mission_create_custom_passage": "Benutzerdefinierte Passage erstellen",
                     "mission_backup_map": "Karte sichern",
                     "mission_relocate_base_station": "Basisstation neu positionieren",
                     "mission_user_auto_calibration": "Automatische Kalibrierung",
                     "mission_restore_backup_map": "Karten-Sicherung wiederherstellen",
-                    "mission_schedule_select_region_clean": "Geplantes Bereichsmähen",
-                    "mission_draw_region_clean": "Mähen gezeichneter Zone",
-                    "mission_edge_trim_clean": "Kantentrimmen",
+                    "mission_schedule_select_region_clean": "Geplantes Zonenmähen",
+                    "mission_draw_region_clean": "Box–Mähen",
+                    "mission_edge_trim_clean": "Rand–Mähen",
                     "mission_update_backup_map": "Karten-Sicherung aktualisieren"
                 }
             },
@@ -206,7 +206,7 @@
                 "name": "Karte wird gesichert"
             },
             "lift_alarm": {
-                "name": "Anhebealarm"
+                "name": "Roboter hebt Alarm"
             },
             "anti_theft_boundary_alarm": {
                 "name": "Diebstahlalarm bei Grenzübertritt"
@@ -218,15 +218,15 @@
                 "state": {
                     "no_zones_available": "Keine Zonen verfügbar",
                     "all_zones": "Alle Zonen",
-                    "edge_cutting": "Kantenmähen"
+                    "edge_cutting": "Rand–Mähen"
                 }
             },
             "mow_speed_setting": {
-                "name": "Mähgeschwindigkeit",
+                "name": "Bewegungsgeschwindigkeit",
                 "state": {
                     "mow_speed_type_low": "Fein",
                     "mow_speed_type_medium": "Standard",
-                    "mow_speed_type_adaptive_high": "Adaptiv / Schnell",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
                     "mow_speed_type_auto": "Automatik"
                 }
             },

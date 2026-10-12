@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Zařízení je již nakonfigurováno",
+            "reconfigure_successful": "Rekonfigurace proběhla úspěšně",
+            "unknown": "Neočekávaná chyba"
+        },
+        "error": {
+            "already_configured": "Zařízení je již nakonfigurováno",
+            "cannot_connect": "Připojení se nezdařilo",
+            "invalid_auth": "Neplatné ověření",
+            "unknown": "Neočekávaná chyba"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Hostitel",
+                    "password": "Heslo",
+                    "username": "Uživatelské jméno"
+                }
+            },
+            "reconfigure": {
+                "title": "Překonfigurovat TerraMow",
+                "description": "Aktualizujte IP adresu/název hostitele nebo heslo vašeho TerraMow.",
+                "data": {
+                    "host": "Hostitel",
+                    "password": "Heslo"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Sekačka"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Poslední událost"
+            },
+            "active_fault": {
+                "name": "Porucha"
+            },
+            "battery": {
+                "name": "Baterie"
+            },
+            "battery_temperature_state": {
+                "name": "Stav teploty baterie",
+                "state": {
+                    "normal": "Normální",
+                    "overheat": "Přehřátá",
+                    "underheat": "Příliš studená"
+                }
+            },
+            "map_status": {
+                "name": "Stav mapy",
+                "state": {
+                    "map_state_empty": "Žádná mapa",
+                    "map_state_incomplete": "Mapa neúplná",
+                    "map_state_complete": "Mapa kompletní"
+                }
+            },
+            "map_area": {
+                "name": "Plocha mapy"
+            },
+            "mow_height": {
+                "name": "Výška sečení"
+            },
+            "mow_speed": {
+                "name": "Rychlost pohybu",
+                "state": {
+                    "mow_speed_type_low": "Precizní",
+                    "mow_speed_type_medium": "Výchozí",
+                    "mow_speed_type_adaptive_high": "Adaptivní",
+                    "mow_speed_type_auto": "Automatická"
+                }
+            },
+            "clean_mode": {
+                "name": "Režim sekání",
+                "state": {
+                    "map_clean_info_mode_global": "Automatické sečení",
+                    "map_clean_info_mode_select_region": "Sekání zóny",
+                    "map_clean_info_mode_draw_region": "MowBox sečení",
+                    "map_clean_info_mode_move_to_target_point": "Přesun na cílový bod"
+                }
+            },
+            "pose": {
+                "name": "Poloha"
+            },
+            "total_mowing_time": {
+                "name": "Celková doba sečení"
+            },
+            "current_session_area": {
+                "name": "Plocha aktuální relace"
+            },
+            "current_session_progress": {
+                "name": "Průběh aktuální relace"
+            },
+            "current_session_time": {
+                "name": "Doba trvání aktuální relace"
+            },
+            "remaining_blade_time": {
+                "name": "Zbývající doba nožů"
+            },
+            "remaining_base_station_time": {
+                "name": "Zbývající doba nabíjecí stanice"
+            },
+            "next_scheduled_start": {
+                "name": "Další plánovaný start"
+            },
+            "version_compatibility": {
+                "name": "Kompatibilita verzí",
+                "state": {
+                    "compatible": "Kompatibilní",
+                    "upgrade_required": "Vyžadována aktualizace",
+                    "downgrade_recommended": "Doporučen downgrade",
+                    "incompatible": "Nekompatibilní",
+                    "unknown": "Neznámý"
+                }
+            },
+            "main_direction_status": {
+                "name": "Stav hlavního směru",
+                "state": {
+                    "main_direction_mode_single": "Jednoduchý",
+                    "main_direction_mode_multiple": "Dvojitý",
+                    "main_direction_mode_auto_rotate": "Automatické otáčení",
+                    "unavailable": "Nedostupný",
+                    "no_config": "Žádná konfigurace"
+                }
+            },
+            "mission": {
+                "name": "Mise",
+                "state": {
+                    "mission_idle": "Nečinná",
+                    "mission_recharge": "Nabíjení",
+                    "mission_global_clean": "Automatické sečení",
+                    "mission_build_map": "Mapování",
+                    "mission_build_map_and_clean": "Mapování a sečení",
+                    "mission_temporary_clean": "Dočasné sečení",
+                    "mission_back_to_starting_point": "Návrat na výchozí bod",
+                    "mission_remote_control_clean": "Dálkově ovládané sečení",
+                    "mission_schedule_global_clean": "Plánované kompletní sečení",
+                    "mission_schedule_build_map_and_clean": "Plánované mapování a sečení",
+                    "mission_select_region_clean": "Sekání zóny",
+                    "mission_create_custom_passage": "Vytváření vlastního průchodu",
+                    "mission_backup_map": "Zálohování mapy",
+                    "mission_relocate_base_station": "Přemístění nabíjecí stanice",
+                    "mission_user_auto_calibration": "Automatická kalibrace",
+                    "mission_restore_backup_map": "Obnovování mapy",
+                    "mission_schedule_select_region_clean": "Plánované sečení zón",
+                    "mission_draw_region_clean": "MowBox sečení",
+                    "mission_edge_trim_clean": "Sekání okrajů",
+                    "mission_update_backup_map": "Aktualizace zálohy mapy"
+                }
+            },
+            "sub_mission": {
+                "name": "Dílčí mise",
+                "state": {
+                    "sub_mission_idle": "Nečinná",
+                    "sub_mission_relocation": "Relokace",
+                    "sub_mission_return_to_base": "Návrat na základnu",
+                    "sub_mission_out_of_station": "Opouštění stanice",
+                    "sub_mission_remote_control": "Dálkové ovládání",
+                    "sub_mission_saving_map": "Ukládání mapy",
+                    "sub_mission_setting_blade_height": "Nastavování výšky nožů",
+                    "sub_mission_charging": "Nabíjení",
+                    "sub_mission_remote_control_clean": "Dálkově ovládané sečení",
+                    "sub_mission_defogging": "Odmlžování",
+                    "sub_mission_wait_for_daylight": "Čekání na denní světlo",
+                    "sub_mission_cooling_down_motor": "Chlazení motoru",
+                    "sub_mission_wait_for_rain_to_stop": "Čekání na konec deště",
+                    "sub_mission_flexible_station_wait": "Čekání na nabíjecí stanici"
+                }
+            },
+            "mission_state": {
+                "name": "Stav mise",
+                "state": {
+                    "mission_state_idle": "Nečinná",
+                    "mission_state_running": "Probíhá",
+                    "mission_state_pause": "Pozastavena",
+                    "mission_state_abort": "Přerušena",
+                    "mission_state_complete": "Dokončena"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Mapa"
+            },
+            "clean_map_camera": {
+                "name": "Mapa (čistá)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Stav nabíjení"
+            },
+            "map_detected": {
+                "name": "Detekována mapa"
+            },
+            "map_buildable": {
+                "name": "Mapu lze vytvořit"
+            },
+            "map_backing_up": {
+                "name": "Probíhá zálohování mapy"
+            },
+            "lift_alarm": {
+                "name": "Alarm zvednutí"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Alarm hranice proti krádeži"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Výběr zóny",
+                "state": {
+                    "no_zones_available": "Žádné zóny nejsou k dispozici",
+                    "all_zones": "Všechny zóny",
+                    "edge_cutting": "Sekání okrajů"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Rychlost pohybu",
+                "state": {
+                    "mow_speed_type_low": "Precizní",
+                    "mow_speed_type_medium": "Výchozí",
+                    "mow_speed_type_adaptive_high": "Adaptivní",
+                    "mow_speed_type_auto": "Automatická rychlost"
+                }
+            },
+            "blade_speed": {
+                "name": "Nastavení rychlosti nožů",
+                "state": {
+                    "blade_disk_speed_type_low": "Nízká rychlost",
+                    "blade_disk_speed_type_medium": "Střední rychlost",
+                    "blade_disk_speed_type_high": "Vysoká rychlost"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Režim hlavního směru",
+                "state": {
+                    "main_direction_mode_single": "Jednoduchý",
+                    "main_direction_mode_multiple": "Dvojitý",
+                    "main_direction_mode_auto_rotate": "Automatické otáčení"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Nastavení výšky sečení"
+            },
+            "edge_cutting_distance": {
+                "name": "Vzdálenost sečení okrajů"
+            },
+            "mowing_spacing": {
+                "name": "Nastavení rozestupu sečení"
+            },
+            "main_direction_single_angle": {
+                "name": "Úhel jednoho směru"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Úhlový interval automatického otáčení"
+            },
+            "multiple_direction_angle1": {
+                "name": "Úhel prvního směru"
+            },
+            "multiple_direction_angle2": {
+                "name": "Úhel druhého směru"
+            }
+        }
+    }
+}

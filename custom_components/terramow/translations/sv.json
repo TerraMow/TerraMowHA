@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Enheten är redan konfigurerad",
+            "reconfigure_successful": "Omkonfigurationen lyckades",
+            "unknown": "Oväntat fel"
+        },
+        "error": {
+            "already_configured": "Enheten är redan konfigurerad",
+            "cannot_connect": "Anslutningen misslyckades",
+            "invalid_auth": "Ogiltig autentisering",
+            "unknown": "Oväntat fel"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Värd",
+                    "password": "Lösenord",
+                    "username": "Användarnamn"
+                }
+            },
+            "reconfigure": {
+                "title": "Konfigurera om TerraMow",
+                "description": "Uppdatera IP-adressen/värdnamnet eller lösenordet för din TerraMow.",
+                "data": {
+                    "host": "Värd",
+                    "password": "Lösenord"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Gräsklippare"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Senaste händelse"
+            },
+            "active_fault": {
+                "name": "Fel"
+            },
+            "battery": {
+                "name": "Batteri"
+            },
+            "battery_temperature_state": {
+                "name": "Batteritemperaturstatus",
+                "state": {
+                    "normal": "Normal",
+                    "overheat": "Överhettat",
+                    "underheat": "För kallt"
+                }
+            },
+            "map_status": {
+                "name": "Kartstatus",
+                "state": {
+                    "map_state_empty": "Ingen karta",
+                    "map_state_incomplete": "Kartan ofullständig",
+                    "map_state_complete": "Kartan komplett"
+                }
+            },
+            "map_area": {
+                "name": "Kartyta"
+            },
+            "mow_height": {
+                "name": "Klipphöjd"
+            },
+            "mow_speed": {
+                "name": "Förflyttningshastighet",
+                "state": {
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
+                    "mow_speed_type_auto": "Auto"
+                }
+            },
+            "clean_mode": {
+                "name": "Klippläge",
+                "state": {
+                    "map_clean_info_mode_global": "Automatisk klippning",
+                    "map_clean_info_mode_select_region": "Zonklippning",
+                    "map_clean_info_mode_draw_region": "Boxklippning",
+                    "map_clean_info_mode_move_to_target_point": "Kör till målpunkt"
+                }
+            },
+            "pose": {
+                "name": "Position"
+            },
+            "total_mowing_time": {
+                "name": "Total klipptid"
+            },
+            "current_session_area": {
+                "name": "Yta för aktuell session"
+            },
+            "current_session_progress": {
+                "name": "Förlopp för aktuell session"
+            },
+            "current_session_time": {
+                "name": "Varaktighet för aktuell session"
+            },
+            "remaining_blade_time": {
+                "name": "Återstående knivtid"
+            },
+            "remaining_base_station_time": {
+                "name": "Återstående tid för basstation"
+            },
+            "next_scheduled_start": {
+                "name": "Nästa schemalagda start"
+            },
+            "version_compatibility": {
+                "name": "Versionskompatibilitet",
+                "state": {
+                    "compatible": "Kompatibel",
+                    "upgrade_required": "Uppgradering krävs",
+                    "downgrade_recommended": "Nedgradering rekommenderas",
+                    "incompatible": "Inkompatibel",
+                    "unknown": "Okänd"
+                }
+            },
+            "main_direction_status": {
+                "name": "Status för huvudriktning",
+                "state": {
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dubbel",
+                    "main_direction_mode_auto_rotate": "Självroterande",
+                    "unavailable": "Ej tillgänglig",
+                    "no_config": "Ingen konfiguration"
+                }
+            },
+            "mission": {
+                "name": "Uppdrag",
+                "state": {
+                    "mission_idle": "Inaktiv",
+                    "mission_recharge": "Laddar",
+                    "mission_global_clean": "Automatisk klippning",
+                    "mission_build_map": "Kartläggning",
+                    "mission_build_map_and_clean": "Kartläggning och klippning",
+                    "mission_temporary_clean": "Tillfällig klippning",
+                    "mission_back_to_starting_point": "Återgår till startpunkt",
+                    "mission_remote_control_clean": "Fjärrstyrd klippning",
+                    "mission_schedule_global_clean": "Schemalagd fullständig klippning",
+                    "mission_schedule_build_map_and_clean": "Schemalagd kartläggning och klippning",
+                    "mission_select_region_clean": "Zonklippning",
+                    "mission_create_custom_passage": "Skapar anpassad passage",
+                    "mission_backup_map": "Säkerhetskopierar karta",
+                    "mission_relocate_base_station": "Flyttar basstation",
+                    "mission_user_auto_calibration": "Automatisk kalibrering",
+                    "mission_restore_backup_map": "Återställer karta",
+                    "mission_schedule_select_region_clean": "Schemalagd zonklippning",
+                    "mission_draw_region_clean": "Boxklippning",
+                    "mission_edge_trim_clean": "Kantklippning",
+                    "mission_update_backup_map": "Uppdaterar kartsäkerhetskopia"
+                }
+            },
+            "sub_mission": {
+                "name": "Deluppdrag",
+                "state": {
+                    "sub_mission_idle": "Inaktiv",
+                    "sub_mission_relocation": "Omlokaliserar",
+                    "sub_mission_return_to_base": "Återgår till basen",
+                    "sub_mission_out_of_station": "Lämnar basstationen",
+                    "sub_mission_remote_control": "Fjärrstyrning",
+                    "sub_mission_saving_map": "Sparar karta",
+                    "sub_mission_setting_blade_height": "Justerar knivhöjd",
+                    "sub_mission_charging": "Laddar",
+                    "sub_mission_remote_control_clean": "Fjärrstyrd klippning",
+                    "sub_mission_defogging": "Avfrostar",
+                    "sub_mission_wait_for_daylight": "Väntar på dagsljus",
+                    "sub_mission_cooling_down_motor": "Kyler ner motorn",
+                    "sub_mission_wait_for_rain_to_stop": "Väntar på att regnet ska sluta",
+                    "sub_mission_flexible_station_wait": "Väntar vid basstationen"
+                }
+            },
+            "mission_state": {
+                "name": "Uppdragsstatus",
+                "state": {
+                    "mission_state_idle": "Inaktiv",
+                    "mission_state_running": "Pågår",
+                    "mission_state_pause": "Pausad",
+                    "mission_state_abort": "Avbruten",
+                    "mission_state_complete": "Slutförd"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Karta"
+            },
+            "clean_map_camera": {
+                "name": "Karta (ren)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Laddningsstatus"
+            },
+            "map_detected": {
+                "name": "Karta upptäckt"
+            },
+            "map_buildable": {
+                "name": "Karta kan skapas"
+            },
+            "map_backing_up": {
+                "name": "Kartsäkerhetskopiering pågår"
+            },
+            "lift_alarm": {
+                "name": "Lyftlarm"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Gränslarm mot stöld"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Zonval",
+                "state": {
+                    "no_zones_available": "Inga zoner tillgängliga",
+                    "all_zones": "Alla zoner",
+                    "edge_cutting": "Kantklippning"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Förflyttningshastighet",
+                "state": {
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
+                    "mow_speed_type_auto": "Automatisk hastighet"
+                }
+            },
+            "blade_speed": {
+                "name": "Inställning av knivhastighet",
+                "state": {
+                    "blade_disk_speed_type_low": "Låg hastighet",
+                    "blade_disk_speed_type_medium": "Medelhastighet",
+                    "blade_disk_speed_type_high": "Hög hastighet"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Huvudriktningsläge",
+                "state": {
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dubbel",
+                    "main_direction_mode_auto_rotate": "Självroterande"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Inställning av klipphöjd"
+            },
+            "edge_cutting_distance": {
+                "name": "Kantklippningsavstånd"
+            },
+            "mowing_spacing": {
+                "name": "Inställning av klippavstånd"
+            },
+            "main_direction_single_angle": {
+                "name": "Vinkel för en riktning"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Vinkelintervall för automatisk rotation"
+            },
+            "multiple_direction_angle1": {
+                "name": "Vinkel för första riktningen"
+            },
+            "multiple_direction_angle2": {
+                "name": "Vinkel för andra riktningen"
+            }
+        }
+    }
+}

@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "裝置已設定",
+            "reconfigure_successful": "重新設定成功",
+            "unknown": "未知錯誤"
+        },
+        "error": {
+            "already_configured": "裝置已設定",
+            "cannot_connect": "連線失敗",
+            "invalid_auth": "驗證失敗",
+            "unknown": "未知錯誤"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "主機",
+                    "password": "密碼",
+                    "username": "使用者名稱"
+                }
+            },
+            "reconfigure": {
+                "title": "重新設定 TerraMow",
+                "description": "更新 TerraMow 的 IP 位址/主機名稱或密碼。",
+                "data": {
+                    "host": "主機",
+                    "password": "密碼"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "割草機"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "最新事件"
+            },
+            "active_fault": {
+                "name": "目前故障"
+            },
+            "battery": {
+                "name": "電池"
+            },
+            "battery_temperature_state": {
+                "name": "電池溫度狀態",
+                "state": {
+                    "normal": "正常",
+                    "overheat": "過熱",
+                    "underheat": "過冷"
+                }
+            },
+            "map_status": {
+                "name": "地圖狀態",
+                "state": {
+                    "map_state_empty": "無地圖",
+                    "map_state_incomplete": "地圖未完成",
+                    "map_state_complete": "地圖已完成"
+                }
+            },
+            "map_area": {
+                "name": "地圖面積"
+            },
+            "mow_height": {
+                "name": "割草高度"
+            },
+            "mow_speed": {
+                "name": "割草速度",
+                "state": {
+                    "mow_speed_type_low": "低速",
+                    "mow_speed_type_medium": "中速",
+                    "mow_speed_type_adaptive_high": "自適應高速",
+                    "mow_speed_type_auto": "自動模式"
+                }
+            },
+            "clean_mode": {
+                "name": "作業模式",
+                "state": {
+                    "map_clean_info_mode_global": "全域作業",
+                    "map_clean_info_mode_select_region": "選區作業",
+                    "map_clean_info_mode_draw_region": "劃區作業",
+                    "map_clean_info_mode_move_to_target_point": "移動至目標點"
+                }
+            },
+            "pose": {
+                "name": "姿態"
+            },
+            "total_mowing_time": {
+                "name": "總割草時間"
+            },
+            "current_session_area": {
+                "name": "目前工作階段面積"
+            },
+            "current_session_progress": {
+                "name": "目前工作階段進度"
+            },
+            "current_session_time": {
+                "name": "目前工作階段時間"
+            },
+            "remaining_blade_time": {
+                "name": "刀盤剩餘時間"
+            },
+            "remaining_base_station_time": {
+                "name": "基地台剩餘時間"
+            },
+            "next_scheduled_start": {
+                "name": "下次排程開始"
+            },
+            "version_compatibility": {
+                "name": "版本相容性",
+                "state": {
+                    "compatible": "相容",
+                    "upgrade_required": "需要升級",
+                    "downgrade_recommended": "建議降級",
+                    "incompatible": "不相容",
+                    "unknown": "未知"
+                }
+            },
+            "main_direction_status": {
+                "name": "主方向狀態",
+                "state": {
+                    "main_direction_mode_single": "單一主方向",
+                    "main_direction_mode_multiple": "多主方向",
+                    "main_direction_mode_auto_rotate": "自動旋轉主方向",
+                    "unavailable": "無法使用",
+                    "no_config": "無設定"
+                }
+            },
+            "mission": {
+                "name": "任務",
+                "state": {
+                    "mission_idle": "閒置",
+                    "mission_recharge": "回充",
+                    "mission_global_clean": "全域割草",
+                    "mission_build_map": "建圖",
+                    "mission_build_map_and_clean": "建圖並割草",
+                    "mission_temporary_clean": "臨時割草",
+                    "mission_back_to_starting_point": "返回起點",
+                    "mission_remote_control_clean": "遙控割草",
+                    "mission_schedule_global_clean": "排程全域割草",
+                    "mission_schedule_build_map_and_clean": "排程建圖並割草",
+                    "mission_select_region_clean": "選區割草",
+                    "mission_create_custom_passage": "建立自訂通道",
+                    "mission_backup_map": "備份地圖",
+                    "mission_relocate_base_station": "重新定位基地台",
+                    "mission_user_auto_calibration": "自動校正",
+                    "mission_restore_backup_map": "還原備份地圖",
+                    "mission_schedule_select_region_clean": "排程選區割草",
+                    "mission_draw_region_clean": "劃區割草",
+                    "mission_edge_trim_clean": "沿邊修剪",
+                    "mission_update_backup_map": "更新備份地圖"
+                }
+            },
+            "sub_mission": {
+                "name": "子任務",
+                "state": {
+                    "sub_mission_idle": "閒置",
+                    "sub_mission_relocation": "重新定位中",
+                    "sub_mission_return_to_base": "返回基地台",
+                    "sub_mission_out_of_station": "離開基地台",
+                    "sub_mission_remote_control": "遙控",
+                    "sub_mission_saving_map": "儲存地圖",
+                    "sub_mission_setting_blade_height": "調整刀盤高度",
+                    "sub_mission_charging": "充電中",
+                    "sub_mission_remote_control_clean": "遙控割草",
+                    "sub_mission_defogging": "除霧",
+                    "sub_mission_wait_for_daylight": "等待天亮",
+                    "sub_mission_cooling_down_motor": "馬達降溫中",
+                    "sub_mission_wait_for_rain_to_stop": "等待雨停",
+                    "sub_mission_flexible_station_wait": "在基地台等待"
+                }
+            },
+            "mission_state": {
+                "name": "任務狀態",
+                "state": {
+                    "mission_state_idle": "閒置",
+                    "mission_state_running": "執行中",
+                    "mission_state_pause": "已暫停",
+                    "mission_state_abort": "已中止",
+                    "mission_state_complete": "已完成"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "地圖"
+            },
+            "clean_map_camera": {
+                "name": "地圖（純淨）"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "充電狀態"
+            },
+            "map_detected": {
+                "name": "已偵測到地圖"
+            },
+            "map_buildable": {
+                "name": "可建圖"
+            },
+            "map_backing_up": {
+                "name": "正在備份地圖"
+            },
+            "lift_alarm": {
+                "name": "抬起警報"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "防盜越界警報"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "分區選擇",
+                "state": {
+                    "no_zones_available": "沒有可用分區",
+                    "all_zones": "全部分區",
+                    "edge_cutting": "沿邊修剪"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "割草速度設定",
+                "state": {
+                    "mow_speed_type_low": "低速",
+                    "mow_speed_type_medium": "中速",
+                    "mow_speed_type_adaptive_high": "自適應高速",
+                    "mow_speed_type_auto": "自動模式"
+                }
+            },
+            "blade_speed": {
+                "name": "刀盤轉速設定",
+                "state": {
+                    "blade_disk_speed_type_low": "低速",
+                    "blade_disk_speed_type_medium": "中速",
+                    "blade_disk_speed_type_high": "高速"
+                }
+            },
+            "main_direction_mode": {
+                "name": "主方向模式",
+                "state": {
+                    "main_direction_mode_single": "單一主方向",
+                    "main_direction_mode_multiple": "多主方向",
+                    "main_direction_mode_auto_rotate": "自動旋轉主方向"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "割草高度設定"
+            },
+            "edge_cutting_distance": {
+                "name": "邊緣割草距離"
+            },
+            "mowing_spacing": {
+                "name": "割草間距設定"
+            },
+            "main_direction_single_angle": {
+                "name": "單一主方向角度"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "自動旋轉角度間隔"
+            },
+            "multiple_direction_angle1": {
+                "name": "第一主方向角度"
+            },
+            "multiple_direction_angle2": {
+                "name": "第二主方向角度"
+            }
+        }
+    }
+}

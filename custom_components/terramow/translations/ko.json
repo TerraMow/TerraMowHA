@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "기기가 이미 설정되어 있습니다",
+            "reconfigure_successful": "재설정에 성공했습니다",
+            "unknown": "예기치 않은 오류"
+        },
+        "error": {
+            "already_configured": "기기가 이미 설정되어 있습니다",
+            "cannot_connect": "연결에 실패했습니다",
+            "invalid_auth": "인증이 유효하지 않습니다",
+            "unknown": "예기치 않은 오류"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "호스트",
+                    "password": "비밀번호",
+                    "username": "사용자 이름"
+                }
+            },
+            "reconfigure": {
+                "title": "TerraMow 재설정",
+                "description": "TerraMow의 IP 주소/호스트 이름 또는 비밀번호를 업데이트합니다.",
+                "data": {
+                    "host": "호스트",
+                    "password": "비밀번호"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "잔디깎이"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "마지막 이벤트"
+            },
+            "active_fault": {
+                "name": "고장"
+            },
+            "battery": {
+                "name": "배터리"
+            },
+            "battery_temperature_state": {
+                "name": "배터리 온도 상태",
+                "state": {
+                    "normal": "정상",
+                    "overheat": "과열",
+                    "underheat": "저온"
+                }
+            },
+            "map_status": {
+                "name": "지도 상태",
+                "state": {
+                    "map_state_empty": "지도 없음",
+                    "map_state_incomplete": "지도 미완성",
+                    "map_state_complete": "지도 완성"
+                }
+            },
+            "map_area": {
+                "name": "지도 면적"
+            },
+            "mow_height": {
+                "name": "깎기 높이"
+            },
+            "mow_speed": {
+                "name": "깎기 속도",
+                "state": {
+                    "mow_speed_type_low": "저속",
+                    "mow_speed_type_medium": "중속",
+                    "mow_speed_type_adaptive_high": "적응형 고속",
+                    "mow_speed_type_auto": "자동"
+                }
+            },
+            "clean_mode": {
+                "name": "작업 모드",
+                "state": {
+                    "map_clean_info_mode_global": "전체 작업",
+                    "map_clean_info_mode_select_region": "구역 선택 작업",
+                    "map_clean_info_mode_draw_region": "구역 지정 작업",
+                    "map_clean_info_mode_move_to_target_point": "목표 지점으로 이동"
+                }
+            },
+            "pose": {
+                "name": "자세"
+            },
+            "total_mowing_time": {
+                "name": "총 잔디 깎기 시간"
+            },
+            "current_session_area": {
+                "name": "현재 세션 면적"
+            },
+            "current_session_progress": {
+                "name": "현재 세션 진행률"
+            },
+            "current_session_time": {
+                "name": "현재 세션 시간"
+            },
+            "remaining_blade_time": {
+                "name": "블레이드 남은 시간"
+            },
+            "remaining_base_station_time": {
+                "name": "베이스 스테이션 남은 시간"
+            },
+            "next_scheduled_start": {
+                "name": "다음 예약 시작"
+            },
+            "version_compatibility": {
+                "name": "버전 호환성",
+                "state": {
+                    "compatible": "호환됨",
+                    "upgrade_required": "업그레이드 필요",
+                    "downgrade_recommended": "다운그레이드 권장",
+                    "incompatible": "호환되지 않음",
+                    "unknown": "알 수 없음"
+                }
+            },
+            "main_direction_status": {
+                "name": "주 방향 상태",
+                "state": {
+                    "main_direction_mode_single": "단일 방향",
+                    "main_direction_mode_multiple": "다중 방향",
+                    "main_direction_mode_auto_rotate": "자동 회전 방향",
+                    "unavailable": "사용 불가",
+                    "no_config": "설정 없음"
+                }
+            },
+            "mission": {
+                "name": "미션",
+                "state": {
+                    "mission_idle": "대기",
+                    "mission_recharge": "충전 복귀",
+                    "mission_global_clean": "전체 잔디 깎기",
+                    "mission_build_map": "지도 생성",
+                    "mission_build_map_and_clean": "지도 생성 및 잔디 깎기",
+                    "mission_temporary_clean": "임시 잔디 깎기",
+                    "mission_back_to_starting_point": "시작 지점으로 복귀",
+                    "mission_remote_control_clean": "원격 제어 잔디 깎기",
+                    "mission_schedule_global_clean": "예약 전체 잔디 깎기",
+                    "mission_schedule_build_map_and_clean": "예약 지도 생성 및 잔디 깎기",
+                    "mission_select_region_clean": "구역 잔디 깎기",
+                    "mission_create_custom_passage": "사용자 지정 통로 생성",
+                    "mission_backup_map": "지도 백업 중",
+                    "mission_relocate_base_station": "베이스 스테이션 재배치",
+                    "mission_user_auto_calibration": "자동 보정",
+                    "mission_restore_backup_map": "백업 지도 복원",
+                    "mission_schedule_select_region_clean": "예약 구역 잔디 깎기",
+                    "mission_draw_region_clean": "지정 구역 잔디 깎기",
+                    "mission_edge_trim_clean": "가장자리 다듬기",
+                    "mission_update_backup_map": "백업 지도 업데이트"
+                }
+            },
+            "sub_mission": {
+                "name": "하위 미션",
+                "state": {
+                    "sub_mission_idle": "대기",
+                    "sub_mission_relocation": "위치 재인식 중",
+                    "sub_mission_return_to_base": "베이스로 복귀 중",
+                    "sub_mission_out_of_station": "베이스 스테이션에서 출발 중",
+                    "sub_mission_remote_control": "원격 제어",
+                    "sub_mission_saving_map": "지도 저장 중",
+                    "sub_mission_setting_blade_height": "블레이드 높이 조정 중",
+                    "sub_mission_charging": "충전 중",
+                    "sub_mission_remote_control_clean": "원격 제어 잔디 깎기",
+                    "sub_mission_defogging": "김 서림 제거 중",
+                    "sub_mission_wait_for_daylight": "일출 대기 중",
+                    "sub_mission_cooling_down_motor": "모터 냉각 중",
+                    "sub_mission_wait_for_rain_to_stop": "비가 그치기를 대기 중",
+                    "sub_mission_flexible_station_wait": "베이스 스테이션에서 대기 중"
+                }
+            },
+            "mission_state": {
+                "name": "미션 상태",
+                "state": {
+                    "mission_state_idle": "대기",
+                    "mission_state_running": "실행 중",
+                    "mission_state_pause": "일시 정지됨",
+                    "mission_state_abort": "중단됨",
+                    "mission_state_complete": "완료됨"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "지도"
+            },
+            "clean_map_camera": {
+                "name": "지도 (클린)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "충전 상태"
+            },
+            "map_detected": {
+                "name": "지도 감지됨"
+            },
+            "map_buildable": {
+                "name": "지도 생성 가능"
+            },
+            "map_backing_up": {
+                "name": "지도 백업 중"
+            },
+            "lift_alarm": {
+                "name": "들림 경보"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "도난 방지 경계 경보"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "구역 선택",
+                "state": {
+                    "no_zones_available": "사용 가능한 구역 없음",
+                    "all_zones": "모든 구역",
+                    "edge_cutting": "가장자리 다듬기"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "깎기 속도 설정",
+                "state": {
+                    "mow_speed_type_low": "저속",
+                    "mow_speed_type_medium": "중속",
+                    "mow_speed_type_adaptive_high": "적응형 고속",
+                    "mow_speed_type_auto": "자동 속도"
+                }
+            },
+            "blade_speed": {
+                "name": "블레이드 속도 설정",
+                "state": {
+                    "blade_disk_speed_type_low": "저속",
+                    "blade_disk_speed_type_medium": "중속",
+                    "blade_disk_speed_type_high": "고속"
+                }
+            },
+            "main_direction_mode": {
+                "name": "주 방향 모드",
+                "state": {
+                    "main_direction_mode_single": "단일 방향",
+                    "main_direction_mode_multiple": "다중 방향",
+                    "main_direction_mode_auto_rotate": "자동 회전 방향"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "깎기 높이 설정"
+            },
+            "edge_cutting_distance": {
+                "name": "가장자리 깎기 거리"
+            },
+            "mowing_spacing": {
+                "name": "깎기 간격 설정"
+            },
+            "main_direction_single_angle": {
+                "name": "단일 방향 각도"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "자동 회전 각도 간격"
+            },
+            "multiple_direction_angle1": {
+                "name": "첫 번째 방향 각도"
+            },
+            "multiple_direction_angle2": {
+                "name": "두 번째 방향 각도"
+            }
+        }
+    }
+}

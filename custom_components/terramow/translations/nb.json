@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Enheten er allerede konfigurert",
+            "reconfigure_successful": "Omkonfigurasjonen var vellykket",
+            "unknown": "Uventet feil"
+        },
+        "error": {
+            "already_configured": "Enheten er allerede konfigurert",
+            "cannot_connect": "Tilkobling mislyktes",
+            "invalid_auth": "Ugyldig autentisering",
+            "unknown": "Uventet feil"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Vert",
+                    "password": "Passord",
+                    "username": "Brukernavn"
+                }
+            },
+            "reconfigure": {
+                "title": "Omkonfigurer TerraMow",
+                "description": "Oppdater IP-adressen/vertsnavnet eller passordet til din TerraMow.",
+                "data": {
+                    "host": "Vert",
+                    "password": "Passord"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Robotgressklipper"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Siste hendelse"
+            },
+            "active_fault": {
+                "name": "Feil"
+            },
+            "battery": {
+                "name": "Batteri"
+            },
+            "battery_temperature_state": {
+                "name": "Batteritemperaturstatus",
+                "state": {
+                    "normal": "Normal",
+                    "overheat": "Overopphetet",
+                    "underheat": "For kaldt"
+                }
+            },
+            "map_status": {
+                "name": "Kartstatus",
+                "state": {
+                    "map_state_empty": "Ingen kart",
+                    "map_state_incomplete": "Kart ufullstendig",
+                    "map_state_complete": "Kart fullstendig"
+                }
+            },
+            "map_area": {
+                "name": "Kartareal"
+            },
+            "mow_height": {
+                "name": "Klippehøyde"
+            },
+            "mow_speed": {
+                "name": "Klippehastighet",
+                "state": {
+                    "mow_speed_type_low": "Lav",
+                    "mow_speed_type_medium": "Middels",
+                    "mow_speed_type_adaptive_high": "Adaptiv høy",
+                    "mow_speed_type_auto": "Auto"
+                }
+            },
+            "clean_mode": {
+                "name": "Driftsmodus",
+                "state": {
+                    "map_clean_info_mode_global": "Full klipping",
+                    "map_clean_info_mode_select_region": "Klipping av valgt sone",
+                    "map_clean_info_mode_draw_region": "Klipping av tegnet sone",
+                    "map_clean_info_mode_move_to_target_point": "Kjører til målpunkt"
+                }
+            },
+            "pose": {
+                "name": "Posisjon"
+            },
+            "total_mowing_time": {
+                "name": "Total klippetid"
+            },
+            "current_session_area": {
+                "name": "Areal for gjeldende økt"
+            },
+            "current_session_progress": {
+                "name": "Fremdrift for gjeldende økt"
+            },
+            "current_session_time": {
+                "name": "Varighet for gjeldende økt"
+            },
+            "remaining_blade_time": {
+                "name": "Gjenstående knivtid"
+            },
+            "remaining_base_station_time": {
+                "name": "Gjenstående tid for basestasjon"
+            },
+            "next_scheduled_start": {
+                "name": "Neste planlagte start"
+            },
+            "version_compatibility": {
+                "name": "Versjonskompatibilitet",
+                "state": {
+                    "compatible": "Kompatibel",
+                    "upgrade_required": "Oppgradering kreves",
+                    "downgrade_recommended": "Nedgradering anbefales",
+                    "incompatible": "Inkompatibel",
+                    "unknown": "Ukjent"
+                }
+            },
+            "main_direction_status": {
+                "name": "Status for hovedretning",
+                "state": {
+                    "main_direction_mode_single": "Én retning",
+                    "main_direction_mode_multiple": "Flere retninger",
+                    "main_direction_mode_auto_rotate": "Automatisk rotasjon",
+                    "unavailable": "Ikke tilgjengelig",
+                    "no_config": "Ingen konfigurasjon"
+                }
+            },
+            "mission": {
+                "name": "Oppdrag",
+                "state": {
+                    "mission_idle": "Inaktiv",
+                    "mission_recharge": "Lader",
+                    "mission_global_clean": "Full klipping",
+                    "mission_build_map": "Kartlegging",
+                    "mission_build_map_and_clean": "Kartlegging og klipping",
+                    "mission_temporary_clean": "Midlertidig klipping",
+                    "mission_back_to_starting_point": "Returnerer til startpunkt",
+                    "mission_remote_control_clean": "Fjernstyrt klipping",
+                    "mission_schedule_global_clean": "Planlagt full klipping",
+                    "mission_schedule_build_map_and_clean": "Planlagt kartlegging og klipping",
+                    "mission_select_region_clean": "Soneklipping",
+                    "mission_create_custom_passage": "Oppretter egendefinert passasje",
+                    "mission_backup_map": "Sikkerhetskopierer kart",
+                    "mission_relocate_base_station": "Flytter basestasjon",
+                    "mission_user_auto_calibration": "Automatisk kalibrering",
+                    "mission_restore_backup_map": "Gjenoppretter kart",
+                    "mission_schedule_select_region_clean": "Planlagt soneklipping",
+                    "mission_draw_region_clean": "Klipping av tegnet sone",
+                    "mission_edge_trim_clean": "Kantklipping",
+                    "mission_update_backup_map": "Oppdaterer kartsikkerhetskopi"
+                }
+            },
+            "sub_mission": {
+                "name": "Deloppdrag",
+                "state": {
+                    "sub_mission_idle": "Inaktiv",
+                    "sub_mission_relocation": "Relokaliserer",
+                    "sub_mission_return_to_base": "Returnerer til basen",
+                    "sub_mission_out_of_station": "Forlater basestasjonen",
+                    "sub_mission_remote_control": "Fjernstyring",
+                    "sub_mission_saving_map": "Lagrer kart",
+                    "sub_mission_setting_blade_height": "Justerer knivhøyde",
+                    "sub_mission_charging": "Lader",
+                    "sub_mission_remote_control_clean": "Fjernstyrt klipping",
+                    "sub_mission_defogging": "Avdugger",
+                    "sub_mission_wait_for_daylight": "Venter på dagslys",
+                    "sub_mission_cooling_down_motor": "Kjøler ned motoren",
+                    "sub_mission_wait_for_rain_to_stop": "Venter på at regnet skal stoppe",
+                    "sub_mission_flexible_station_wait": "Venter ved basestasjonen"
+                }
+            },
+            "mission_state": {
+                "name": "Oppdragsstatus",
+                "state": {
+                    "mission_state_idle": "Inaktiv",
+                    "mission_state_running": "Pågår",
+                    "mission_state_pause": "Pauset",
+                    "mission_state_abort": "Avbrutt",
+                    "mission_state_complete": "Fullført"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Kart"
+            },
+            "clean_map_camera": {
+                "name": "Kart (rent)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Ladestatus"
+            },
+            "map_detected": {
+                "name": "Kart oppdaget"
+            },
+            "map_buildable": {
+                "name": "Kart kan opprettes"
+            },
+            "map_backing_up": {
+                "name": "Kartsikkerhetskopiering pågår"
+            },
+            "lift_alarm": {
+                "name": "Løftealarm"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Tyverisikringens grensealarm"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Sonevalg",
+                "state": {
+                    "no_zones_available": "Ingen soner tilgjengelige",
+                    "all_zones": "Alle soner",
+                    "edge_cutting": "Kantklipping"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Innstilling av klippehastighet",
+                "state": {
+                    "mow_speed_type_low": "Lav hastighet",
+                    "mow_speed_type_medium": "Middels hastighet",
+                    "mow_speed_type_adaptive_high": "Adaptiv høy hastighet",
+                    "mow_speed_type_auto": "Automatisk hastighet"
+                }
+            },
+            "blade_speed": {
+                "name": "Innstilling av knivhastighet",
+                "state": {
+                    "blade_disk_speed_type_low": "Lav hastighet",
+                    "blade_disk_speed_type_medium": "Middels hastighet",
+                    "blade_disk_speed_type_high": "Høy hastighet"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Hovedretningsmodus",
+                "state": {
+                    "main_direction_mode_single": "Én retning",
+                    "main_direction_mode_multiple": "Flere retninger",
+                    "main_direction_mode_auto_rotate": "Automatisk rotasjon"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Innstilling av klippehøyde"
+            },
+            "edge_cutting_distance": {
+                "name": "Kantklippingsavstand"
+            },
+            "mowing_spacing": {
+                "name": "Innstilling av klippeavstand"
+            },
+            "main_direction_single_angle": {
+                "name": "Vinkel for én retning"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Vinkelintervall for automatisk rotasjon"
+            },
+            "multiple_direction_angle1": {
+                "name": "Vinkel for første retning"
+            },
+            "multiple_direction_angle2": {
+                "name": "Vinkel for andre retning"
+            }
+        }
+    }
+}

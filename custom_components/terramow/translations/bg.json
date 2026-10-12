@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Устройството вече е конфигурирано",
+            "reconfigure_successful": "Повторната конфигурация беше успешна",
+            "unknown": "Неочаквана грешка"
+        },
+        "error": {
+            "already_configured": "Устройството вече е конфигурирано",
+            "cannot_connect": "Неуспешно свързване",
+            "invalid_auth": "Невалидно удостоверяване",
+            "unknown": "Неочаквана грешка"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Хост",
+                    "password": "Парола",
+                    "username": "Потребителско име"
+                }
+            },
+            "reconfigure": {
+                "title": "Преконфигуриране на TerraMow",
+                "description": "Актуализирайте IP адреса / името на хоста или паролата на вашия TerraMow.",
+                "data": {
+                    "host": "Хост",
+                    "password": "Парола"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Косачка"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Последно събитие"
+            },
+            "active_fault": {
+                "name": "Неизправност"
+            },
+            "battery": {
+                "name": "Батерия"
+            },
+            "battery_temperature_state": {
+                "name": "Температурно състояние на батерията",
+                "state": {
+                    "normal": "Нормално",
+                    "overheat": "Прегряване",
+                    "underheat": "Преохлаждане"
+                }
+            },
+            "map_status": {
+                "name": "Състояние на картата",
+                "state": {
+                    "map_state_empty": "Няма карта",
+                    "map_state_incomplete": "Картата не е завършена",
+                    "map_state_complete": "Картата е завършена"
+                }
+            },
+            "map_area": {
+                "name": "Площ на картата"
+            },
+            "mow_height": {
+                "name": "Височина на косене"
+            },
+            "mow_speed": {
+                "name": "Скорост на косене",
+                "state": {
+                    "mow_speed_type_low": "Ниска",
+                    "mow_speed_type_medium": "Средна",
+                    "mow_speed_type_adaptive_high": "Адаптивна висока",
+                    "mow_speed_type_auto": "Автоматична"
+                }
+            },
+            "clean_mode": {
+                "name": "Режим на работа",
+                "state": {
+                    "map_clean_info_mode_global": "Глобална работа",
+                    "map_clean_info_mode_select_region": "Работа в избрана зона",
+                    "map_clean_info_mode_draw_region": "Работа в начертана зона",
+                    "map_clean_info_mode_move_to_target_point": "Движение към целева точка"
+                }
+            },
+            "pose": {
+                "name": "Позиция"
+            },
+            "total_mowing_time": {
+                "name": "Общо време на косене"
+            },
+            "current_session_area": {
+                "name": "Площ на текущата сесия"
+            },
+            "current_session_progress": {
+                "name": "Напредък на текущата сесия"
+            },
+            "current_session_time": {
+                "name": "Време на текущата сесия"
+            },
+            "remaining_blade_time": {
+                "name": "Оставащ ресурс на ножовете"
+            },
+            "remaining_base_station_time": {
+                "name": "Оставащ ресурс на базовата станция"
+            },
+            "next_scheduled_start": {
+                "name": "Следващ планиран старт"
+            },
+            "version_compatibility": {
+                "name": "Съвместимост на версиите",
+                "state": {
+                    "compatible": "Съвместимо",
+                    "upgrade_required": "Изисква се надграждане",
+                    "downgrade_recommended": "Препоръчва се връщане към по-стара версия",
+                    "incompatible": "Несъвместимо",
+                    "unknown": "Неизвестно"
+                }
+            },
+            "main_direction_status": {
+                "name": "Състояние на основната посока",
+                "state": {
+                    "main_direction_mode_single": "Една посока",
+                    "main_direction_mode_multiple": "Няколко посоки",
+                    "main_direction_mode_auto_rotate": "Автоматично завъртане на посоката",
+                    "unavailable": "Недостъпно",
+                    "no_config": "Няма конфигурация"
+                }
+            },
+            "mission": {
+                "name": "Мисия",
+                "state": {
+                    "mission_idle": "В покой",
+                    "mission_recharge": "Зареждане",
+                    "mission_global_clean": "Глобално косене",
+                    "mission_build_map": "Изграждане на карта",
+                    "mission_build_map_and_clean": "Изграждане на карта и косене",
+                    "mission_temporary_clean": "Временно косене",
+                    "mission_back_to_starting_point": "Връщане към началната точка",
+                    "mission_remote_control_clean": "Косене с дистанционно управление",
+                    "mission_schedule_global_clean": "Планирано глобално косене",
+                    "mission_schedule_build_map_and_clean": "Планирано изграждане на карта и косене",
+                    "mission_select_region_clean": "Косене на зона",
+                    "mission_create_custom_passage": "Създаване на персонализиран проход",
+                    "mission_backup_map": "Архивиране на картата",
+                    "mission_relocate_base_station": "Преместване на базовата станция",
+                    "mission_user_auto_calibration": "Автоматично калибриране",
+                    "mission_restore_backup_map": "Възстановяване на архивираната карта",
+                    "mission_schedule_select_region_clean": "Планирано косене на зона",
+                    "mission_draw_region_clean": "Косене на начертана зона",
+                    "mission_edge_trim_clean": "Косене на ръбовете",
+                    "mission_update_backup_map": "Актуализиране на архивираната карта"
+                }
+            },
+            "sub_mission": {
+                "name": "Подмисия",
+                "state": {
+                    "sub_mission_idle": "В покой",
+                    "sub_mission_relocation": "Повторно локализиране",
+                    "sub_mission_return_to_base": "Връщане към базата",
+                    "sub_mission_out_of_station": "Напускане на базовата станция",
+                    "sub_mission_remote_control": "Дистанционно управление",
+                    "sub_mission_saving_map": "Запазване на картата",
+                    "sub_mission_setting_blade_height": "Регулиране на височината на ножовете",
+                    "sub_mission_charging": "Зареждане",
+                    "sub_mission_remote_control_clean": "Косене с дистанционно управление",
+                    "sub_mission_defogging": "Премахване на замъгляване",
+                    "sub_mission_wait_for_daylight": "Изчакване на дневна светлина",
+                    "sub_mission_cooling_down_motor": "Охлаждане на мотора",
+                    "sub_mission_wait_for_rain_to_stop": "Изчакване дъждът да спре",
+                    "sub_mission_flexible_station_wait": "Изчакване на базовата станция"
+                }
+            },
+            "mission_state": {
+                "name": "Състояние на мисията",
+                "state": {
+                    "mission_state_idle": "В покой",
+                    "mission_state_running": "Изпълнява се",
+                    "mission_state_pause": "На пауза",
+                    "mission_state_abort": "Прекратена",
+                    "mission_state_complete": "Завършена"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Карта"
+            },
+            "clean_map_camera": {
+                "name": "Карта (чиста)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Състояние на зареждане"
+            },
+            "map_detected": {
+                "name": "Открита е карта"
+            },
+            "map_buildable": {
+                "name": "Изграждането на карта е възможно"
+            },
+            "map_backing_up": {
+                "name": "Архивиране на картата"
+            },
+            "lift_alarm": {
+                "name": "Аларма при повдигане"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Аларма за граница против кражба"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Избор на зона",
+                "state": {
+                    "no_zones_available": "Няма налични зони",
+                    "all_zones": "Всички зони",
+                    "edge_cutting": "Косене на ръбовете"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Настройка на скоростта на косене",
+                "state": {
+                    "mow_speed_type_low": "Ниска скорост",
+                    "mow_speed_type_medium": "Средна скорост",
+                    "mow_speed_type_adaptive_high": "Адаптивна висока скорост",
+                    "mow_speed_type_auto": "Автоматична скорост"
+                }
+            },
+            "blade_speed": {
+                "name": "Настройка на скоростта на ножовете",
+                "state": {
+                    "blade_disk_speed_type_low": "Ниска скорост",
+                    "blade_disk_speed_type_medium": "Средна скорост",
+                    "blade_disk_speed_type_high": "Висока скорост"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Режим на основната посока",
+                "state": {
+                    "main_direction_mode_single": "Една посока",
+                    "main_direction_mode_multiple": "Няколко посоки",
+                    "main_direction_mode_auto_rotate": "Автоматично завъртане на посоката"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Настройка на височината на косене"
+            },
+            "edge_cutting_distance": {
+                "name": "Разстояние на косене на ръбовете"
+            },
+            "mowing_spacing": {
+                "name": "Настройка на разстоянието между редовете на косене"
+            },
+            "main_direction_single_angle": {
+                "name": "Ъгъл на едната посока"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Стъпка на ъгъла при автоматично завъртане"
+            },
+            "multiple_direction_angle1": {
+                "name": "Ъгъл на първата посока"
+            },
+            "multiple_direction_angle2": {
+                "name": "Ъгъл на втората посока"
+            }
+        }
+    }
+}

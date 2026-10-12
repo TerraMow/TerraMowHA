@@ -32,10 +32,10 @@ apart. Otherwise Home Assistant reports an error.
 
 ### Zone mowing
 
-**Zone Select** lists **All zones**, **Edge cutting**, and the zones of the current
-map. If the reported map has no zones, **Edge cutting** remains available beside
+**Zone Select** lists **All zones**, **Edge mowing**, and the zones of the current
+map. If the reported map has no zones, **Edge mowing** remains available beside
 **No zones available**; until a map is reported, only **No zones available** is
-shown. Choosing a zone starts mowing that zone; choosing **Edge cutting** requests
+shown. Choosing a zone starts mowing that zone; choosing **Edge mowing** requests
 an edge cutting job. Both commands wait for the robot's confirmation. Edge cutting
 requires firmware control version 8 or later. Choosing **All zones** only changes
 the selection and sends nothing to the robot. Use the lawn mower's Start command
@@ -52,7 +52,7 @@ the robot has sent feedback.
 A current fault sets the mower activity to `error`; clearing the fault restores
 the reported mission state. Historical events do not set the current fault state.
 
-**Lift Alarm** turns on when the robot's current fault list contains code `201`
+**Robot lifted alert** turns on when the robot's current fault list contains code `201`
 or `202`. **Anti-Theft Boundary Alarm** turns on for code `1409`. Each turns off
 when its code is absent from the next complete fault list. A single fault
 notification or a historical event cannot turn either alarm on. Both alarms are
@@ -98,8 +98,8 @@ robot.
 **Map Status** shows whether the robot has no map, an incomplete map, or a
 complete map. Its attributes include the map ID, the number of maps, the backup
 state, and the main direction angle. **Map Area** shows the area of the current
-map in square meters. **Operation Mode** shows the type of the current job
-(global, select region, draw region, or move to target point); for select-region
+map in square meters. **Mowing mode** shows the type of the current job
+(auto mowing, zone mowing, MowBox mowing, or move to target point); for zone
 jobs its attributes list the selected regions. These three sensors are unknown
 until the robot reports the matching information.
 
@@ -125,16 +125,16 @@ unknown when there is no schedule.
 
 ## Mowing settings
 
-**Mow Height**, **Mow Speed**, and **Main Direction Status** show the current
+**Cutting height**, **Moving speed**, and **Main Direction Status** show the current
 mowing settings reported by the robot. You can change them with these entities:
 
 - **Mowing Height Setting**, **Edge Cutting Distance**, and **Mowing Spacing
   Setting** (millimeters)
-- **Mow Speed Setting**: Low Speed, Medium Speed, and Adaptive High Speed, plus
+- **Moving speed**: Fine, Default, and Adaptive, plus
   Auto Speed when the firmware supports it
 - **Blade Speed Setting**: Low Speed, Medium Speed, and High Speed
-- **Main Direction Mode**: Single Direction, Multiple Directions, or Auto Rotate
-  Direction. The angle entities (**Single Direction Angle**, **First Direction
+- **Main Direction Mode**: Single, Dual, or Auto-rotating. The angle entities
+  (**Single Direction Angle**, **First Direction
   Angle**, **Second Direction Angle**, and **Auto Rotate Angle Interval**, in
   degrees) are available only in the matching mode.
 

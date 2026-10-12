@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Устройство уже настроено",
+            "reconfigure_successful": "Повторная настройка выполнена успешно",
+            "unknown": "Непредвиденная ошибка"
+        },
+        "error": {
+            "already_configured": "Устройство уже настроено",
+            "cannot_connect": "Не удалось подключиться",
+            "invalid_auth": "Неверная аутентификация",
+            "unknown": "Непредвиденная ошибка"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Хост",
+                    "password": "Пароль",
+                    "username": "Имя пользователя"
+                }
+            },
+            "reconfigure": {
+                "title": "Перенастроить TerraMow",
+                "description": "Обновите IP-адрес / имя хоста или пароль вашего TerraMow.",
+                "data": {
+                    "host": "Хост",
+                    "password": "Пароль"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Газонокосилка"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Последнее событие"
+            },
+            "active_fault": {
+                "name": "Неисправность"
+            },
+            "battery": {
+                "name": "Батарея"
+            },
+            "battery_temperature_state": {
+                "name": "Температурное состояние батареи",
+                "state": {
+                    "normal": "Нормальное",
+                    "overheat": "Перегрев",
+                    "underheat": "Переохлаждение"
+                }
+            },
+            "map_status": {
+                "name": "Статус карты",
+                "state": {
+                    "map_state_empty": "Нет карты",
+                    "map_state_incomplete": "Карта не завершена",
+                    "map_state_complete": "Карта завершена"
+                }
+            },
+            "map_area": {
+                "name": "Площадь карты"
+            },
+            "mow_height": {
+                "name": "Высота скашивания"
+            },
+            "mow_speed": {
+                "name": "Скорость скашивания",
+                "state": {
+                    "mow_speed_type_low": "Низкая",
+                    "mow_speed_type_medium": "Средняя",
+                    "mow_speed_type_adaptive_high": "Адаптивная высокая",
+                    "mow_speed_type_auto": "Авто"
+                }
+            },
+            "clean_mode": {
+                "name": "Режим работы",
+                "state": {
+                    "map_clean_info_mode_global": "Глобальная работа",
+                    "map_clean_info_mode_select_region": "Работа в выбранной зоне",
+                    "map_clean_info_mode_draw_region": "Работа в нарисованной зоне",
+                    "map_clean_info_mode_move_to_target_point": "Движение к целевой точке"
+                }
+            },
+            "pose": {
+                "name": "Положение"
+            },
+            "total_mowing_time": {
+                "name": "Общее время скашивания"
+            },
+            "current_session_area": {
+                "name": "Площадь текущего сеанса"
+            },
+            "current_session_progress": {
+                "name": "Прогресс текущего сеанса"
+            },
+            "current_session_time": {
+                "name": "Время текущего сеанса"
+            },
+            "remaining_blade_time": {
+                "name": "Оставшийся ресурс ножей"
+            },
+            "remaining_base_station_time": {
+                "name": "Оставшийся ресурс базовой станции"
+            },
+            "next_scheduled_start": {
+                "name": "Следующий запуск по расписанию"
+            },
+            "version_compatibility": {
+                "name": "Совместимость версий",
+                "state": {
+                    "compatible": "Совместимо",
+                    "upgrade_required": "Требуется обновление",
+                    "downgrade_recommended": "Рекомендуется откат версии",
+                    "incompatible": "Несовместимо",
+                    "unknown": "Неизвестно"
+                }
+            },
+            "main_direction_status": {
+                "name": "Статус основного направления",
+                "state": {
+                    "main_direction_mode_single": "Одно направление",
+                    "main_direction_mode_multiple": "Несколько направлений",
+                    "main_direction_mode_auto_rotate": "Автоповорот направления",
+                    "unavailable": "Недоступно",
+                    "no_config": "Нет конфигурации"
+                }
+            },
+            "mission": {
+                "name": "Задача",
+                "state": {
+                    "mission_idle": "Простой",
+                    "mission_recharge": "Зарядка",
+                    "mission_global_clean": "Глобальное скашивание",
+                    "mission_build_map": "Построение карты",
+                    "mission_build_map_and_clean": "Построение карты и скашивание",
+                    "mission_temporary_clean": "Временное скашивание",
+                    "mission_back_to_starting_point": "Возврат к начальной точке",
+                    "mission_remote_control_clean": "Скашивание с дистанционным управлением",
+                    "mission_schedule_global_clean": "Глобальное скашивание по расписанию",
+                    "mission_schedule_build_map_and_clean": "Построение карты и скашивание по расписанию",
+                    "mission_select_region_clean": "Скашивание зоны",
+                    "mission_create_custom_passage": "Создание пользовательского прохода",
+                    "mission_backup_map": "Резервное копирование карты",
+                    "mission_relocate_base_station": "Перемещение базовой станции",
+                    "mission_user_auto_calibration": "Автокалибровка",
+                    "mission_restore_backup_map": "Восстановление резервной копии карты",
+                    "mission_schedule_select_region_clean": "Скашивание зоны по расписанию",
+                    "mission_draw_region_clean": "Скашивание нарисованной зоны",
+                    "mission_edge_trim_clean": "Скашивание кромок",
+                    "mission_update_backup_map": "Обновление резервной копии карты"
+                }
+            },
+            "sub_mission": {
+                "name": "Подзадача",
+                "state": {
+                    "sub_mission_idle": "Простой",
+                    "sub_mission_relocation": "Перелокализация",
+                    "sub_mission_return_to_base": "Возврат на базу",
+                    "sub_mission_out_of_station": "Выезд с базовой станции",
+                    "sub_mission_remote_control": "Дистанционное управление",
+                    "sub_mission_saving_map": "Сохранение карты",
+                    "sub_mission_setting_blade_height": "Регулировка высоты ножей",
+                    "sub_mission_charging": "Зарядка",
+                    "sub_mission_remote_control_clean": "Скашивание с дистанционным управлением",
+                    "sub_mission_defogging": "Устранение запотевания",
+                    "sub_mission_wait_for_daylight": "Ожидание дневного света",
+                    "sub_mission_cooling_down_motor": "Охлаждение мотора",
+                    "sub_mission_wait_for_rain_to_stop": "Ожидание окончания дождя",
+                    "sub_mission_flexible_station_wait": "Ожидание на базовой станции"
+                }
+            },
+            "mission_state": {
+                "name": "Состояние задачи",
+                "state": {
+                    "mission_state_idle": "Простой",
+                    "mission_state_running": "Выполняется",
+                    "mission_state_pause": "Приостановлена",
+                    "mission_state_abort": "Прервана",
+                    "mission_state_complete": "Завершена"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Карта"
+            },
+            "clean_map_camera": {
+                "name": "Карта (чистая)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Состояние зарядки"
+            },
+            "map_detected": {
+                "name": "Карта обнаружена"
+            },
+            "map_buildable": {
+                "name": "Построение карты возможно"
+            },
+            "map_backing_up": {
+                "name": "Резервное копирование карты"
+            },
+            "lift_alarm": {
+                "name": "Тревога подъема"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Тревога выхода за границу защиты от кражи"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Выбор зоны",
+                "state": {
+                    "no_zones_available": "Нет доступных зон",
+                    "all_zones": "Все зоны",
+                    "edge_cutting": "Скашивание кромок"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Настройка скорости скашивания",
+                "state": {
+                    "mow_speed_type_low": "Низкая скорость",
+                    "mow_speed_type_medium": "Средняя скорость",
+                    "mow_speed_type_adaptive_high": "Адаптивная высокая скорость",
+                    "mow_speed_type_auto": "Автоматическая скорость"
+                }
+            },
+            "blade_speed": {
+                "name": "Настройка скорости ножей",
+                "state": {
+                    "blade_disk_speed_type_low": "Низкая скорость",
+                    "blade_disk_speed_type_medium": "Средняя скорость",
+                    "blade_disk_speed_type_high": "Высокая скорость"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Режим основного направления",
+                "state": {
+                    "main_direction_mode_single": "Одно направление",
+                    "main_direction_mode_multiple": "Несколько направлений",
+                    "main_direction_mode_auto_rotate": "Автоповорот направления"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Настройка высоты скашивания"
+            },
+            "edge_cutting_distance": {
+                "name": "Расстояние скашивания кромок"
+            },
+            "mowing_spacing": {
+                "name": "Настройка интервала скашивания"
+            },
+            "main_direction_single_angle": {
+                "name": "Угол одного направления"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Шаг угла автоповорота"
+            },
+            "multiple_direction_angle1": {
+                "name": "Угол первого направления"
+            },
+            "multiple_direction_angle2": {
+                "name": "Угол второго направления"
+            }
+        }
+    }
+}
