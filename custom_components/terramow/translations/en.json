@@ -2,7 +2,7 @@
     "config": {
         "abort": {
             "already_configured": "Device is already configured",
-            "reconfigure_successful": "Reconfiguration was successful",
+            "reconfigure_successful": "Re-configuration was successful",
             "unknown": "Unexpected error"
         },
         "error": {
@@ -32,7 +32,7 @@
     "entity": {
         "lawn_mower": {
             "lawn_mower": {
-                "name": "Lawn Mower"
+                "name": "Mower"
             }
         },
         "sensor": {
@@ -65,23 +65,23 @@
                 "name": "Map Area"
             },
             "mow_height": {
-                "name": "Mow Height"
+                "name": "Cutting height"
             },
             "mow_speed": {
-                "name": "Mow Speed",
+                "name": "Moving speed",
                 "state": {
-                    "mow_speed_type_low": "Low",
-                    "mow_speed_type_medium": "Medium",
-                    "mow_speed_type_adaptive_high": "Adaptive High",
+                    "mow_speed_type_low": "Fine",
+                    "mow_speed_type_medium": "Default",
+                    "mow_speed_type_adaptive_high": "Adaptive",
                     "mow_speed_type_auto": "Auto"
                 }
             },
             "clean_mode": {
-                "name": "Operation Mode",
+                "name": "Mowing mode",
                 "state": {
-                    "map_clean_info_mode_global": "Global Operation",
-                    "map_clean_info_mode_select_region": "Select Region Operation",
-                    "map_clean_info_mode_draw_region": "Draw Region Operation",
+                    "map_clean_info_mode_global": "Auto mowing",
+                    "map_clean_info_mode_select_region": "Zone mowing",
+                    "map_clean_info_mode_draw_region": "MowBox mowing",
                     "map_clean_info_mode_move_to_target_point": "Move to Target Point"
                 }
             },
@@ -122,9 +122,9 @@
             "main_direction_status": {
                 "name": "Main Direction Status",
                 "state": {
-                    "main_direction_mode_single": "Single Direction",
-                    "main_direction_mode_multiple": "Multiple Directions",
-                    "main_direction_mode_auto_rotate": "Auto Rotate Direction",
+                    "main_direction_mode_single": "Single",
+                    "main_direction_mode_multiple": "Dual",
+                    "main_direction_mode_auto_rotate": "Auto–rotating",
                     "unavailable": "Unavailable",
                     "no_config": "No Configuration"
                 }
@@ -134,23 +134,23 @@
                 "state": {
                     "mission_idle": "Idle",
                     "mission_recharge": "Recharging",
-                    "mission_global_clean": "Global Mowing",
-                    "mission_build_map": "Building Map",
+                    "mission_global_clean": "Auto mowing",
+                    "mission_build_map": "Mapping",
                     "mission_build_map_and_clean": "Building Map and Mowing",
                     "mission_temporary_clean": "Temporary Mowing",
                     "mission_back_to_starting_point": "Returning to Start Point",
                     "mission_remote_control_clean": "Remote Control Mowing",
                     "mission_schedule_global_clean": "Scheduled Global Mowing",
                     "mission_schedule_build_map_and_clean": "Scheduled Map Build and Mow",
-                    "mission_select_region_clean": "Region Mowing",
+                    "mission_select_region_clean": "Zone mowing",
                     "mission_create_custom_passage": "Creating Custom Passage",
                     "mission_backup_map": "Backing Up Map",
                     "mission_relocate_base_station": "Relocating Base Station",
                     "mission_user_auto_calibration": "Auto Calibration",
                     "mission_restore_backup_map": "Restoring Backup Map",
-                    "mission_schedule_select_region_clean": "Scheduled Region Mowing",
-                    "mission_draw_region_clean": "Drawn Region Mowing",
-                    "mission_edge_trim_clean": "Edge Trim Mowing",
+                    "mission_schedule_select_region_clean": "Scheduled Zone Mowing",
+                    "mission_draw_region_clean": "MowBox mowing",
+                    "mission_edge_trim_clean": "Edge mowing",
                     "mission_update_backup_map": "Updating Backup Map"
                 }
             },
@@ -206,7 +206,7 @@
                 "name": "Map Backing Up"
             },
             "lift_alarm": {
-                "name": "Lift Alarm"
+                "name": "Robot lifted alert"
             },
             "anti_theft_boundary_alarm": {
                 "name": "Anti-Theft Boundary Alarm"
@@ -218,15 +218,15 @@
                 "state": {
                     "no_zones_available": "No zones available",
                     "all_zones": "All zones",
-                    "edge_cutting": "Edge cutting"
+                    "edge_cutting": "Edge mowing"
                 }
             },
             "mow_speed_setting": {
-                "name": "Mow Speed Setting",
+                "name": "Moving speed",
                 "state": {
-                    "mow_speed_type_low": "Low Speed",
-                    "mow_speed_type_medium": "Medium Speed",
-                    "mow_speed_type_adaptive_high": "Adaptive High Speed",
+                    "mow_speed_type_low": "Fine",
+                    "mow_speed_type_medium": "Default",
+                    "mow_speed_type_adaptive_high": "Adaptive",
                     "mow_speed_type_auto": "Auto Speed"
                 }
             },
@@ -241,9 +241,9 @@
             "main_direction_mode": {
                 "name": "Main Direction Mode",
                 "state": {
-                    "main_direction_mode_single": "Single Direction",
-                    "main_direction_mode_multiple": "Multiple Directions",
-                    "main_direction_mode_auto_rotate": "Auto Rotate Direction"
+                    "main_direction_mode_single": "Single",
+                    "main_direction_mode_multiple": "Dual",
+                    "main_direction_mode_auto_rotate": "Auto–rotating"
                 }
             }
         },

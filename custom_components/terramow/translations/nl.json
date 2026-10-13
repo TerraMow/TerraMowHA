@@ -1,0 +1,274 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Apparaat is al geconfigureerd",
+            "reconfigure_successful": "Herconfiguratie geslaagd",
+            "unknown": "Onverwachte fout"
+        },
+        "error": {
+            "already_configured": "Apparaat is al geconfigureerd",
+            "cannot_connect": "Verbinding mislukt",
+            "invalid_auth": "Ongeldige authenticatie",
+            "unknown": "Onverwachte fout"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Wachtwoord",
+                    "username": "Gebruikersnaam"
+                }
+            },
+            "reconfigure": {
+                "title": "TerraMow opnieuw configureren",
+                "description": "Werk het IP-adres/de hostnaam of het wachtwoord van je TerraMow bij.",
+                "data": {
+                    "host": "Host",
+                    "password": "Wachtwoord"
+                }
+            }
+        }
+    },
+    "entity": {
+        "lawn_mower": {
+            "lawn_mower": {
+                "name": "Grasmaaier"
+            }
+        },
+        "sensor": {
+            "last_event": {
+                "name": "Laatste gebeurtenis"
+            },
+            "active_fault": {
+                "name": "Storing"
+            },
+            "battery": {
+                "name": "Batterij"
+            },
+            "battery_temperature_state": {
+                "name": "Batterijtemperatuurstatus",
+                "state": {
+                    "normal": "Normaal",
+                    "overheat": "Oververhit",
+                    "underheat": "Te koud"
+                }
+            },
+            "map_status": {
+                "name": "Kaartstatus",
+                "state": {
+                    "map_state_empty": "Geen kaart",
+                    "map_state_incomplete": "Kaart onvolledig",
+                    "map_state_complete": "Kaart volledig"
+                }
+            },
+            "map_area": {
+                "name": "Kaartoppervlak"
+            },
+            "mow_height": {
+                "name": "Maaihoogte"
+            },
+            "mow_speed": {
+                "name": "Verplaatsingssnelheid",
+                "state": {
+                    "mow_speed_type_low": "Fijn",
+                    "mow_speed_type_medium": "Standaard",
+                    "mow_speed_type_adaptive_high": "Adaptief",
+                    "mow_speed_type_auto": "Automatisch"
+                }
+            },
+            "clean_mode": {
+                "name": "Maai modus",
+                "state": {
+                    "map_clean_info_mode_global": "Automatisch maaien",
+                    "map_clean_info_mode_select_region": "Zone maaien",
+                    "map_clean_info_mode_draw_region": "Kist maaien",
+                    "map_clean_info_mode_move_to_target_point": "Naar doelpunt bewegen"
+                }
+            },
+            "pose": {
+                "name": "Positie"
+            },
+            "total_mowing_time": {
+                "name": "Totale maaitijd"
+            },
+            "current_session_area": {
+                "name": "Oppervlak huidige sessie"
+            },
+            "current_session_progress": {
+                "name": "Voortgang huidige sessie"
+            },
+            "current_session_time": {
+                "name": "Duur huidige sessie"
+            },
+            "remaining_blade_time": {
+                "name": "Resterende levensduur messen"
+            },
+            "remaining_base_station_time": {
+                "name": "Resterende levensduur basisstation"
+            },
+            "next_scheduled_start": {
+                "name": "Volgende geplande start"
+            },
+            "version_compatibility": {
+                "name": "Versiecompatibiliteit",
+                "state": {
+                    "compatible": "Compatibel",
+                    "upgrade_required": "Upgrade vereist",
+                    "downgrade_recommended": "Downgrade aanbevolen",
+                    "incompatible": "Incompatibel",
+                    "unknown": "Onbekend"
+                }
+            },
+            "main_direction_status": {
+                "name": "Status hoofdrichting",
+                "state": {
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dubbel",
+                    "main_direction_mode_auto_rotate": "Automatisch roterend",
+                    "unavailable": "Niet beschikbaar",
+                    "no_config": "Geen configuratie"
+                }
+            },
+            "mission": {
+                "name": "Missie",
+                "state": {
+                    "mission_idle": "Inactief",
+                    "mission_recharge": "Opladen",
+                    "mission_global_clean": "Automatisch maaien",
+                    "mission_build_map": "Kaart",
+                    "mission_build_map_and_clean": "Kaart maken en maaien",
+                    "mission_temporary_clean": "Tijdelijk maaien",
+                    "mission_back_to_starting_point": "Terug naar startpunt",
+                    "mission_remote_control_clean": "Maaien met afstandsbediening",
+                    "mission_schedule_global_clean": "Gepland volledig maaien",
+                    "mission_schedule_build_map_and_clean": "Gepland kaart maken en maaien",
+                    "mission_select_region_clean": "Zone maaien",
+                    "mission_create_custom_passage": "Aangepaste doorgang maken",
+                    "mission_backup_map": "Kaart back-uppen",
+                    "mission_relocate_base_station": "Basisstation verplaatsen",
+                    "mission_user_auto_calibration": "Automatische kalibratie",
+                    "mission_restore_backup_map": "Kaart herstellen",
+                    "mission_schedule_select_region_clean": "Gepland zones maaien",
+                    "mission_draw_region_clean": "Kist maaien",
+                    "mission_edge_trim_clean": "Rand maaien",
+                    "mission_update_backup_map": "Kaartback-up bijwerken"
+                }
+            },
+            "sub_mission": {
+                "name": "Submissie",
+                "state": {
+                    "sub_mission_idle": "Inactief",
+                    "sub_mission_relocation": "Herlokaliseren",
+                    "sub_mission_return_to_base": "Terug naar basis",
+                    "sub_mission_out_of_station": "Basisstation verlaten",
+                    "sub_mission_remote_control": "Afstandsbediening",
+                    "sub_mission_saving_map": "Kaart opslaan",
+                    "sub_mission_setting_blade_height": "Meshoogte instellen",
+                    "sub_mission_charging": "Opladen",
+                    "sub_mission_remote_control_clean": "Maaien met afstandsbediening",
+                    "sub_mission_defogging": "Ontwasemen",
+                    "sub_mission_wait_for_daylight": "Wachten op daglicht",
+                    "sub_mission_cooling_down_motor": "Motor afkoelen",
+                    "sub_mission_wait_for_rain_to_stop": "Wachten tot de regen stopt",
+                    "sub_mission_flexible_station_wait": "Wachten bij basisstation"
+                }
+            },
+            "mission_state": {
+                "name": "Missiestatus",
+                "state": {
+                    "mission_state_idle": "Inactief",
+                    "mission_state_running": "Actief",
+                    "mission_state_pause": "Gepauzeerd",
+                    "mission_state_abort": "Afgebroken",
+                    "mission_state_complete": "Voltooid"
+                }
+            }
+        },
+        "camera": {
+            "map_camera": {
+                "name": "Kaart"
+            },
+            "clean_map_camera": {
+                "name": "Kaart (schoon)"
+            }
+        },
+        "binary_sensor": {
+            "charging_state": {
+                "name": "Laadstatus"
+            },
+            "map_detected": {
+                "name": "Kaart gedetecteerd"
+            },
+            "map_buildable": {
+                "name": "Kaart aan te maken"
+            },
+            "map_backing_up": {
+                "name": "Kaartback-up bezig"
+            },
+            "lift_alarm": {
+                "name": "Optilalarm"
+            },
+            "anti_theft_boundary_alarm": {
+                "name": "Antidiefstalgrensalarm"
+            }
+        },
+        "select": {
+            "region_select": {
+                "name": "Zoneselectie",
+                "state": {
+                    "no_zones_available": "Geen zones beschikbaar",
+                    "all_zones": "Alle zones",
+                    "edge_cutting": "Rand maaien"
+                }
+            },
+            "mow_speed_setting": {
+                "name": "Verplaatsingssnelheid",
+                "state": {
+                    "mow_speed_type_low": "Fijn",
+                    "mow_speed_type_medium": "Standaard",
+                    "mow_speed_type_adaptive_high": "Adaptief",
+                    "mow_speed_type_auto": "Automatische snelheid"
+                }
+            },
+            "blade_speed": {
+                "name": "Messnelheid instellen",
+                "state": {
+                    "blade_disk_speed_type_low": "Lage snelheid",
+                    "blade_disk_speed_type_medium": "Gemiddelde snelheid",
+                    "blade_disk_speed_type_high": "Hoge snelheid"
+                }
+            },
+            "main_direction_mode": {
+                "name": "Hoofdrichtingsmodus",
+                "state": {
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dubbel",
+                    "main_direction_mode_auto_rotate": "Automatisch roterend"
+                }
+            }
+        },
+        "number": {
+            "mowing_height": {
+                "name": "Maaihoogte instellen"
+            },
+            "edge_cutting_distance": {
+                "name": "Randmaaiafstand"
+            },
+            "mowing_spacing": {
+                "name": "Maaiafstand instellen"
+            },
+            "main_direction_single_angle": {
+                "name": "Hoek enkele richting"
+            },
+            "main_direction_auto_rotate_interval": {
+                "name": "Hoekinterval automatisch roteren"
+            },
+            "multiple_direction_angle1": {
+                "name": "Hoek eerste richting"
+            },
+            "multiple_direction_angle2": {
+                "name": "Hoek tweede richting"
+            }
+        }
+    }
+}
