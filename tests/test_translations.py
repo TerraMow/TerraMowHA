@@ -12,8 +12,7 @@ TRANSLATIONS_DIR = (
 )
 PLACEHOLDER_PATTERN = re.compile(r"\{[^}]+\}|%[a-zA-Z]")
 EXPECTED_LOCALES = set(
-    "bg ca cs da de el en es et fi fr hr hu it ja ko lt lv nb nl pl "
-    "pt-BR pt ro ru sk sl sr sv tr uk zh-CN zh-Hans zh-Hant".split()
+    "cs da de en es fi fr hr hu it lt nl nn pl sk sl sv zh-CN zh-Hans".split()
 )
 
 
@@ -34,7 +33,7 @@ def test_all_translation_files_match_english_keys_and_placeholders() -> None:
     english = json.loads((TRANSLATIONS_DIR / "en.json").read_text())
     english_values = _leaf_values(english)
     translation_files = sorted(TRANSLATIONS_DIR.glob("*.json"))
-    assert EXPECTED_LOCALES <= {path.stem for path in translation_files}
+    assert EXPECTED_LOCALES == {path.stem for path in translation_files}
 
     for translation_file in translation_files:
         values = _leaf_values(json.loads(translation_file.read_text()))

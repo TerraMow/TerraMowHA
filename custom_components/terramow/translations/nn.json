@@ -32,7 +32,7 @@
     "entity": {
         "lawn_mower": {
             "lawn_mower": {
-                "name": "Robotgressklipper"
+                "name": "Gressklipper"
             }
         },
         "sensor": {
@@ -65,23 +65,23 @@
                 "name": "Kartareal"
             },
             "mow_height": {
-                "name": "Klippehøyde"
+                "name": "Klipping høyde"
             },
             "mow_speed": {
-                "name": "Klippehastighet",
+                "name": "Bevegelseshastighet",
                 "state": {
-                    "mow_speed_type_low": "Lav",
-                    "mow_speed_type_medium": "Middels",
-                    "mow_speed_type_adaptive_high": "Adaptiv høy",
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
                     "mow_speed_type_auto": "Auto"
                 }
             },
             "clean_mode": {
-                "name": "Driftsmodus",
+                "name": "Klippemodus",
                 "state": {
-                    "map_clean_info_mode_global": "Full klipping",
-                    "map_clean_info_mode_select_region": "Klipping av valgt sone",
-                    "map_clean_info_mode_draw_region": "Klipping av tegnet sone",
+                    "map_clean_info_mode_global": "Automatisk klipping",
+                    "map_clean_info_mode_select_region": "Soneklipping",
+                    "map_clean_info_mode_draw_region": "MowBox–klipping",
                     "map_clean_info_mode_move_to_target_point": "Kjører til målpunkt"
                 }
             },
@@ -122,9 +122,9 @@
             "main_direction_status": {
                 "name": "Status for hovedretning",
                 "state": {
-                    "main_direction_mode_single": "Én retning",
-                    "main_direction_mode_multiple": "Flere retninger",
-                    "main_direction_mode_auto_rotate": "Automatisk rotasjon",
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dobbel",
+                    "main_direction_mode_auto_rotate": "Auto–roterer",
                     "unavailable": "Ikke tilgjengelig",
                     "no_config": "Ingen konfigurasjon"
                 }
@@ -134,7 +134,7 @@
                 "state": {
                     "mission_idle": "Inaktiv",
                     "mission_recharge": "Lader",
-                    "mission_global_clean": "Full klipping",
+                    "mission_global_clean": "Automatisk klipping",
                     "mission_build_map": "Kartlegging",
                     "mission_build_map_and_clean": "Kartlegging og klipping",
                     "mission_temporary_clean": "Midlertidig klipping",
@@ -149,7 +149,7 @@
                     "mission_user_auto_calibration": "Automatisk kalibrering",
                     "mission_restore_backup_map": "Gjenoppretter kart",
                     "mission_schedule_select_region_clean": "Planlagt soneklipping",
-                    "mission_draw_region_clean": "Klipping av tegnet sone",
+                    "mission_draw_region_clean": "MowBox–klipping",
                     "mission_edge_trim_clean": "Kantklipping",
                     "mission_update_backup_map": "Oppdaterer kartsikkerhetskopi"
                 }
@@ -206,7 +206,7 @@
                 "name": "Kartsikkerhetskopiering pågår"
             },
             "lift_alarm": {
-                "name": "Løftealarm"
+                "name": "Robot løftet varsel"
             },
             "anti_theft_boundary_alarm": {
                 "name": "Tyverisikringens grensealarm"
@@ -222,11 +222,11 @@
                 }
             },
             "mow_speed_setting": {
-                "name": "Innstilling av klippehastighet",
+                "name": "Bevegelseshastighet",
                 "state": {
-                    "mow_speed_type_low": "Lav hastighet",
-                    "mow_speed_type_medium": "Middels hastighet",
-                    "mow_speed_type_adaptive_high": "Adaptiv høy hastighet",
+                    "mow_speed_type_low": "Fin",
+                    "mow_speed_type_medium": "Standard",
+                    "mow_speed_type_adaptive_high": "Adaptiv",
                     "mow_speed_type_auto": "Automatisk hastighet"
                 }
             },
@@ -241,9 +241,9 @@
             "main_direction_mode": {
                 "name": "Hovedretningsmodus",
                 "state": {
-                    "main_direction_mode_single": "Én retning",
-                    "main_direction_mode_multiple": "Flere retninger",
-                    "main_direction_mode_auto_rotate": "Automatisk rotasjon"
+                    "main_direction_mode_single": "Enkel",
+                    "main_direction_mode_multiple": "Dobbel",
+                    "main_direction_mode_auto_rotate": "Auto–roterer"
                 }
             }
         },
