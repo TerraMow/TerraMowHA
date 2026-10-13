@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Klippeplan"
+            },
+            "schedule_monday": {
+                "name": "Klippeplan - mandag"
+            },
+            "schedule_tuesday": {
+                "name": "Klippeplan - tirsdag"
+            },
+            "schedule_wednesday": {
+                "name": "Klippeplan - onsdag"
+            },
+            "schedule_thursday": {
+                "name": "Klippeplan - torsdag"
+            },
+            "schedule_friday": {
+                "name": "Klippeplan - fredag"
+            },
+            "schedule_saturday": {
+                "name": "Klippeplan - lørdag"
+            },
+            "schedule_sunday": {
+                "name": "Klippeplan - søndag"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Kort"

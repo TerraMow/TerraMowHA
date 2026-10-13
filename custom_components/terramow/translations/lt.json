@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Pjovimo tvarkaraštis"
+            },
+            "schedule_monday": {
+                "name": "Pjovimo tvarkaraštis - pirmadienis"
+            },
+            "schedule_tuesday": {
+                "name": "Pjovimo tvarkaraštis - antradienis"
+            },
+            "schedule_wednesday": {
+                "name": "Pjovimo tvarkaraštis - trečiadienis"
+            },
+            "schedule_thursday": {
+                "name": "Pjovimo tvarkaraštis - ketvirtadienis"
+            },
+            "schedule_friday": {
+                "name": "Pjovimo tvarkaraštis - penktadienis"
+            },
+            "schedule_saturday": {
+                "name": "Pjovimo tvarkaraštis - šeštadienis"
+            },
+            "schedule_sunday": {
+                "name": "Pjovimo tvarkaraštis - sekmadienis"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Žemėlapis"

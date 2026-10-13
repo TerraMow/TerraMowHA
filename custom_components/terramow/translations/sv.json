@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Klippningsschema"
+            },
+            "schedule_monday": {
+                "name": "Klippningsschema - måndag"
+            },
+            "schedule_tuesday": {
+                "name": "Klippningsschema - tisdag"
+            },
+            "schedule_wednesday": {
+                "name": "Klippningsschema - onsdag"
+            },
+            "schedule_thursday": {
+                "name": "Klippningsschema - torsdag"
+            },
+            "schedule_friday": {
+                "name": "Klippningsschema - fredag"
+            },
+            "schedule_saturday": {
+                "name": "Klippningsschema - lördag"
+            },
+            "schedule_sunday": {
+                "name": "Klippningsschema - söndag"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Karta"

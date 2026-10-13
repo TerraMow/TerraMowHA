@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Nyírási ütemterv"
+            },
+            "schedule_monday": {
+                "name": "Nyírási ütemterv - hétfő"
+            },
+            "schedule_tuesday": {
+                "name": "Nyírási ütemterv - kedd"
+            },
+            "schedule_wednesday": {
+                "name": "Nyírási ütemterv - szerda"
+            },
+            "schedule_thursday": {
+                "name": "Nyírási ütemterv - csütörtök"
+            },
+            "schedule_friday": {
+                "name": "Nyírási ütemterv - péntek"
+            },
+            "schedule_saturday": {
+                "name": "Nyírási ütemterv - szombat"
+            },
+            "schedule_sunday": {
+                "name": "Nyírási ütemterv - vasárnap"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Térkép"

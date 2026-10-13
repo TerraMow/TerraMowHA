@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Leikkuuaikataulu"
+            },
+            "schedule_monday": {
+                "name": "Leikkuuaikataulu - maanantai"
+            },
+            "schedule_tuesday": {
+                "name": "Leikkuuaikataulu - tiistai"
+            },
+            "schedule_wednesday": {
+                "name": "Leikkuuaikataulu - keskiviikko"
+            },
+            "schedule_thursday": {
+                "name": "Leikkuuaikataulu - torstai"
+            },
+            "schedule_friday": {
+                "name": "Leikkuuaikataulu - perjantai"
+            },
+            "schedule_saturday": {
+                "name": "Leikkuuaikataulu - lauantai"
+            },
+            "schedule_sunday": {
+                "name": "Leikkuuaikataulu - sunnuntai"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Kartta"

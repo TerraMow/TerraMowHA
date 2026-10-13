@@ -123,6 +123,20 @@ recommended cycle, and whether maintenance is due (`needs_maintenance`). **Next
 Scheduled Start** shows the start time (HH:MM) of the next scheduled mowing and is
 unknown when there is no schedule.
 
+**Schedule** is the master switch for scheduled mowing. Turning it off pauses
+all schedules without deleting them; turning it on enables them again. The
+switch reflects the robot's reported setting, so it is unknown until the
+setting is read and unavailable while disconnected or on firmware with schedule
+protocol version below 2. A change waits for the robot's reply and reads the
+setting again. This switch does not dock a mowing job already in progress.
+
+Seven weekday switches, Monday through Sunday, control which days may run
+time-slot schedules. Turning a weekday off disables schedules for that day;
+turning it on allows them again. The master switch does not erase these choices.
+They appear in the device's Configuration section. The weekday switches become
+available after a valid schedule read and are
+unavailable in frequency schedule mode, where this setting does not apply.
+
 ## Mowing settings
 
 **Cutting height**, **Moving speed**, and **Main Direction Status** show the current

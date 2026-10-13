@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Raspored košnje"
+            },
+            "schedule_monday": {
+                "name": "Raspored košnje - ponedjeljak"
+            },
+            "schedule_tuesday": {
+                "name": "Raspored košnje - utorak"
+            },
+            "schedule_wednesday": {
+                "name": "Raspored košnje - srijeda"
+            },
+            "schedule_thursday": {
+                "name": "Raspored košnje - četvrtak"
+            },
+            "schedule_friday": {
+                "name": "Raspored košnje - petak"
+            },
+            "schedule_saturday": {
+                "name": "Raspored košnje - subota"
+            },
+            "schedule_sunday": {
+                "name": "Raspored košnje - nedjelja"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Karta"

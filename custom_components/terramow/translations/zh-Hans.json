@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "修剪计划"
+            },
+            "schedule_monday": {
+                "name": "周一修剪计划"
+            },
+            "schedule_tuesday": {
+                "name": "周二修剪计划"
+            },
+            "schedule_wednesday": {
+                "name": "周三修剪计划"
+            },
+            "schedule_thursday": {
+                "name": "周四修剪计划"
+            },
+            "schedule_friday": {
+                "name": "周五修剪计划"
+            },
+            "schedule_saturday": {
+                "name": "周六修剪计划"
+            },
+            "schedule_sunday": {
+                "name": "周日修剪计划"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "地图"

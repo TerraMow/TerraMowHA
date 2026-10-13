@@ -42,6 +42,7 @@ from .const import (
     CompatibilityStatus,
 )
 from .feedback import TerraMowFeedback
+from .schedule import TerraMowSchedule
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -219,6 +220,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.has_error = False
         self.back_to_station_reason = BackToStationReason.BACK_TO_STATION_REASON_NONE
         self.feedback = TerraMowFeedback(self)
+        self.schedule = TerraMowSchedule(self)
 
         self.cmd_seq = random.randint(0, 0xFFFFFFFF)  # 生成随机的指令序号
         self._seq_lock = threading.Lock()  # MQTT 线程和 HA 控制服务共用序号。
@@ -356,6 +358,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.register_callback(125, self.on_base_station_time)
         self.register_callback(126, self.on_blade_time)
         self.register_callback(138, self.on_schedule_data)
+        self.register_callback(122, self.schedule.on_reply)
         self.register_callback(108, self.on_battery_status)
         self.register_callback(COMPATIBILITY_INFO_DP, self.on_compatibility_info)
 
@@ -617,6 +620,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             compatibility_status = self.basic_data.check_version_compatibility(data)
             self.basic_data.compatibility_status = compatibility_status
             self.basic_data.firmware_version = data
+            if isinstance(data, dict):
+                self.schedule.update_version(data)
 
             # 记录兼容性检查结果
             message = self.basic_data.get_compatibility_message()
@@ -687,6 +692,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         # MQTT 回调来自后台线程；先确定可用性，避免告警刷新先执行并停在不可用。
         self.mqtt_connected = rc == 0
         self.hass.add_job(self.feedback.reset_fault_snapshot)
+        self.hass.add_job(self.schedule.reset_connection)
         if rc == 0:
             # 新连接重新等待地图和电池报告；保留旧电池属性供已有实体使用。
             self._map_status = {}
@@ -740,6 +746,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         # MQTT 回调来自后台线程，交给 HA 事件循环刷新实体可用性。
         self.hass.add_job(async_dispatcher_send, self.hass, self.map_status_signal)
         self.hass.add_job(self.feedback.disconnected)
+        self.hass.add_job(self.schedule.reset_connection)
         if rc != 0:
             _LOGGER.warning(f"Unexpected MQTT disconnection: {rc}")
             # 断开连接后自动重连
@@ -837,7 +844,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if callbacks:
             _LOGGER.debug("Calling %d callbacks for dp_id %d", len(callbacks), dp_id)
             for callback in callbacks:
-                if dp_id in (114, 115, 123):
+                if dp_id in (114, 115, 122, 123):
                     self.hass.add_job(callback, payload, bool(msg.retain))
                 else:
                     self.hass.add_job(callback, payload)
@@ -1479,6 +1486,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Clean up resources when the entity is removed."""
         _LOGGER.info("Stopping MQTT client")
         self.feedback.disconnected()
+        self.schedule.reset_connection()
         self._stop_event.set()
         self._reset_map_retry()
         self._reset_path_retry()
