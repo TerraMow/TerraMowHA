@@ -13,6 +13,7 @@ Data Point 定义
 - [当前作业数据](#当前作业数据)
 - [基站使用时间](#基站使用时间)
 - [作业刀盘使用时间](#作业刀盘使用时间)
+- [修剪计划控制](#修剪计划控制)
 - [即将到来的预约](#即将到来的预约)
 - [全局作业参数设置](#全局作业参数设置)
 - [地图状态](#地图状态)
@@ -29,6 +30,7 @@ Data Point 定义
 | 108 | [电池状态](#电池状态) | 机器人→HA | 电池状态信息(充电状态、温度等) |
 | 113 | [当前作业数据](#当前作业数据) | 机器人→HA | 当前运行数据(面积、进度等) |
 | 117 | [地图状态](#地图状态) | 机器人→HA | 地图状态(ID、状态、数量等) |
+| 122 | [修剪计划控制](#修剪计划控制) | 机器人↔HA | 读取预约列表及控制总开关 |
 | 124 | [作业数据统计](#作业数据统计) | 机器人→HA | 运行统计数据(总时长、面积、次数) |
 | 125 | [基站使用时间](#基站使用时间) | 机器人↔HA | 基站使用时间 |
 | 126 | [作业刀盘使用时间](#作业刀盘使用时间) | 机器人↔HA | 刀盘使用时间 |
@@ -202,6 +204,34 @@ Data Point 定义
 - 备注：
   - 刀盘的推荐清洁周期为240分钟。
   - 当机器人收到数值为0的数据时，将会重置机器人内部记录的刀盘使用时间为0。
+
+## 修剪计划控制
+
+- **ID**：122
+- 数据方向：机器人↔HA
+- 要求固件 `compatibility.module.schedule >= 2`。
+- 发送 `SCHEDULE_CMD_TYPE_GET` 可读取预约列表。成功回复中的
+  `schedule_list.global_disabled` 为 `true` 表示全部计划暂停。成功的 protobuf
+  JSON 回复省略该字段时，默认值为 `false`。
+- 发送 `SCHEDULE_CMD_TYPE_SET_GLOBAL_DISABLED`，通过
+  `set_global_disabled_param.global_disabled` 修改总开关。该操作不会删除计划，
+  也不会停止已经开始的作业。
+- GET 回复中的 `schedule_list.disabled_week_days` 是被禁用的星期枚举列表，
+  从 `WEEK_DAY_MONDAY` 到 `WEEK_DAY_SUNDAY`；不在列表中的日子为启用。
+  发送 `SCHEDULE_CMD_TYPE_SET_DISABLED_WEEK_DAYS`，用
+  `set_disabled_week_days_param.week_day` 指定某天，`disabled=true` 表示禁用。
+  这组单日设置仅作用于时间段预约；频率预约不使用该禁用列表。
+- 请求包含唯一 `seq`；应按 `seq` 和 `cmd_type` 匹配回复。`code=0` 表示成功，
+  为零时可能省略；GET 的 `cmd_type` 也是枚举零值，在 protobuf JSON 中可能省略。
+  SET 成功回复不包含新状态，须再次发送 GET 回读。
+
+```json
+{"cmd_type":"SCHEDULE_CMD_TYPE_SET_GLOBAL_DISABLED","seq":1,"set_global_disabled_param":{"global_disabled":true}}
+```
+
+```json
+{"cmd_type":"SCHEDULE_CMD_TYPE_SET_DISABLED_WEEK_DAYS","seq":2,"set_disabled_week_days_param":{"week_day":"WEEK_DAY_MONDAY","disabled":true}}
+```
 
 ## 即将到来的预约
 

@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Schedule"
+            },
+            "schedule_monday": {
+                "name": "Monday Schedule"
+            },
+            "schedule_tuesday": {
+                "name": "Tuesday Schedule"
+            },
+            "schedule_wednesday": {
+                "name": "Wednesday Schedule"
+            },
+            "schedule_thursday": {
+                "name": "Thursday Schedule"
+            },
+            "schedule_friday": {
+                "name": "Friday Schedule"
+            },
+            "schedule_saturday": {
+                "name": "Saturday Schedule"
+            },
+            "schedule_sunday": {
+                "name": "Sunday Schedule"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Map"

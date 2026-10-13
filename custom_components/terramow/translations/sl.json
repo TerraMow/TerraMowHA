@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Urnik košnje"
+            },
+            "schedule_monday": {
+                "name": "Urnik košnje - ponedeljek"
+            },
+            "schedule_tuesday": {
+                "name": "Urnik košnje - torek"
+            },
+            "schedule_wednesday": {
+                "name": "Urnik košnje - sreda"
+            },
+            "schedule_thursday": {
+                "name": "Urnik košnje - četrtek"
+            },
+            "schedule_friday": {
+                "name": "Urnik košnje - petek"
+            },
+            "schedule_saturday": {
+                "name": "Urnik košnje - sobota"
+            },
+            "schedule_sunday": {
+                "name": "Urnik košnje - nedelja"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Zemljevid"

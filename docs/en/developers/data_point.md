@@ -12,6 +12,7 @@ Data Point Definition
 - [Current Operation Data](#current-operation-data)
 - [Base Station Usage Time](#base-station-usage-time)
 - [Mowing Blade Disk Usage Time](#mowing-blade-disk-usage-time)
+- [Schedule Control](#schedule-control)
 - [Upcoming Schedule](#upcoming-schedule)
 - [Global Operation Parameter Settings](#global-operation-parameter-settings)
 - [Map Status](#map-status)
@@ -28,6 +29,7 @@ Data Point Definition
 | 108 | [Battery Status](#battery-status) | Robot→HA | Battery status information (charging state, temperature, etc.) |
 | 113 | [Current Operation Data](#current-operation-data) | Robot→HA | Current operation data (area, progress, etc.) |
 | 117 | [Map Status](#map-status) | Robot→HA | Map status (ID, state, count, etc.) |
+| 122 | [Schedule Control](#schedule-control) | Robot↔HA | Read schedules and control their master switch |
 | 124 | [Operation Statistics](#operation-statistics) | Robot→HA | Operation statistics (total duration, area, count) |
 | 125 | [Base Station Usage Time](#base-station-usage-time) | Robot↔HA | Base station usage time |
 | 126 | [Mowing Blade Disk Usage Time](#mowing-blade-disk-usage-time) | Robot↔HA | Mowing blade disk usage time |
@@ -201,6 +203,37 @@ Data Point Definition
 - Notes:
   - The recommended cleaning cycle for the blade disk is 240 minutes.
   - When the robot receives a value of 0, it will reset the internal record of blade disk usage time to 0.
+
+## Schedule Control
+
+- **ID**: 122
+- Data Direction: Robot↔HA
+- Supported on firmware with `compatibility.module.schedule >= 2`.
+- Send `SCHEDULE_CMD_TYPE_GET` to read the schedule list. The successful reply
+  includes `schedule_list.global_disabled` (`true` means all schedules are
+  paused). A missing `global_disabled` in a successful protobuf JSON reply
+  means `false`.
+- Send `SCHEDULE_CMD_TYPE_SET_GLOBAL_DISABLED` with
+  `set_global_disabled_param.global_disabled` to change the master switch.
+  This does not remove schedules or stop an already running job.
+- The GET reply also contains `schedule_list.disabled_week_days`, a list of
+  weekday enum names (`WEEK_DAY_MONDAY` through `WEEK_DAY_SUNDAY`). A day absent
+  from this list is enabled. Send `SCHEDULE_CMD_TYPE_SET_DISABLED_WEEK_DAYS`
+  with `set_disabled_week_days_param.week_day` and `disabled` to change one day.
+  `disabled=true` pauses that day. These settings apply to time-slot schedules;
+  frequency schedules do not use the disabled-weekday list.
+- Both requests use a unique `seq`. Match the reply by `seq` and `cmd_type`;
+  GET's zero-valued `cmd_type` may be omitted in protobuf JSON. `code` is `0`
+  on success and may also be omitted when zero. A successful SET
+  reply does not include the new state, so read it again with GET.
+
+```json
+{"cmd_type":"SCHEDULE_CMD_TYPE_SET_GLOBAL_DISABLED","seq":1,"set_global_disabled_param":{"global_disabled":true}}
+```
+
+```json
+{"cmd_type":"SCHEDULE_CMD_TYPE_SET_DISABLED_WEEK_DAYS","seq":2,"set_disabled_week_days_param":{"week_day":"WEEK_DAY_MONDAY","disabled":true}}
+```
 
 ## Upcoming Schedule
 

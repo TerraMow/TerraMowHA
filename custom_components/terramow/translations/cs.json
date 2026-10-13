@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Plán sečení"
+            },
+            "schedule_monday": {
+                "name": "Plán sečení - pondělí"
+            },
+            "schedule_tuesday": {
+                "name": "Plán sečení - úterý"
+            },
+            "schedule_wednesday": {
+                "name": "Plán sečení - středa"
+            },
+            "schedule_thursday": {
+                "name": "Plán sečení - čtvrtek"
+            },
+            "schedule_friday": {
+                "name": "Plán sečení - pátek"
+            },
+            "schedule_saturday": {
+                "name": "Plán sečení - sobota"
+            },
+            "schedule_sunday": {
+                "name": "Plán sečení - neděle"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Mapa"

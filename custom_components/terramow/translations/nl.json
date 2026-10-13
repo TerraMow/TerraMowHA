@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Maaischema"
+            },
+            "schedule_monday": {
+                "name": "Maaischema - maandag"
+            },
+            "schedule_tuesday": {
+                "name": "Maaischema - dinsdag"
+            },
+            "schedule_wednesday": {
+                "name": "Maaischema - woensdag"
+            },
+            "schedule_thursday": {
+                "name": "Maaischema - donderdag"
+            },
+            "schedule_friday": {
+                "name": "Maaischema - vrijdag"
+            },
+            "schedule_saturday": {
+                "name": "Maaischema - zaterdag"
+            },
+            "schedule_sunday": {
+                "name": "Maaischema - zondag"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Kaart"

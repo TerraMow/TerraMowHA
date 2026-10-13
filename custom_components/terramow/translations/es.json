@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Programa de corte"
+            },
+            "schedule_monday": {
+                "name": "Programa de corte - lunes"
+            },
+            "schedule_tuesday": {
+                "name": "Programa de corte - martes"
+            },
+            "schedule_wednesday": {
+                "name": "Programa de corte - miércoles"
+            },
+            "schedule_thursday": {
+                "name": "Programa de corte - jueves"
+            },
+            "schedule_friday": {
+                "name": "Programa de corte - viernes"
+            },
+            "schedule_saturday": {
+                "name": "Programa de corte - sábado"
+            },
+            "schedule_sunday": {
+                "name": "Programa de corte - domingo"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Mapa"

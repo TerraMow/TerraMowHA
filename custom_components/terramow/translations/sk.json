@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Plán kosenia"
+            },
+            "schedule_monday": {
+                "name": "Plán kosenia - pondelok"
+            },
+            "schedule_tuesday": {
+                "name": "Plán kosenia - utorok"
+            },
+            "schedule_wednesday": {
+                "name": "Plán kosenia - streda"
+            },
+            "schedule_thursday": {
+                "name": "Plán kosenia - štvrtok"
+            },
+            "schedule_friday": {
+                "name": "Plán kosenia - piatok"
+            },
+            "schedule_saturday": {
+                "name": "Plán kosenia - sobota"
+            },
+            "schedule_sunday": {
+                "name": "Plán kosenia - nedeľa"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Mapa"

@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Harmonogram koszenia"
+            },
+            "schedule_monday": {
+                "name": "Harmonogram koszenia - poniedziałek"
+            },
+            "schedule_tuesday": {
+                "name": "Harmonogram koszenia - wtorek"
+            },
+            "schedule_wednesday": {
+                "name": "Harmonogram koszenia - środa"
+            },
+            "schedule_thursday": {
+                "name": "Harmonogram koszenia - czwartek"
+            },
+            "schedule_friday": {
+                "name": "Harmonogram koszenia - piątek"
+            },
+            "schedule_saturday": {
+                "name": "Harmonogram koszenia - sobota"
+            },
+            "schedule_sunday": {
+                "name": "Harmonogram koszenia - niedziela"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Mapa"

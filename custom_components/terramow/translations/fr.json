@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Programme de tonte"
+            },
+            "schedule_monday": {
+                "name": "Programme de tonte - lundi"
+            },
+            "schedule_tuesday": {
+                "name": "Programme de tonte - mardi"
+            },
+            "schedule_wednesday": {
+                "name": "Programme de tonte - mercredi"
+            },
+            "schedule_thursday": {
+                "name": "Programme de tonte - jeudi"
+            },
+            "schedule_friday": {
+                "name": "Programme de tonte - vendredi"
+            },
+            "schedule_saturday": {
+                "name": "Programme de tonte - samedi"
+            },
+            "schedule_sunday": {
+                "name": "Programme de tonte - dimanche"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Carte"

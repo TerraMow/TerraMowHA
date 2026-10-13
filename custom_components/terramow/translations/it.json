@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Programma di taglio"
+            },
+            "schedule_monday": {
+                "name": "Programma di taglio - lunedì"
+            },
+            "schedule_tuesday": {
+                "name": "Programma di taglio - martedì"
+            },
+            "schedule_wednesday": {
+                "name": "Programma di taglio - mercoledì"
+            },
+            "schedule_thursday": {
+                "name": "Programma di taglio - giovedì"
+            },
+            "schedule_friday": {
+                "name": "Programma di taglio - venerdì"
+            },
+            "schedule_saturday": {
+                "name": "Programma di taglio - sabato"
+            },
+            "schedule_sunday": {
+                "name": "Programma di taglio - domenica"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Mappa"

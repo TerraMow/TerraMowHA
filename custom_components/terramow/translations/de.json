@@ -184,6 +184,32 @@
                 }
             }
         },
+        "switch": {
+            "schedule": {
+                "name": "Zeitplan"
+            },
+            "schedule_monday": {
+                "name": "Zeitplan - Montag"
+            },
+            "schedule_tuesday": {
+                "name": "Zeitplan - Dienstag"
+            },
+            "schedule_wednesday": {
+                "name": "Zeitplan - Mittwoch"
+            },
+            "schedule_thursday": {
+                "name": "Zeitplan - Donnerstag"
+            },
+            "schedule_friday": {
+                "name": "Zeitplan - Freitag"
+            },
+            "schedule_saturday": {
+                "name": "Zeitplan - Samstag"
+            },
+            "schedule_sunday": {
+                "name": "Zeitplan - Sonntag"
+            }
+        },
         "camera": {
             "map_camera": {
                 "name": "Karte"
