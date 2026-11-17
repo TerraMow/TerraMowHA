@@ -1002,7 +1002,7 @@ class VersionCompatibilitySensor(SensorEntity):
 
 
 class TerraMowPoseSensor(SensorEntity):
-    """实时姿态传感器（2Hz）"""
+    """实时姿态传感器；仅在实体启用期间订阅设备姿态。"""
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:crosshairs-gps"
@@ -1019,9 +1019,22 @@ class TerraMowPoseSensor(SensorEntity):
         self.host = basic_data.host
         self.hass = hass
         self._pose: dict[str, Any] = {}
+        self._pose_subscribed = False
 
-        if hasattr(basic_data, "lawn_mower") and basic_data.lawn_mower:
-            basic_data.lawn_mower.register_pose_callback(self._on_pose)
+    async def async_added_to_hass(self) -> None:
+        """实体加入后订阅，避免禁用实体保留回调。"""
+        await super().async_added_to_hass()
+        mower = self.basic_data.lawn_mower
+        if mower is None:
+            return
+        self._pose_subscribed = True
+        unsubscribe = mower.register_pose_callback(self._on_pose)
+        self.async_on_remove(unsubscribe)
+        self.async_on_remove(self._stop_pose_updates)
+
+    def _stop_pose_updates(self) -> None:
+        """先阻止已排队回调写状态，再让卸载流程清理订阅。"""
+        self._pose_subscribed = False
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1039,7 +1052,9 @@ class TerraMowPoseSensor(SensorEntity):
         return f"lawn_mower.terramow@{self.basic_data.stable_id}.pose"
 
     async def _on_pose(self, pose: dict[str, Any]) -> None:
-        """处理姿态更新"""
+        """处理姿态更新；卸载期间已排队的消息直接忽略。"""
+        if not self._pose_subscribed or self.hass is None:
+            return
         self._pose = pose
         self.async_write_ha_state()
 

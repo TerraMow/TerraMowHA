@@ -806,7 +806,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             try:
                 pose = json.loads(payload)
                 self._pose = pose
-                for callback in self.pose_callbacks:
+                for callback in tuple(self.pose_callbacks):
                     self.hass.add_job(callback, pose)
             except json.JSONDecodeError:
                 _LOGGER.error("Failed to parse pose JSON: %s", payload[:200])
@@ -843,7 +843,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         callbacks = self.callbacks.get(dp_id)
         if callbacks:
             _LOGGER.debug("Calling %d callbacks for dp_id %d", len(callbacks), dp_id)
-            for callback in callbacks:
+            for callback in tuple(callbacks):
                 if dp_id in (114, 115, 122, 123):
                     self.hass.add_job(callback, payload, bool(msg.retain))
                 else:
@@ -852,16 +852,35 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.debug("No callback registered for dp_id: %d", dp_id)
 
     def register_callback(self, dp_id: int, callback: Callable):
-        """Register a callback function for a specific dp_id."""
+        """注册数据点回调，并返回实体卸载时使用的注销函数。"""
         if not callable(callback):
             raise ValueError("Callback must be a callable function.")
         if dp_id not in self.callbacks:
             self.callbacks[dp_id] = []
-        self.callbacks[dp_id].append(callback)
+        callbacks = self.callbacks[dp_id]
+        callbacks.append(callback)
         _LOGGER.info(f"Callback registered for dp_id: {dp_id}")
 
+        def unsubscribe() -> None:
+            if callback in callbacks:
+                callbacks.remove(callback)
+            if not callbacks and self.callbacks.get(dp_id) is callbacks:
+                self.callbacks.pop(dp_id, None)
+
+        return unsubscribe
+
+    @staticmethod
+    def _unsubscribe_stream_callback(callbacks: list[Callable], callback: Callable):
+        """注销流回调；已排队的任务仍由接收实体检查自身状态。"""
+
+        def unsubscribe() -> None:
+            if callback in callbacks:
+                callbacks.remove(callback)
+
+        return unsubscribe
+
     def register_map_callback(self, callback: Callable):
-        """Register a callback function for map info updates."""
+        """注册地图回调，并返回注销函数。"""
         if not callable(callback):
             raise ValueError("Callback must be a callable function.")
         self.map_callbacks.append(callback)
@@ -869,33 +888,37 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         # 如果已有地图数据，立即触发回调
         if self._map_info:
             self.hass.add_job(callback, self._map_info)
+        return self._unsubscribe_stream_callback(self.map_callbacks, callback)
 
     def register_pose_callback(self, callback: Callable):
-        """Register a callback function for pose updates."""
+        """注册姿态回调，并返回注销函数。"""
         if not callable(callback):
             raise ValueError("Callback must be a callable function.")
         self.pose_callbacks.append(callback)
         _LOGGER.info("Pose callback registered")
         if self._pose:
             self.hass.add_job(callback, self._pose)
+        return self._unsubscribe_stream_callback(self.pose_callbacks, callback)
 
     def register_path_callback(self, callback: Callable):
-        """Register a callback function for path data updates."""
+        """注册实时路径回调，并返回注销函数。"""
         if not callable(callback):
             raise ValueError("Callback must be a callable function.")
         self.path_callbacks.append(callback)
         _LOGGER.info("Path callback registered")
         if self._path_data:
             self.hass.add_job(callback, self._path_data)
+        return self._unsubscribe_stream_callback(self.path_callbacks, callback)
 
     def register_history_path_callback(self, callback: Callable):
-        """Register a callback function for history path data updates."""
+        """注册历史路径回调，并返回注销函数。"""
         if not callable(callback):
             raise ValueError("Callback must be a callable function.")
         self.history_path_callbacks.append(callback)
         _LOGGER.info("History path callback registered")
         if self._history_path_data:
             self.hass.add_job(callback, self._history_path_data)
+        return self._unsubscribe_stream_callback(self.history_path_callbacks, callback)
 
     def _update_map_info(self, map_info: dict[str, Any]) -> None:
         """Update map info and notify callbacks."""
@@ -906,7 +929,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             map_info.get("name"),
             map_info.get("map_state"),
         )
-        for callback in self.map_callbacks:
+        for callback in tuple(self.map_callbacks):
             self.hass.add_job(callback, map_info)
 
     def _get_map_field(self, data: dict[str, Any], *keys: str) -> Any | None:
@@ -1176,7 +1199,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 self._path_etag = etag
             if data is not None:
                 self._path_data = data
-                for callback in self.path_callbacks:
+                for callback in tuple(self.path_callbacks):
                     self.hass.async_create_task(callback(data))
             if not ok:
                 self._schedule_path_retry(meta)
@@ -1239,7 +1262,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 self._history_path_etag = etag
             if data is not None:
                 self._history_path_data = data
-                for callback in self.history_path_callbacks:
+                for callback in tuple(self.history_path_callbacks):
                     self.hass.async_create_task(callback(data))
             if not ok:
                 self._schedule_history_path_retry(meta)

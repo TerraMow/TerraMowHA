@@ -195,7 +195,7 @@ def cameras(hass: HomeAssistant) -> tuple[TerraMowMapCamera, TerraMowCleanMapCam
 
 
 async def test_camera_platform_adds_both_variants(hass: HomeAssistant) -> None:
-    """第二个相机有独立实体 ID，但不重复注册地图回调。"""
+    """第二个相机有独立实体 ID，两者启用后仍只注册一组回调。"""
     mower = TerraMowLawnMowerEntity(TerraMowBasicData("192.0.2.70", ""), hass)
     entry = MockConfigEntry(
         domain=DOMAIN, data={CONF_HOST: mower.host, CONF_PASSWORD: ""}
@@ -212,9 +212,69 @@ async def test_camera_platform_adds_both_variants(hass: HomeAssistant) -> None:
         TerraMowCleanMapCamera,
     ]
     assert len({entity.unique_id for entity in entities}) == 2
+    assert len(mower.map_callbacks) == 0
+    entities[0].entity_id = "camera.test_map"
+    entities[1].entity_id = "camera.test_clean_map"
+    await entities[0].async_added_to_hass()
+    await entities[1].async_added_to_hass()
     assert len(mower.map_callbacks) == 1
     assert len(mower.path_callbacks) == 1
     assert len(mower.pose_callbacks) == 1
+    await entities[0].async_remove(force_remove=True)
+    await entities[1].async_remove(force_remove=True)
+
+
+async def test_clean_camera_keeps_shared_updates_after_map_camera_removal(
+    cameras: tuple[TerraMowMapCamera, TerraMowCleanMapCamera],
+) -> None:
+    """主相机卸载后，纯地图仍接收姿态；两者卸载后清空所有订阅。"""
+    map_camera, clean_camera = cameras
+    mower = map_camera.basic_data.lawn_mower
+    map_camera.entity_id = "camera.test_map"
+    clean_camera.entity_id = "camera.test_clean_map"
+    map_camera.async_write_ha_state = callback(MagicMock())
+    clean_camera.async_write_ha_state = callback(MagicMock())
+    await map_camera.async_added_to_hass()
+    await clean_camera.async_added_to_hass()
+
+    await map_camera.async_remove(force_remove=True)
+    await map_camera._on_pose({"x": 12, "y": 34, "yaw": 0.5})
+    map_camera.async_write_ha_state.assert_not_called()
+    clean_camera.async_write_ha_state.assert_called_once()
+    assert len(mower.pose_callbacks) == 1
+
+    await clean_camera.async_remove(force_remove=True)
+    assert mower.map_callbacks == []
+    assert mower.path_callbacks == []
+    assert mower.history_path_callbacks == []
+    assert mower.pose_callbacks == []
+    assert mower.callbacks.get(108) is None
+    await map_camera._on_pose({"x": 13, "y": 35, "yaw": 0.6})
+    clean_camera.async_write_ha_state.assert_called_once()
+
+
+async def test_clean_camera_updates_when_map_camera_was_never_enabled(
+    cameras: tuple[TerraMowMapCamera, TerraMowCleanMapCamera],
+) -> None:
+    """主相机禁用时，纯地图单独维持地图数据与姿态订阅。"""
+    map_camera, clean_camera = cameras
+    mower = map_camera.basic_data.lawn_mower
+    map_camera.hass = None
+    clean_camera.entity_id = "camera.test_clean_only"
+    clean_camera.async_write_ha_state = callback(MagicMock())
+    await clean_camera.async_added_to_hass()
+
+    assert len(mower.map_callbacks) == 1
+    assert len(mower.pose_callbacks) == 1
+    await map_camera._on_path_data({"points": []})
+    await map_camera._on_pose({"x": 12, "y": 34, "yaw": 0.5})
+    assert clean_camera.async_write_ha_state.call_count == 2
+
+    queued_callback = mower.pose_callbacks[0]
+    await clean_camera.async_remove(force_remove=True)
+    await queued_callback({"x": 13, "y": 35, "yaw": 0.6})
+    assert clean_camera.async_write_ha_state.call_count == 2
+    assert mower.pose_callbacks == []
 
 
 async def test_removed_clean_camera_stops_receiving_updates(
