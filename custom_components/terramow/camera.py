@@ -9,6 +9,7 @@ import io
 import logging
 import math
 import time
+from collections.abc import Callable
 from functools import lru_cache
 from itertools import pairwise
 from pathlib import Path
@@ -900,6 +901,7 @@ class TerraMowMapCamera(Camera):
         self.basic_data = basic_data
         self.host = basic_data.host
         self.hass = hass
+        self._shared_hass = hass
 
         self._map_data: dict[str, Any] = {}
         self._path_data: dict[str, Any] = {}
@@ -917,14 +919,40 @@ class TerraMowMapCamera(Camera):
         self._map_data_logged = False
         self._path_data_logged = False
         self._history_path_data_logged = False
+        self._active_cameras: set[Camera] = set()
+        self._unsubscribers: list[Callable[[], None]] = []
 
-        lawn_mower = basic_data.lawn_mower
-        if lawn_mower:
-            lawn_mower.register_map_callback(self._on_map_info)
-            lawn_mower.register_path_callback(self._on_path_data)
-            lawn_mower.register_history_path_callback(self._on_history_path_data)
-            lawn_mower.register_pose_callback(self._on_pose)
-            lawn_mower.register_callback(BATTERY_STATUS_DP, self._on_battery_status)
+    async def async_added_to_hass(self) -> None:
+        """主相机启用时接入共用数据源。"""
+        await super().async_added_to_hass()
+        self._attach_camera(self)
+        self.async_on_remove(lambda: self._detach_camera(self))
+
+    def _attach_camera(self, camera: Camera) -> None:
+        """两种相机共享一组设备订阅，任一相机启用即可保持刷新。"""
+        if camera in self._active_cameras:
+            return
+        first_camera = not self._active_cameras
+        self._active_cameras.add(camera)
+        mower = self.basic_data.lawn_mower
+        if not first_camera or mower is None:
+            return
+        self._unsubscribers = [
+            mower.register_map_callback(self._on_map_info),
+            mower.register_path_callback(self._on_path_data),
+            mower.register_history_path_callback(self._on_history_path_data),
+            mower.register_pose_callback(self._on_pose),
+            mower.register_callback(BATTERY_STATUS_DP, self._on_battery_status),
+        ]
+
+    def _detach_camera(self, camera: Camera) -> None:
+        """最后一台相机卸载时撤销全部订阅，避免回调跨重载累积。"""
+        self._active_cameras.discard(camera)
+        if self._active_cameras:
+            return
+        for unsubscribe in self._unsubscribers:
+            unsubscribe()
+        self._unsubscribers.clear()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -976,17 +1004,23 @@ class TerraMowMapCamera(Camera):
 
     async def _on_map_info(self, map_info: dict[str, Any]) -> None:
         """地图信息更新回调。"""
+        if not self._active_cameras:
+            return
         lawn_mower = self.basic_data.lawn_mower
         if lawn_mower:
             self._map_data = lawn_mower.map_data or {}
         if not self._map_data_logged and self._map_data:
             _LOGGER.debug("ha_map_v1 top-level keys: %s", list(self._map_data.keys()))
             self._map_data_logged = True
-        await self.hass.async_add_executor_job(self._rebuild_static_image)
+        await self._shared_hass.async_add_executor_job(self._rebuild_static_image)
+        if not self._active_cameras:
+            return
         self._notify_image_updated()
 
     async def _on_path_data(self, path_data: dict[str, Any]) -> None:
         """路径数据更新回调。"""
+        if not self._active_cameras:
+            return
         self._path_data = path_data
         if not self._path_data_logged and path_data:
             _LOGGER.debug(
@@ -996,11 +1030,15 @@ class TerraMowMapCamera(Camera):
                 else type(path_data),
             )
             self._path_data_logged = True
-        await self.hass.async_add_executor_job(self._rebuild_static_image)
+        await self._shared_hass.async_add_executor_job(self._rebuild_static_image)
+        if not self._active_cameras:
+            return
         self._notify_image_updated()
 
     async def _on_history_path_data(self, path_data: dict[str, Any]) -> None:
         """历史路径数据更新回调。"""
+        if not self._active_cameras:
+            return
         self._history_path_data = path_data
         if not self._history_path_data_logged and path_data:
             _LOGGER.debug(
@@ -1010,11 +1048,15 @@ class TerraMowMapCamera(Camera):
                 else type(path_data),
             )
             self._history_path_data_logged = True
-        await self.hass.async_add_executor_job(self._rebuild_static_image)
+        await self._shared_hass.async_add_executor_job(self._rebuild_static_image)
+        if not self._active_cameras:
+            return
         self._notify_image_updated()
 
     async def _on_pose(self, pose: dict[str, Any]) -> None:
         """姿态更新回调。"""
+        if not self._active_cameras:
+            return
         self._pose = pose
         now = time.monotonic()
         write_state = now - self._last_pose_state_update >= 2.0
@@ -1024,6 +1066,8 @@ class TerraMowMapCamera(Camera):
 
     async def _on_battery_status(self, _payload: str) -> None:
         """电池状态更新后重绘基站和机器人标记。"""
+        if not self._active_cameras:
+            return
         self._notify_image_updated()
 
     def _notify_image_updated(self, *, write_state: bool = True) -> None:
@@ -1032,8 +1076,13 @@ class TerraMowMapCamera(Camera):
         self._cached_clean_png = None
         if not write_state:
             return
-        self.async_write_ha_state()
-        if self._clean_camera is not None and self._clean_camera.entity_id is not None:
+        if self in self._active_cameras and self.hass is not None:
+            self.async_write_ha_state()
+        if (
+            self._clean_camera in self._active_cameras
+            and self._clean_camera is not None
+            and self._clean_camera.hass is not None
+        ):
             self._clean_camera.async_write_ha_state()
 
     def _get_battery_connected(self) -> bool | None:
@@ -2436,6 +2485,8 @@ class TerraMowCleanMapCamera(Camera):
         """仅在实体启用期间接收原相机的画面刷新通知。"""
         await super().async_added_to_hass()
         self._map_camera._clean_camera = self
+        self._map_camera._attach_camera(self)
+        self.async_on_remove(lambda: self._map_camera._detach_camera(self))
         self.async_on_remove(self._detach_from_map_camera)
 
     def _detach_from_map_camera(self) -> None:
