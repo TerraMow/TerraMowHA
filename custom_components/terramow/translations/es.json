@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Calendario de corte global"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Cortacésped"

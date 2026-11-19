@@ -209,6 +209,9 @@ Data Point Definition
 - **ID**: 122
 - Data Direction: Robot↔HA
 - Supported on firmware with `compatibility.module.schedule >= 2`.
+- The integration reads DP122 directly after MQTT connection; it does not wait
+  for or gate schedule availability on a DP127 compatibility report. A valid GET
+  establishes readable state; writes still require ACK and GET verification.
 - Send `SCHEDULE_CMD_TYPE_GET` to read the schedule list. The successful reply
   includes `schedule_list.global_disabled` (`true` means all schedules are
   paused). A missing `global_disabled` in a successful protobuf JSON reply

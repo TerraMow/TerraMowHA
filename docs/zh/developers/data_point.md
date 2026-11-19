@@ -210,6 +210,9 @@ Data Point 定义
 - **ID**：122
 - 数据方向：机器人↔HA
 - 要求固件 `compatibility.module.schedule >= 2`。
+- 集成在 MQTT 连接成功后直接读取 DP122，不等待 DP127 兼容性报告，也不以该报告
+  作为预约功能的可用性门槛。有效 GET 用于确认可读取的状态；写入仍须收到成功 ACK，
+  并通过 GET 回读验证。
 - 发送 `SCHEDULE_CMD_TYPE_GET` 可读取预约列表。成功回复中的
   `schedule_list.global_disabled` 为 `true` 表示全部计划暂停。成功的 protobuf
   JSON 回复省略该字段时，默认值为 `false`。

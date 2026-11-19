@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Globalni raspored košnje"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosilica"

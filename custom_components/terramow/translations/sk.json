@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Globálny plán kosenia"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosačka"

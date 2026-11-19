@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Globális nyírási ütemezés"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Fűnyíró"
