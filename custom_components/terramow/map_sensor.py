@@ -80,7 +80,7 @@ class TerraMowMapStatusSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "map_status"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = ["MAP_STATE_EMPTY", "MAP_STATE_INCOMPLETE", "MAP_STATE_COMPLETE"]
+    _attr_options = ["map_state_empty", "map_state_incomplete", "map_state_complete"]
 
     def __init__(
         self,
@@ -119,7 +119,13 @@ class TerraMowMapStatusSensor(SensorEntity):
         if not map_status:
             return None
 
-        return map_status.get("map_state")
+        map_state = map_status.get("map_state")
+        if (
+            not isinstance(map_state, str)
+            or map_state.lower() not in self._attr_options
+        ):
+            return None
+        return map_state.lower()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -189,10 +195,10 @@ class TerraMowCleanModeSensor(TerraMowMapSensorBase):
     _attr_translation_key = "clean_mode"
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = [
-        "MAP_CLEAN_INFO_MODE_GLOBAL",
-        "MAP_CLEAN_INFO_MODE_SELECT_REGION",
-        "MAP_CLEAN_INFO_MODE_DRAW_REGION",
-        "MAP_CLEAN_INFO_MODE_MOVE_TO_TARGET_POINT",
+        "map_clean_info_mode_global",
+        "map_clean_info_mode_select_region",
+        "map_clean_info_mode_draw_region",
+        "map_clean_info_mode_move_to_target_point",
     ]
 
     def __init__(
@@ -216,7 +222,9 @@ class TerraMowCleanModeSensor(TerraMowMapSensorBase):
         clean_info = self._map_info.get("clean_info", {})
         mode = clean_info.get("mode", "")
 
-        return mode if mode else None
+        if not isinstance(mode, str) or mode.lower() not in self._attr_options:
+            return None
+        return mode.lower()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

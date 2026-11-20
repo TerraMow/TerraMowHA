@@ -753,7 +753,7 @@ class TerraMowMowSpeedSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "mow_speed"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = MOW_SPEED_TYPES.copy()
+    _attr_options = [speed_type.lower() for speed_type in MOW_SPEED_TYPES]
 
     def __init__(
         self,
@@ -799,9 +799,9 @@ class TerraMowMowSpeedSensor(SensorEntity):
             self._unknown_speed_type = None
             return None
 
-        if speed_type in self._attr_options:
+        if speed_type in MOW_SPEED_TYPES:
             self._unknown_speed_type = None
-            return speed_type
+            return speed_type.lower()
 
         if speed_type != self._unknown_speed_type:
             _LOGGER.warning(
@@ -1185,8 +1185,8 @@ class MainDirectionStatusSensor(SensorEntity):
         main_direction_config = global_params.get("main_direction_angle_config", {})
         mode = main_direction_config.get("mode", "MAIN_DIRECTION_MODE_SINGLE")
 
-        # 返回当前模式作为传感器值
-        return mode
+        # 返回当前模式作为传感器值 (lowercase for translations)
+        return mode.lower() if isinstance(mode, str) else mode
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

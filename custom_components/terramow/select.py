@@ -384,11 +384,17 @@ class MowSpeedSelect(SelectEntity):
         options = self._BASE_OPTIONS.copy()
         if self._should_expose_auto_option():
             options.append(MOW_SPEED_TYPE_AUTO)
-        return options
+        # HA state translations require lowercase keys
+        return [option.lower() for option in options]
 
     @property
     def current_option(self) -> str | None:
-        """Return the current selected option."""
+        """Return the current selected option (lowercase for translations)."""
+        option = self._device_option()
+        return option.lower() if option else None
+
+    def _device_option(self) -> str | None:
+        """Return the current option as reported by the device."""
         if not hasattr(self.basic_data, "lawn_mower") or not self.basic_data.lawn_mower:
             return self._current_option
 
@@ -420,6 +426,7 @@ class MowSpeedSelect(SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        option = option.upper()
         if option not in MOW_SPEED_TYPES:
             _LOGGER.error("Invalid mow speed option: %s", option)
             return
@@ -480,12 +487,13 @@ class BladeSpeedSelect(SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_translation_key = "blade_speed"
 
-    # 刀盘转速选项
-    _attr_options = [
+    # 刀盘转速选项 (device values; HA options are lowercase for translations)
+    _DEVICE_OPTIONS = [
         "BLADE_DISK_SPEED_TYPE_LOW",
         "BLADE_DISK_SPEED_TYPE_MEDIUM",
         "BLADE_DISK_SPEED_TYPE_HIGH",
     ]
+    _attr_options = [option.lower() for option in _DEVICE_OPTIONS]
 
     def __init__(
         self,
@@ -517,7 +525,12 @@ class BladeSpeedSelect(SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        """Return the current selected option."""
+        """Return the current selected option (lowercase for translations)."""
+        option = self._device_option()
+        return option.lower() if option else None
+
+    def _device_option(self) -> str | None:
+        """Return the current option as reported by the device."""
         if not hasattr(self.basic_data, "lawn_mower") or not self.basic_data.lawn_mower:
             return self._current_option
 
@@ -528,14 +541,15 @@ class BladeSpeedSelect(SelectEntity):
         blade_disk_speed = global_params.get("blade_disk_speed", {})
         speed_type = blade_disk_speed.get("speed_type")
 
-        if speed_type and speed_type in self._attr_options:
+        if speed_type and speed_type in self._DEVICE_OPTIONS:
             self._current_option = speed_type
 
         return self._current_option
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if option not in self._attr_options:
+        option = option.upper()
+        if option not in self._DEVICE_OPTIONS:
             _LOGGER.error("Invalid blade speed option: %s", option)
             return
 
@@ -571,12 +585,13 @@ class MainDirectionModeSelect(SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_translation_key = "main_direction_mode"
 
-    # 主方向模式选项
-    _attr_options = [
+    # 主方向模式选项 (device values; HA options are lowercase for translations)
+    _DEVICE_OPTIONS = [
         "MAIN_DIRECTION_MODE_SINGLE",
         "MAIN_DIRECTION_MODE_MULTIPLE",
         "MAIN_DIRECTION_MODE_AUTO_ROTATE",
     ]
+    _attr_options = [option.lower() for option in _DEVICE_OPTIONS]
 
     def __init__(
         self,
@@ -639,7 +654,7 @@ class MainDirectionModeSelect(SelectEntity):
                     "main_direction_angle_config", {}
                 )
                 device_mode = main_direction_config.get("mode")
-                if device_mode and device_mode in self._attr_options:
+                if device_mode and device_mode in self._DEVICE_OPTIONS:
                     return device_mode
 
         return self._current_option
@@ -649,11 +664,12 @@ class MainDirectionModeSelect(SelectEntity):
         """Return the current selected option."""
         mode = self.get_effective_mode()
         self._current_option = mode
-        return mode
+        return mode.lower() if mode else None
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if option not in self._attr_options:
+        option = option.upper()
+        if option not in self._DEVICE_OPTIONS:
             _LOGGER.error("Invalid main direction mode option: %s", option)
             return
 
