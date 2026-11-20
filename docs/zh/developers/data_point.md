@@ -30,7 +30,7 @@ Data Point 定义
 | 108 | [电池状态](#电池状态) | 机器人→HA | 电池状态信息(充电状态、温度等) |
 | 113 | [当前作业数据](#当前作业数据) | 机器人→HA | 当前运行数据(面积、进度等) |
 | 117 | [地图状态](#地图状态) | 机器人→HA | 地图状态(ID、状态、数量等) |
-| 122 | [修剪计划控制](#修剪计划控制) | 机器人↔HA | 读取预约列表及控制总开关 |
+| 122 | [修剪计划控制](#修剪计划控制) | 机器人↔HA | 全局预约增删改查及总开关、按星期开关 |
 | 124 | [作业数据统计](#作业数据统计) | 机器人→HA | 运行统计数据(总时长、面积、次数) |
 | 125 | [基站使用时间](#基站使用时间) | 机器人↔HA | 基站使用时间 |
 | 126 | [作业刀盘使用时间](#作业刀盘使用时间) | 机器人↔HA | 刀盘使用时间 |
@@ -209,10 +209,12 @@ Data Point 定义
 
 - **ID**：122
 - 数据方向：机器人↔HA
-- 要求固件 `compatibility.module.schedule >= 2`。
+- 全局禁用和按星期控制在预约模块版本 2 及以上的协议中定义；上报版本不作为可用性门槛。
 - 集成在 MQTT 连接成功后直接读取 DP122，不等待 DP127 兼容性报告，也不以该报告
   作为预约功能的可用性门槛。有效 GET 用于确认可读取的状态；写入仍须收到成功 ACK，
   并通过 GET 回读验证。
+- 全局时间段预约的 ADD/MODIFY/DELETE 请求、固件能力和日历编辑规则，见
+  [全局预约协议与日历](./schedule.md)。
 - 发送 `SCHEDULE_CMD_TYPE_GET` 可读取预约列表。成功回复中的
   `schedule_list.global_disabled` 为 `true` 表示全部计划暂停。成功的 protobuf
   JSON 回复省略该字段时，默认值为 `false`。
@@ -287,7 +289,7 @@ Data Point 定义
   | mow_height | 对象 | - | 割草高度设置 |
   | mow_height.value | 整数 | 毫米 | 割草高度值 |
   | mow_speed | 对象 | - | 割草速度设置 |
-  | mow_speed.speed_type | 字符串 | - | 割草速度类型：<br>"MOW_SPEED_TYPE_LOW" - 低速<br>"MOW_SPEED_TYPE_MEDIUM" - 中速（默认值）<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - 自适应高速<br>"MOW_SPEED_TYPE_AUTO" - 自动模式（根据刀盘负载实时调整割草速度） |
+  | mow_speed.speed_type | 字符串 | - | 割草速度类型：<br>"MOW_SPEED_TYPE_LOW" - 低速<br>"MOW_SPEED_TYPE_MEDIUM" - 中速（默认值）<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - 自适应高速<br>"MOW_SPEED_TYPE_AUTO" - 自动模式（固件支持时可用） |
   | edge_cutting_distance | 对象 | - | 沿边割草距离设置 |
   | edge_cutting_distance.value | 整数 | 毫米 | 沿边割草距离值 |
   | main_direction_angle_config | 对象 | - | 主方向角度配置 |
@@ -338,7 +340,8 @@ Data Point 定义
   - 可以从HA下发该协议给机器人以修改对应的参数设置，且可以仅发送其中一个字段，例如只发送`mow_height`字段，则只会修改割草高度。
   - 修改割草间距或主方向角度配置将会重置作业进度
   - 当机器人上报该协议时才包含`current_mow_spacing`和`main_direction_angle_config.current_angle`字段
-  - 对于未来固件新增的`mow_speed.speed_type`枚举值，HA插件会保留原始字符串并上报到实体属性，避免状态信息丢失。
+  - 对于未识别的 `mow_speed.speed_type`，传感器和选择器显示未知状态，并分别在
+    `unknown_mow_speed_type` 和 `unknown_speed_type` 属性中保留原始字符串。
 
 ## 地图状态
 

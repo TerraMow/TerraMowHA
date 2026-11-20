@@ -9,6 +9,7 @@
 
 - [通信方式](#通信方式)
 - [MQTT Topics 定义](#mqtt-topics-定义)
+- [全局预约与日历](#全局预约与日历)
 - [特殊主题](#特殊主题)
 - [地图信息](#地图信息)
 - [地图与路径能力（HA v3+）](#地图与路径能力ha-v3)
@@ -36,6 +37,11 @@ TerraMow 和 Home Assistant 之间的通信主要通过 MQTT 协议进行。为�
 其中 `{dp_id}` 是 Data Point 的 ID，类型为整数，范围为 0-200。
 
 具体 Data Point 的定义可以参考 [Data Point 定义](./developers/data_point.md)。
+
+## 全局预约与日历
+
+DP122 新增、读取、修改和删除请求、ACK／回读匹配、固件要求、日历重复规则限制及
+完整示例，见[全局预约协议与日历](./developers/schedule.md)。
 
 ## 特殊主题
 
