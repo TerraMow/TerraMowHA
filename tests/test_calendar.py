@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.components.calendar import CalendarEntityFeature
-from homeassistant.const import CONF_HOST, CONF_PASSWORD
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, Platform
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -99,6 +99,7 @@ def device(hass, monkeypatch):
         global_disabled=False,
         disabled_week_days=[],
         commands=[],
+        published=asyncio.Queue(),
         code=0,
         apply=True,
         omit_defaults=False,
@@ -113,6 +114,7 @@ def device(hass, monkeypatch):
         assert topic == "data_point/122/app"
         command = json.loads(payload)
         state.commands.append(command)
+        state.published.put_nowait((len(state.commands), command))
         cmd = command["cmd_type"]
         reply = {
             "cmd_type": cmd,
@@ -179,16 +181,27 @@ def new_event(**changes):
     }
 
 
+async def wait_for_command(state, cmd_type, *, after=0):
+    """Wait for an observed publish, including any preceding baseline GET."""
+    async with asyncio.timeout(5):
+        while True:
+            index, command = await state.published.get()
+            if index > after and command["cmd_type"] == cmd_type:
+                return command
+
+
 async def test_platform_and_identity(hass, device):
-    mower, calendar, _ = device
+    mower, _, _ = device
     entry = MockConfigEntry(
         domain=DOMAIN, data={CONF_HOST: mower.host, CONF_PASSWORD: ""}
     )
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = mower.basic_data
     add = MagicMock()
     await async_setup_entry(hass, entry, add)
-    assert str(PLATFORMS[-1]) == "calendar"
+    assert Platform.CALENDAR in PLATFORMS
     assert len(add.call_args.args[0]) == 1
+    calendar = add.call_args.args[0][0]
+    assert isinstance(calendar, TerraMowCalendar)
     assert calendar.unique_id == "lawn_mower.terramow@serial-334.calendar"
     assert calendar.device_info["identifiers"] == {("TerraMowLawnMower", "serial-334")}
     assert calendar.supported_features == (
@@ -217,6 +230,8 @@ async def test_initial_get_failure_can_recover_by_polling(
     state.drop = SCHEDULE_GET if failure == "timeout" else None
     state.malformed = failure == "malformed"
     mower.schedule.request_refresh()
+    assert mower.schedule._refresh_task is not None
+    await mower.schedule._refresh_task
     await hass.async_block_till_done()
     assert not calendar.available
     assert mower.schedule.items is None
@@ -943,24 +958,23 @@ async def test_ack_and_readback_must_each_match_request(hass, device):
     mower, calendar, state = device
     state.drop = SCHEDULE_ADD
     task = asyncio.create_task(calendar.async_create_event(**new_event()))
-    for _ in range(10):
-        await asyncio.sleep(0)
-        if state.commands and state.commands[-1]["cmd_type"] == SCHEDULE_ADD:
-            break
-    command = state.commands[-1]
-    assert command["cmd_type"] == SCHEDULE_ADD
+    command = await wait_for_command(state, SCHEDULE_ADD)
     assert calendar.event is None  # No optimistic event from the sent command.
-    await mower.schedule.on_reply(
-        json.dumps({"cmd_type": SCHEDULE_ADD, "seq": command["seq"] + 1}), retained=True
-    )
-    await mower.schedule.on_reply(
-        json.dumps({"cmd_type": SCHEDULE_GET, "seq": command["seq"]})
-    )
-    assert not task.done()
+    pending = mower.schedule._pending
+    assert pending is not None
+    for reply, retained in (
+        ({"cmd_type": SCHEDULE_ADD, "seq": command["seq"]}, True),
+        ({"cmd_type": SCHEDULE_ADD, "seq": command["seq"] + 1}, False),
+        ({"cmd_type": SCHEDULE_GET, "seq": command["seq"]}, False),
+    ):
+        await mower.schedule.on_reply(json.dumps(reply), retained=retained)
+        assert not pending[2].done()
+        assert not task.done()
     await mower.schedule.on_reply(
         json.dumps({"cmd_type": SCHEDULE_ADD, "seq": command["seq"]})
     )
     await task
+    await hass.async_block_till_done()
     assert calendar.event is not None
     assert state.commands[-1]["cmd_type"] == SCHEDULE_GET
 
@@ -1111,10 +1125,9 @@ async def test_disconnect_cancels_pending_edit(device):
     mower, calendar, state = device
     state.drop = SCHEDULE_ADD
     task = asyncio.create_task(calendar.async_create_event(**new_event()))
-    for _ in range(10):
-        await asyncio.sleep(0)
-        if state.commands and state.commands[-1]["cmd_type"] == SCHEDULE_ADD:
-            break
+    await wait_for_command(state, SCHEDULE_ADD)
+    assert mower.schedule._pending is not None
+    assert mower.schedule._pending[1] == SCHEDULE_ADD
     mower.mqtt_connected = False
     mower.schedule.reset_connection()
     with pytest.raises(HomeAssistantError, match="disconnected"):
@@ -1128,11 +1141,14 @@ async def test_get_mismatch_cannot_replace_current_snapshot(device):
     state.items = [item()]
     await mower.schedule.async_refresh()
     state.drop = SCHEDULE_GET
+    sent = len(state.commands)
     task = asyncio.create_task(mower.schedule.async_refresh())
-    await asyncio.sleep(0)
-    seq = state.commands[-1]["seq"]
+    command = await wait_for_command(state, SCHEDULE_GET, after=sent)
+    seq = command["seq"]
     await mower.schedule.on_reply(json.dumps({"seq": seq + 1, "schedule_list": {}}))
     assert calendar.event.uid == "global-7"
+    assert mower.schedule._pending is not None
+    assert not mower.schedule._pending[2].done()
     assert not task.done()
     await mower.schedule.on_reply(json.dumps({"seq": seq, "schedule_list": {}}))
     await task

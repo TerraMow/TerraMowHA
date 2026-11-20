@@ -44,6 +44,19 @@ def mower(hass: HomeAssistant) -> TerraMowLawnMowerEntity:
     return entity
 
 
+@pytest.fixture
+def published_commands(mower: TerraMowLawnMowerEntity) -> asyncio.Queue[dict]:
+    """Observe actual publishes before injecting replies or disconnecting."""
+    commands: asyncio.Queue[dict] = asyncio.Queue()
+
+    def publish(_topic: str, payload: str) -> SimpleNamespace:
+        commands.put_nowait(json.loads(payload))
+        return SimpleNamespace(rc=0)
+
+    mower.mqtt_client.publish.side_effect = publish
+    return commands
+
+
 async def test_platform_adds_stable_switch(
     hass: HomeAssistant, mower: TerraMowLawnMowerEntity
 ) -> None:
@@ -124,17 +137,20 @@ async def test_switch_round_trip_uses_reported_state(
 
 async def test_rejected_or_mismatched_reply_does_not_change_switch(
     mower: TerraMowLawnMowerEntity,
+    published_commands: asyncio.Queue[dict],
 ) -> None:
     """设备拒绝和错误序号不能让 HA 显示未经确认的新值。"""
     mower.schedule.enabled = True
     task = asyncio.create_task(mower.schedule.async_set_enabled(False))
-    await asyncio.sleep(0)
-    command = json.loads(mower.mqtt_client.publish.call_args.args[1])
+    command = await asyncio.wait_for(published_commands.get(), timeout=5)
+    assert command["cmd_type"] == SCHEDULE_SET_GLOBAL_DISABLED
     await mower.schedule.on_reply(
         json.dumps(
             {"cmd_type": command["cmd_type"], "seq": command["seq"] + 1, "code": -1}
         )
     )
+    assert mower.schedule._pending is not None
+    assert not mower.schedule._pending[2].done()
     assert not task.done()
     await mower.schedule.on_reply(
         json.dumps({"cmd_type": command["cmd_type"], "seq": command["seq"], "code": -1})
@@ -212,10 +228,13 @@ async def test_reconnect_waits_for_fresh_get(
 
 async def test_pending_request_finishes_on_disconnect(
     mower: TerraMowLawnMowerEntity,
+    published_commands: asyncio.Queue[dict],
 ) -> None:
     """连接中断立即终止等待，移除后不留下旧请求。"""
     task = asyncio.create_task(mower.schedule.async_refresh())
-    await asyncio.sleep(0)
+    command = await asyncio.wait_for(published_commands.get(), timeout=5)
+    assert command["cmd_type"] == SCHEDULE_GET
+    assert mower.schedule._pending is not None
     mower.schedule.reset_connection()
     with pytest.raises(HomeAssistantError, match="disconnected"):
         await task
@@ -229,11 +248,13 @@ async def test_connect_reads_schedule_without_compatibility_report(
     mower.schedule.reset_connection()
     assert not mower.schedule.calendar_available
     mower.mqtt_client.publish.assert_not_called()
+    get_sent = asyncio.Event()
 
     def publish(topic: str, payload: str) -> SimpleNamespace:
         assert topic == "data_point/122/app"
         mower.mqtt_client.subscribe.assert_any_call("data_point/122/robot")
         command = json.loads(payload)
+        assert command["cmd_type"] == SCHEDULE_GET
         hass.async_create_task(
             mower.schedule.on_reply(
                 json.dumps(
@@ -245,6 +266,7 @@ async def test_connect_reads_schedule_without_compatibility_report(
                 )
             )
         )
+        get_sent.set()
         return SimpleNamespace(rc=0)
 
     mower.mqtt_client.publish.side_effect = publish
@@ -253,6 +275,9 @@ async def test_connect_reads_schedule_without_compatibility_report(
         patch.object(mower, "update_activity_from_state"),
     ):
         mower.on_mqtt_connect(mower.mqtt_client, None, None, 0)
+    await asyncio.wait_for(get_sent.wait(), timeout=5)
+    assert mower.schedule._refresh_task is not None
+    await mower.schedule._refresh_task
     await hass.async_block_till_done()
     assert mower.schedule.available
     assert mower.schedule.calendar_available
@@ -262,11 +287,15 @@ async def test_connect_reads_schedule_without_compatibility_report(
     mower.on_mqtt_disconnect(mower.mqtt_client, None, 0)
     await hass.async_block_till_done()
     assert not mower.schedule.calendar_available
+    get_sent.clear()
     with (
         patch.object(mower, "_request_compatibility_info"),
         patch.object(mower, "update_activity_from_state"),
     ):
         mower.on_mqtt_connect(mower.mqtt_client, None, None, 0)
+    await asyncio.wait_for(get_sent.wait(), timeout=5)
+    assert mower.schedule._refresh_task is not None
+    await mower.schedule._refresh_task
     await hass.async_block_till_done()
     assert mower.schedule.calendar_available
     assert mower.mqtt_client.publish.call_count == 2
