@@ -1623,6 +1623,13 @@ class TerraMowMapCamera(Camera):
             (0, 0, map_size[0], map_size[1]), radius=MAP_RADIUS, fill=255
         )
         image.paste(clean_image.crop(MAP_RECT), MAP_RECT[:2], mask)
+        # The map-extent frame belongs to the info view only; the clean map
+        # camera crops clean_image and must not show it.
+        if self._transformer is not None and scene["map_extent"]:
+            ImageDraw.Draw(image, "RGBA").polygon(
+                self._transformer.to_pixels(scene["map_extent"]),
+                outline=COLOR_MAP_DEFAULT_OUTLINE,
+            )
         self._draw_map_chips(ImageDraw.Draw(image, "RGBA"), scene)
         self._draw_summary_panel(image, scene)
         self._static_image = image
@@ -1673,14 +1680,6 @@ class TerraMowMapCamera(Camera):
             return
         order_badges: list[tuple[tuple[int, int], int]] = []
         custom_param_markers: list[tuple[int, int]] = []
-
-        if scene["map_extent"]:
-            pixels = transformer.to_pixels(scene["map_extent"])
-            draw.polygon(
-                pixels,
-                fill=COLOR_MAP_BG,
-                outline=COLOR_MAP_DEFAULT_OUTLINE,
-            )
 
         for region in scene["regions"]:
             for sub_region in region["sub_regions"]:
