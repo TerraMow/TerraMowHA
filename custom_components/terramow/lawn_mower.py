@@ -620,8 +620,6 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             compatibility_status = self.basic_data.check_version_compatibility(data)
             self.basic_data.compatibility_status = compatibility_status
             self.basic_data.firmware_version = data
-            if isinstance(data, dict):
-                self.schedule.update_version(data)
 
             # 记录兼容性检查结果
             message = self.basic_data.get_compatibility_message()
@@ -723,6 +721,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             # 订阅设备型号主题
             client.subscribe(MODEL_NAME_TOPIC)
             _LOGGER.info("Subscribed to %s topic", MODEL_NAME_TOPIC)
+
+            # Read DP122 after subscribing to replies, without waiting for DP127.
+            self.hass.add_job(self.schedule.request_refresh)
 
             # 主动请求版本兼容性信息
             self._request_compatibility_info()
@@ -1518,6 +1519,7 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         if self.mqtt_client:
             # disconnect() 让 loop_forever() 返回，工作线程才能看到 stop 事件并退出。
             self.mqtt_client.disconnect()
+        await self.schedule.history.async_flush()
         # 等待工作线程真正结束，避免在 reload/reconfigure 后残留为僵尸线程
         # （继续重连并刷日志）。在 executor 中 join，避免阻塞事件循环。
         thread = getattr(self, "mqtt_thread", None)

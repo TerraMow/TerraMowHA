@@ -5,6 +5,7 @@ Data Point Definition
 
 <!-- code_chunk_output -->
 
+- [Data Point Index](#data-point-index)
 - [Battery Level](#battery-level)
 - [Battery Status](#battery-status)
 - [Task Status](#task-status)
@@ -29,7 +30,7 @@ Data Point Definition
 | 108 | [Battery Status](#battery-status) | Robot→HA | Battery status information (charging state, temperature, etc.) |
 | 113 | [Current Operation Data](#current-operation-data) | Robot→HA | Current operation data (area, progress, etc.) |
 | 117 | [Map Status](#map-status) | Robot→HA | Map status (ID, state, count, etc.) |
-| 122 | [Schedule Control](#schedule-control) | Robot↔HA | Read schedules and control their master switch |
+| 122 | [Schedule Control](#schedule-control) | Robot↔HA | Global schedule CRUD and master/weekday switches |
 | 124 | [Operation Statistics](#operation-statistics) | Robot→HA | Operation statistics (total duration, area, count) |
 | 125 | [Base Station Usage Time](#base-station-usage-time) | Robot↔HA | Base station usage time |
 | 126 | [Mowing Blade Disk Usage Time](#mowing-blade-disk-usage-time) | Robot↔HA | Mowing blade disk usage time |
@@ -208,7 +209,13 @@ Data Point Definition
 
 - **ID**: 122
 - Data Direction: Robot↔HA
-- Supported on firmware with `compatibility.module.schedule >= 2`.
+- Global disable and weekday controls are defined for schedule module version 2
+  and later; the reported version is not an availability gate.
+- The integration reads DP122 directly after MQTT connection; it does not wait
+  for or gate schedule availability on a DP127 compatibility report. A valid GET
+  establishes readable state; writes still require ACK and GET verification.
+- For global time-slot ADD/MODIFY/DELETE requests, firmware capabilities and
+  calendar editing rules, see [Global Schedule Protocol and Calendar](./schedule.md).
 - Send `SCHEDULE_CMD_TYPE_GET` to read the schedule list. The successful reply
   includes `schedule_list.global_disabled` (`true` means all schedules are
   paused). A missing `global_disabled` in a successful protobuf JSON reply
@@ -286,7 +293,7 @@ Data Point Definition
   | mow_height | Object | - | Mowing height setting |
   | mow_height.value | Integer | mm | Mowing height value |
   | mow_speed | Object | - | Mowing speed setting |
-  | mow_speed.speed_type | String | - | Mowing speed type:<br>"MOW_SPEED_TYPE_LOW" - Low speed<br>"MOW_SPEED_TYPE_MEDIUM" - Medium speed (default)<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - Adaptive high speed |
+  | mow_speed.speed_type | String | - | Mowing speed type:<br>"MOW_SPEED_TYPE_LOW" - Low speed<br>"MOW_SPEED_TYPE_MEDIUM" - Medium speed (default)<br>"MOW_SPEED_TYPE_ADAPTIVE_HIGH" - Adaptive high speed<br>"MOW_SPEED_TYPE_AUTO" - Auto (when supported by firmware) |
   | edge_cutting_distance | Object | - | Edge cutting distance setting |
   | edge_cutting_distance.value | Integer | mm | Edge cutting distance value |
   | main_direction_angle_config | Object | - | Main direction angle configuration |
@@ -337,6 +344,9 @@ Data Point Definition
   - This protocol can be sent from HA to the robot to modify the corresponding parameter settings, and can include just one field, e.g., sending only the `mow_height` field will only modify the mowing height.
   - Modifying mowing spacing or main direction angle configuration will reset operation progress
   - The `current_mow_spacing` and `main_direction_angle_config.current_angle` fields are only included when the protocol is reported by the robot
+  - For an unrecognized `mow_speed.speed_type`, the sensor and selector show an
+    unknown state and preserve the raw string in their `unknown_mow_speed_type`
+    and `unknown_speed_type` attributes, respectively.
 
 ## Map Status
 

@@ -6,7 +6,7 @@ import asyncio
 import json
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, EntityCategory
@@ -41,8 +41,20 @@ def mower(hass: HomeAssistant) -> TerraMowLawnMowerEntity:
     entity.mqtt_client.is_connected.return_value = True
     entity.mqtt_client.publish.return_value = SimpleNamespace(rc=0)
     entity._last_control_time = -100
-    entity.schedule.version = 2
     return entity
+
+
+@pytest.fixture
+def published_commands(mower: TerraMowLawnMowerEntity) -> asyncio.Queue[dict]:
+    """Observe actual publishes before injecting replies or disconnecting."""
+    commands: asyncio.Queue[dict] = asyncio.Queue()
+
+    def publish(_topic: str, payload: str) -> SimpleNamespace:
+        commands.put_nowait(json.loads(payload))
+        return SimpleNamespace(rc=0)
+
+    mower.mqtt_client.publish.side_effect = publish
+    return commands
 
 
 async def test_platform_adds_stable_switch(
@@ -125,17 +137,20 @@ async def test_switch_round_trip_uses_reported_state(
 
 async def test_rejected_or_mismatched_reply_does_not_change_switch(
     mower: TerraMowLawnMowerEntity,
+    published_commands: asyncio.Queue[dict],
 ) -> None:
     """设备拒绝和错误序号不能让 HA 显示未经确认的新值。"""
     mower.schedule.enabled = True
     task = asyncio.create_task(mower.schedule.async_set_enabled(False))
-    await asyncio.sleep(0)
-    command = json.loads(mower.mqtt_client.publish.call_args.args[1])
+    command = await asyncio.wait_for(published_commands.get(), timeout=5)
+    assert command["cmd_type"] == SCHEDULE_SET_GLOBAL_DISABLED
     await mower.schedule.on_reply(
         json.dumps(
             {"cmd_type": command["cmd_type"], "seq": command["seq"] + 1, "code": -1}
         )
     )
+    assert mower.schedule._pending is not None
+    assert not mower.schedule._pending[2].done()
     assert not task.done()
     await mower.schedule.on_reply(
         json.dumps({"cmd_type": command["cmd_type"], "seq": command["seq"], "code": -1})
@@ -165,14 +180,10 @@ async def test_readback_disagreement_is_an_error(
     assert mower.schedule.enabled is True
 
 
-async def test_unsupported_or_disconnected_switch_does_not_send(
+async def test_disconnected_switch_does_not_send(
     mower: TerraMowLawnMowerEntity,
 ) -> None:
-    """协议版本不足与断线时都不发送设置命令。"""
-    mower.schedule.version = 1
-    with pytest.raises(ServiceValidationError, match="version 2"):
-        await mower.schedule.async_set_enabled(False)
-    mower.schedule.version = 2
+    """Do not send setting commands while disconnected."""
     mower.mqtt_connected = False
     with pytest.raises(HomeAssistantError, match="not connected"):
         await mower.schedule.async_set_enabled(False)
@@ -186,7 +197,7 @@ async def test_reconnect_waits_for_fresh_get(
     mower.schedule.enabled = True
     mower.schedule.reset_connection()
     assert mower.schedule.enabled is None
-    assert not mower.schedule.available
+    assert not mower.schedule.calendar_available
     await mower.schedule.on_reply(
         json.dumps(
             {
@@ -198,7 +209,6 @@ async def test_reconnect_waits_for_fresh_get(
         retained=True,
     )
     assert mower.schedule.enabled is None
-    mower.schedule.version = 2
     await mower.schedule.on_reply("not json")
     await mower.schedule.on_reply(
         json.dumps({"cmd_type": SCHEDULE_GET, "seq": 2, "schedule_list": []})
@@ -218,28 +228,33 @@ async def test_reconnect_waits_for_fresh_get(
 
 async def test_pending_request_finishes_on_disconnect(
     mower: TerraMowLawnMowerEntity,
+    published_commands: asyncio.Queue[dict],
 ) -> None:
     """连接中断立即终止等待，移除后不留下旧请求。"""
     task = asyncio.create_task(mower.schedule.async_refresh())
-    await asyncio.sleep(0)
+    command = await asyncio.wait_for(published_commands.get(), timeout=5)
+    assert command["cmd_type"] == SCHEDULE_GET
+    assert mower.schedule._pending is not None
     mower.schedule.reset_connection()
     with pytest.raises(HomeAssistantError, match="disconnected"):
         await task
     assert mower.schedule._pending is None
 
 
-async def test_version_report_refreshes_schedule_once(
+async def test_connect_reads_schedule_without_compatibility_report(
     hass: HomeAssistant, mower: TerraMowLawnMowerEntity
 ) -> None:
-    """只有报告支持总开关的版本后，才主动读取设备设置。"""
+    """Subscribe before reading DP122 on connection, without a DP127 report."""
     mower.schedule.reset_connection()
-    mower.schedule.update_version({"module": {"schedule": 1}})
-    assert not mower.schedule.available
+    assert not mower.schedule.calendar_available
     mower.mqtt_client.publish.assert_not_called()
+    get_sent = asyncio.Event()
 
     def publish(topic: str, payload: str) -> SimpleNamespace:
         assert topic == "data_point/122/app"
+        mower.mqtt_client.subscribe.assert_any_call("data_point/122/robot")
         command = json.loads(payload)
+        assert command["cmd_type"] == SCHEDULE_GET
         hass.async_create_task(
             mower.schedule.on_reply(
                 json.dumps(
@@ -251,14 +266,39 @@ async def test_version_report_refreshes_schedule_once(
                 )
             )
         )
+        get_sent.set()
         return SimpleNamespace(rc=0)
 
     mower.mqtt_client.publish.side_effect = publish
-    mower.schedule.update_version({"module": {"schedule": "2"}})
+    with (
+        patch.object(mower, "_request_compatibility_info"),
+        patch.object(mower, "update_activity_from_state"),
+    ):
+        mower.on_mqtt_connect(mower.mqtt_client, None, None, 0)
+    await asyncio.wait_for(get_sent.wait(), timeout=5)
+    assert mower.schedule._refresh_task is not None
+    await mower.schedule._refresh_task
     await hass.async_block_till_done()
     assert mower.schedule.available
+    assert mower.schedule.calendar_available
     assert mower.schedule.enabled is True
     mower.mqtt_client.publish.assert_called_once()
+
+    mower.on_mqtt_disconnect(mower.mqtt_client, None, 0)
+    await hass.async_block_till_done()
+    assert not mower.schedule.calendar_available
+    get_sent.clear()
+    with (
+        patch.object(mower, "_request_compatibility_info"),
+        patch.object(mower, "update_activity_from_state"),
+    ):
+        mower.on_mqtt_connect(mower.mqtt_client, None, None, 0)
+    await asyncio.wait_for(get_sent.wait(), timeout=5)
+    assert mower.schedule._refresh_task is not None
+    await mower.schedule._refresh_task
+    await hass.async_block_till_done()
+    assert mower.schedule.calendar_available
+    assert mower.mqtt_client.publish.call_count == 2
 
 
 async def test_switch_listener_is_removed(
@@ -270,9 +310,11 @@ async def test_switch_listener_is_removed(
     switch.async_write_ha_state = MagicMock()
     await switch.async_added_to_hass()
     async_dispatcher_send(hass, mower.schedule.signal)
+    await hass.async_block_till_done()
     switch.async_write_ha_state.assert_called_once()
     await switch.async_remove(force_remove=True)
     async_dispatcher_send(hass, mower.schedule.signal)
+    await hass.async_block_till_done()
     switch.async_write_ha_state.assert_called_once()
 
 
@@ -321,7 +363,6 @@ async def test_weekday_round_trip_changes_only_selected_day(
     tuesday = TerraMowWeekdayScheduleSwitch(mower.basic_data, hass, "tuesday")
     disabled_days = {WEEK_DAYS["monday"]}
     commands: list[dict] = []
-    mower.schedule.version = 5
     await mower.schedule.on_reply(
         json.dumps(
             {
@@ -411,7 +452,6 @@ async def test_external_change_triggers_own_get(
     hass: HomeAssistant, mower: TerraMowLawnMowerEntity
 ) -> None:
     """其它客户端只有 SET 回复时，HA 也主动 GET 更新单日状态。"""
-    mower.schedule.version = 5
     monday = TerraMowWeekdayScheduleSwitch(mower.basic_data, hass, "monday")
     await mower.schedule.on_reply(
         json.dumps(

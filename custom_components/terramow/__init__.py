@@ -22,6 +22,7 @@ from .const import (
     MIN_REQUIRED_OVERALL_VERSION,
     CompatibilityStatus,
 )
+from .schedule_history import history_store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ PLATFORMS: list[Platform] = [
     Platform.NUMBER,
     Platform.CAMERA,
     Platform.SWITCH,
+    Platform.CALENDAR,
 ]
 
 
@@ -182,3 +184,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.data.pop(DOMAIN)
 
     return unload_ok
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove local appointment dates when the integration is deleted."""
+    stable_id = entry.data.get(
+        CONF_IDENTITY_KEY, entry.unique_id or entry.data[CONF_HOST]
+    )
+    await history_store(hass, stable_id).async_remove()

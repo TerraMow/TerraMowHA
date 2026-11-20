@@ -126,8 +126,8 @@ unknown when there is no schedule.
 **Schedule** is the master switch for scheduled mowing. Turning it off pauses
 all schedules without deleting them; turning it on enables them again. The
 switch reflects the robot's reported setting, so it is unknown until the
-setting is read and unavailable while disconnected or on firmware with schedule
-protocol version below 2. A change waits for the robot's reply and reads the
+setting is read and unavailable while disconnected. Settings are read directly
+from DP122 after connection, without waiting for DP127. A change waits for the robot's reply and reads the
 setting again. This switch does not dock a mowing job already in progress.
 
 Seven weekday switches, Monday through Sunday, control which days may run
@@ -167,3 +167,44 @@ position and heading: its state is the yaw, and the attributes hold `x`, `y`,
 `yaw`, `timestamp_ms`, and `frame`. **Total Mowing Time** shows the total mowing
 time reported by the robot. **Version Compatibility** compares the robot's
 firmware with this integration, and its `message` attribute explains the result.
+
+## Global mowing calendar
+
+Each mower has a global time-slot calendar with confirmed create, update and delete operations. Custom titles, locations and descriptions are saved locally in HA. Daily/weekly rules, single-day all-day windows (device 00:00–23:59) and next-occurrence one-time events follow the device limits described in [Global Schedule and Calendar](./developers/schedule.md#calendar-editing-contract). Editing or deleting any displayed entry affects its entire device schedule, including all configured weekdays and future occurrences; there is no separate whole-series selector. The existing schedule switches and next-schedule sensor remain available.
+
+The calendar becomes available after a valid DP122 time-slot schedule read,
+including an empty schedule list. DP127 is not required. Disconnecting clears
+the connection snapshot; reconnecting triggers a fresh GET. Read or edit failures
+do not clear the last valid snapshot. If a valid readback differs from an edit,
+the operation reports failure and the calendar displays the device's actual data.
+
+One-time appointments whose date HA has recorded remain visible on their
+original date after expiry or device disable. Their dates survive reloads and
+normal HA restarts; they are planned windows, not proof of execution. The device
+does not supply an execution date, so an appointment first received already
+disabled cannot be reconstructed without a prior local record. Deleting the
+device appointment removes its calendar history as well.
+
+An individually disabled one-time appointment allows only title, description
+and location edits; change its time or recurrence by creating a new appointment.
+Deletion remains available. The device can disable it when execution starts,
+before mowing finishes. Global and weekday pause switches are separate from
+this individual-item restriction. The native editor reports rejected changes
+when saving; it has no added per-event enable/disable button.
+
+A new one-time appointment must start in the future. A new daily/weekly window
+that has started but not ended can be saved, but will not start mowing to catch
+up with that window; subsequent matching windows can execute. Editing a running
+weekly schedule updates its saved rule without changing the current mission's
+plan. Device writes still require the successful ACK and matching GET readback.
+
+Calendar text and all-day/daily display choices survive HA reloads and restarts
+in the configuration directory's `.storage` data; include it in HA backups.
+Device times and weekdays remain authoritative after external edits. If local
+metadata is lost, recurring schedules still display using `Global mowing`,
+empty location/description, actual device times and weekly weekdays. Device
+data cannot restore the original title or prove an all-day/daily display choice.
+The native HA editor still offers unsupported recurrence settings; only interval
+1, daily/weekly, and no recurrence end are accepted. Multi-day all-day events
+are rejected. Local-only edits read the device before saving HA fields and do
+not send MODIFY when device configuration is unchanged.

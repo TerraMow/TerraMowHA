@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Bendras pjovimo tvarkaraštis"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Žoliapjovė"

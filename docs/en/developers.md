@@ -9,6 +9,7 @@ This document provides development information about the TerraMow Home Assistant
 
 - [Communication Method](#communication-method)
 - [MQTT Topics Definition](#mqtt-topics-definition)
+- [Global Schedule and Calendar](#global-schedule-and-calendar)
 - [Special Topics](#special-topics)
 - [Map Information](#map-information)
 - [Map and Path Capabilities (HA v3+)](#map-and-path-capabilities-ha-v3)
@@ -36,6 +37,10 @@ The topic definitions related to Data Points are as follows:
 Where `{dp_id}` is the ID of the Data Point, an integer ranging from 0 to 200.
 
 For specific Data Point definitions, please refer to [Data Point Definition](./developers/data_point.md).
+
+## Global Schedule and Calendar
+
+See [Global Schedule Protocol and Calendar](./developers/schedule.md) for DP122 CRUD requests, ACK/readback matching, firmware requirements, calendar recurrence constraints and complete examples.
 
 ## Special Topics
 

@@ -30,6 +30,11 @@
         }
     },
     "entity": {
+        "calendar": {
+            "global_schedule": {
+                "name": "Global klippeplan"
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Gressklipper"
