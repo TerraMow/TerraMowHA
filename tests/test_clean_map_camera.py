@@ -14,6 +14,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.terramow import TerraMowBasicData
 from custom_components.terramow.camera import (
     COLOR_MAP_BG,
+    COLOR_MAP_DEFAULT_OUTLINE,
     COLOR_PASS_THROUGH_FILL,
     COLOR_PHYSICAL_RESTRICTED_FILL,
     COLOR_REQUIRED_FILL,
@@ -342,6 +343,37 @@ def test_clean_map_excludes_panels_but_keeps_map_and_robot(
     map_camera._notify_image_updated(write_state=False)
     after = Image.open(io.BytesIO(map_camera._render_clean_image())).convert("RGB")
     assert ImageChops.difference(before, after).getbbox() is not None
+
+
+def test_map_extent_frame_only_in_full_map(
+    cameras: tuple[TerraMowMapCamera, TerraMowCleanMapCamera],
+) -> None:
+    """The map-extent frame belongs to the info view, not the clean map."""
+    map_camera, _ = cameras
+    region = _square(80, 80, 120, 120)["boundary"]
+    map_camera._map_data = {
+        "id": 1,
+        "width": 200,
+        "height": 200,
+        "resolution": 1,
+        "origin": {"x": 0, "y": 0},
+        "regions": [
+            {
+                "id": 1,
+                "boundary": region,
+                "sub_regions": [{"id": 1, "boundary": region}],
+            }
+        ],
+    }
+    map_camera._rebuild_static_image()
+
+    full = Image.open(io.BytesIO(map_camera._render_final_image())).convert("RGB")
+    clean = Image.open(io.BytesIO(map_camera._render_clean_image())).convert("RGB")
+    edge_x, edge_y = map_camera._transformer.to_pixel(0, 100)
+    assert full.getpixel((edge_x, edge_y)) == COLOR_MAP_DEFAULT_OUTLINE[:3]
+    assert (
+        clean.getpixel((edge_x - MAP_RECT[0], edge_y - MAP_RECT[1])) == COLOR_MAP_BG[:3]
+    )
 
 
 def test_clean_map_distinguishes_zones_paths_and_tunnels(
