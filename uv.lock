@@ -2911,7 +2911,7 @@ wheels = [
 
 [[package]]
 name = "terramow-ha"
-version = "0.3.5"
+version = "0.3.6"
 source = { editable = "." }
 dependencies = [
     { name = "paho-mqtt" },
