@@ -296,7 +296,7 @@ class MainDirectionSingleAngleNumber(TerraMowNumberBase):
             mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
-                return mode_selector_state.state
+                return mode_selector_state.state.upper()
         except Exception:
             pass
         return None
@@ -443,7 +443,7 @@ class MainDirectionAutoRotateIntervalNumber(TerraMowNumberBase):
             mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
-                return mode_selector_state.state
+                return mode_selector_state.state.upper()
         except Exception:
             pass
         return None
@@ -589,7 +589,7 @@ class MultipleDirectionAngle1Number(TerraMowNumberBase):
             mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
-                return mode_selector_state.state
+                return mode_selector_state.state.upper()
         except Exception:
             pass
         return None
@@ -770,7 +770,7 @@ class MultipleDirectionAngle2Number(TerraMowNumberBase):
             mode_selector_entity_id = f"select.terramow_{self.basic_data.stable_id.replace('.', '_')}_main_direction_mode"
             mode_selector_state = self.hass.states.get(mode_selector_entity_id)
             if mode_selector_state and mode_selector_state.state != "unavailable":
-                return mode_selector_state.state
+                return mode_selector_state.state.upper()
         except Exception:
             pass
         return None
