@@ -35,6 +35,23 @@
                 "name": "Calendario de corte global"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Evento del cortacésped",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Siega iniciada",
+                            "paused": "En pausa",
+                            "returning": "Regresando",
+                            "docked": "En la base",
+                            "mowing_completed": "Siega completada",
+                            "error": "Error"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Cortacésped"

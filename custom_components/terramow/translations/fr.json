@@ -35,6 +35,23 @@
                 "name": "Calendrier de tonte globale"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Événement de la tondeuse",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Tonte démarrée",
+                            "paused": "En pause",
+                            "returning": "Retour à la base",
+                            "docked": "À la base",
+                            "mowing_completed": "Tonte terminée",
+                            "error": "Erreur"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Tondeuse"

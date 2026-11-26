@@ -35,6 +35,23 @@
                 "name": "Algemeen maaischema"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Grasmaaiergebeurtenis",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Maaien gestart",
+                            "paused": "Gepauzeerd",
+                            "returning": "Keert terug",
+                            "docked": "In het laadstation",
+                            "mowing_completed": "Maaien voltooid",
+                            "error": "Fout"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Grasmaaier"

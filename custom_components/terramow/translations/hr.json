@@ -35,6 +35,23 @@
                 "name": "Globalni raspored košnje"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Događaj kosilice",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Košnja započeta",
+                            "paused": "Pauzirano",
+                            "returning": "Vraća se",
+                            "docked": "Na stanici",
+                            "mowing_completed": "Košnja završena",
+                            "error": "Pogreška"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosilica"
