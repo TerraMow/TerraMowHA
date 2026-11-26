@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Atstatyti bazės naudojimo laiką"
+            },
+            "reset_blade_time": {
+                "name": "Atstatyti peilių naudojimo laiką"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Bendras pjovimo tvarkaraštis"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Antrosios krypties kampas"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow neprijungta."
+        },
+        "reset_not_confirmed": {
+            "message": "Žoliapjovė nepatvirtino atstatymo."
         }
     }
 }

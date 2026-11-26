@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Réinitialiser la durée d'utilisation de la base"
+            },
+            "reset_blade_time": {
+                "name": "Réinitialiser la durée d'utilisation des lames"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Calendrier de tonte globale"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Angle de la seconde direction"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow n'est pas connectée."
+        },
+        "reset_not_confirmed": {
+            "message": "La tondeuse n'a pas confirmé la réinitialisation."
         }
     }
 }

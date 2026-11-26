@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Nollaa latausaseman käyttöaika"
+            },
+            "reset_blade_time": {
+                "name": "Nollaa terien käyttöaika"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Yleinen leikkuuaikataulu"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Toisen suunnan kulma"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow ei ole yhdistetty."
+        },
+        "reset_not_confirmed": {
+            "message": "Leikkuri ei vahvistanut nollausta."
         }
     }
 }

@@ -30,6 +30,14 @@
     }
   },
   "entity": {
+    "button": {
+      "reset_base_station_time": {
+        "name": "Reset base station usage time"
+      },
+      "reset_blade_time": {
+        "name": "Reset blade usage time"
+      }
+    },
     "calendar": {
       "global_schedule": {
         "name": "Global mowing schedule"
@@ -223,6 +231,14 @@
           "mow_speed_type_auto": "Auto Speed"
         }
       }
+    }
+  },
+  "exceptions": {
+    "not_connected": {
+      "message": "TerraMow is not connected."
+    },
+    "reset_not_confirmed": {
+      "message": "The mower did not confirm the reset."
     }
   }
 }

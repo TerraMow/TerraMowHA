@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "重置基站使用时间"
+            },
+            "reset_blade_time": {
+                "name": "重置刀盘使用时间"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "全局割草日历"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "第二主方向角度"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow 未连接。"
+        },
+        "reset_not_confirmed": {
+            "message": "割草机未确认重置。"
         }
     }
 }

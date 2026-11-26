@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Vynulovat dobu používání základny"
+            },
+            "reset_blade_time": {
+                "name": "Vynulovat dobu používání nožů"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Globální plán sečení"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Úhel druhého směru"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow není připojena."
+        },
+        "reset_not_confirmed": {
+            "message": "Sekačka nepotvrdila vynulování."
         }
     }
 }

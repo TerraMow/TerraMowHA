@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Nulstil ladestationens brugstid"
+            },
+            "reset_blade_time": {
+                "name": "Nulstil knivenes brugstid"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Global klippeplan"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Vinkel for anden retning"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow er ikke forbundet."
+        },
+        "reset_not_confirmed": {
+            "message": "Græsslåmaskinen bekræftede ikke nulstillingen."
         }
     }
 }

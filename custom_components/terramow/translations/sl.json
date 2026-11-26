@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Ponastavi čas uporabe postaje"
+            },
+            "reset_blade_time": {
+                "name": "Ponastavi čas uporabe rezil"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Globalni urnik košnje"
@@ -300,6 +308,14 @@
             "multiple_direction_angle2": {
                 "name": "Kot druge smeri"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow ni povezana."
+        },
+        "reset_not_confirmed": {
+            "message": "Kosilnica ni potrdila ponastavitve."
         }
     }
 }
