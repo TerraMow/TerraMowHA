@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import gzip
 import json
 import logging
@@ -10,7 +11,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
-import paho.mqtt.client as mqtt_client
+import aiomqtt
 from homeassistant.components.lawn_mower import LawnMowerEntity
 from homeassistant.components.lawn_mower.const import (
     LawnMowerActivity,
@@ -36,7 +37,6 @@ from .const import (
     MQTT_PORT,
     MQTT_RECONNECT_BASE_DELAY,
     MQTT_RECONNECT_MAX_DELAY,
-    MQTT_THREAD_JOIN_TIMEOUT,
     MQTT_USERNAME,
     PATH_HISTORY_META_TOPIC,
     PATH_META_TOPIC,
@@ -50,6 +50,103 @@ _LOGGER = logging.getLogger(__name__)
 
 # 定义正则表达式模式
 TOPIC_PATTERN = re.compile(r"^data_point/(\d+)/robot$")
+
+# paho-style result codes reported by MqttClient.publish() and subscribe().
+MQTT_ERR_SUCCESS = 0
+MQTT_ERR_NO_CONN = 4
+
+
+class MqttMessage:
+    """Topic, payload and retain flag in the shape on_mqtt_message reads."""
+
+    __slots__ = ("payload", "retain", "topic")
+
+    def __init__(self, topic: str, payload: bytes, retain: bool) -> None:
+        self.topic = topic
+        self.payload = payload
+        self.retain = retain
+
+    @classmethod
+    def from_aiomqtt(cls, message: aiomqtt.Message) -> "MqttMessage":
+        """Normalize an aiomqtt message (Topic object, typed payload)."""
+        payload = message.payload
+        if isinstance(payload, bytes | bytearray):
+            data = bytes(payload)
+        elif payload is None:
+            data = b""
+        else:
+            data = str(payload).encode()
+        return cls(str(message.topic), data, bool(message.retain))
+
+
+class MqttResult:
+    """The rc attribute callers read from paho's MQTTMessageInfo."""
+
+    __slots__ = ("rc",)
+
+    def __init__(self, rc: int) -> None:
+        self.rc = rc
+
+
+class MqttClient:
+    """Synchronous facade over the live aiomqtt connection.
+
+    Keeps the paho calls the integration already makes, is_connected(),
+    publish() returning an object with rc, and subscribe(), so
+    publish_data_point, the command path in feedback.py and the schedule work
+    unchanged. The calls may come from the event loop or a worker thread; the
+    MQTT operation itself runs on the event loop. A failure after the hand-off
+    can only be logged, as with paho's queued publish.
+    """
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        self._hass = hass
+        self._client: aiomqtt.Client | None = None
+
+    def attach(self, client: aiomqtt.Client | None) -> None:
+        """Set (or clear, with None) the live aiomqtt client."""
+        self._client = client
+
+    def is_connected(self) -> bool:
+        """Return whether an MQTT connection is established."""
+        return self._client is not None
+
+    def publish(self, topic: str, payload: str, qos: int = 0) -> MqttResult:
+        """Send a message; rc is non-zero when there is no connection."""
+        client = self._client
+        if client is None:
+            return MqttResult(MQTT_ERR_NO_CONN)
+        self._run(client.publish(topic, payload, qos=qos), topic)
+        return MqttResult(MQTT_ERR_SUCCESS)
+
+    def subscribe(self, topic: str, qos: int = 0) -> MqttResult:
+        """Subscribe to a topic; rc is non-zero when there is no connection."""
+        client = self._client
+        if client is None:
+            return MqttResult(MQTT_ERR_NO_CONN)
+        self._run(client.subscribe(topic, qos=qos), topic)
+        return MqttResult(MQTT_ERR_SUCCESS)
+
+    def _run(self, operation: Any, topic: str) -> None:
+        """Run an aiomqtt operation on the event loop and log its failure."""
+
+        async def run() -> None:
+            try:
+                await operation
+            except aiomqtt.MqttError as err:
+                _LOGGER.error("MQTT operation on %s failed: %s", topic, err)
+
+        hass = self._hass
+        try:
+            running_loop: asyncio.AbstractEventLoop | None = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+        if running_loop is hass.loop:
+            # The task starts eagerly and hands the packet to the connection
+            # right away, so subscribes and publishes keep their order.
+            hass.async_create_task(run())
+        else:
+            asyncio.run_coroutine_threadsafe(run(), hass.loop)
 
 
 class Mission(Enum):
@@ -154,9 +251,9 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.password = self.basic_data.password
         self.hass = hass
         self._activity = LawnMowerActivity.DOCKED  # 默认状态
-        self.mqtt_client = None
+        self.mqtt_client: MqttClient | None = None
         self.mqtt_connected = False
-        self._stop_event = threading.Event()  # 用于停止重连循环
+        self._mqtt_task: asyncio.Task | None = None
         self.callbacks: dict[
             int, list[Callable]
         ] = {}  # 存储 dp_id 和对应的回调函数列表
@@ -329,24 +426,18 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             | LawnMowerEntityFeature.DOCK
         )
 
-    def start_mqtt_client(self):
-        """Start the MQTT client in a separate thread."""
+    def start_mqtt_client(self) -> None:
+        """Start the MQTT connection task on the event loop."""
         _LOGGER.info("Starting MQTT client, connecting to %s:%d", self.host, MQTT_PORT)
         _LOGGER.debug("MQTT connection params: username=%s", MQTT_USERNAME)
 
-        self.mqtt_client = mqtt_client.Client()
-        self.mqtt_client.username_pw_set(MQTT_USERNAME, self.password)
-        self.mqtt_client.on_connect = self.on_mqtt_connect
-        self.mqtt_client.on_disconnect = self.on_mqtt_disconnect
-        self.mqtt_client.on_message = self.on_mqtt_message
+        self.mqtt_client = MqttClient(self.hass)
 
         # 先注册回调，避免重连后立即到达的 retained 快照被丢弃。
         self.register_all_callbacks()
-        # Start MQTT loop thread
-        _LOGGER.debug("Starting MQTT thread")
-        self.mqtt_thread = threading.Thread(target=self.mqtt_loop)
-        self.mqtt_thread.daemon = True
-        self.mqtt_thread.start()
+        self._mqtt_task = self.hass.async_create_background_task(
+            self.mqtt_loop(), f"terramow_mqtt_{self.host}"
+        )
 
         _LOGGER.debug("MQTT client startup completed")
 
@@ -647,51 +738,85 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         except Exception as e:
             _LOGGER.error("Error processing version compatibility info: %s", e)
 
-    def mqtt_loop(self):
+    async def mqtt_loop(self) -> None:
         """MQTT main loop with auto-reconnect.
 
-        Uses exponential backoff and throttled logging so an unreachable
-        mower (asleep, docked, or after a DHCP IP change) does not flood
-        the log with an ERROR every few seconds or hammer the network.
-        The wait is interruptible via ``_stop_event`` so shutdown is
-        immediate when the entity is removed.
+        Runs as a background task on the event loop for the lifetime of the
+        entity and feeds the connection's events to on_mqtt_connect,
+        on_mqtt_message and on_mqtt_disconnect. Uses exponential backoff and
+        throttled logging so an unreachable mower (asleep, docked, or after a
+        DHCP IP change) does not flood the log with an ERROR every few seconds
+        or hammer the network. Cancelling the task (entity removal) leaves the
+        connection's ``async with``, which sends the MQTT DISCONNECT.
         """
+        mqtt_client = self.mqtt_client
+        assert mqtt_client is not None
         consecutive_failures = 0
-        while not self._stop_event.is_set():
+        while True:
+            connected = False
             try:
-                if self.mqtt_client and not self.mqtt_client.is_connected():
-                    _LOGGER.info("Attempting to connect to MQTT Broker %s", self.host)
-                    self.mqtt_client.connect(self.host, MQTT_PORT, 60)
+                _LOGGER.info("Attempting to connect to MQTT Broker %s", self.host)
+                async with aiomqtt.Client(
+                    hostname=self.host,
+                    port=MQTT_PORT,
+                    username=MQTT_USERNAME,
+                    password=self.password,
+                    keepalive=60,
+                    logger=_LOGGER.getChild("mqtt"),
+                ) as client:
                     _LOGGER.info("Connected to MQTT Broker")
-                consecutive_failures = 0
-                if self.mqtt_client:
-                    self.mqtt_client.loop_forever()
+                    connected = True
+                    consecutive_failures = 0
+                    mqtt_client.attach(client)
+                    try:
+                        self.on_mqtt_connect(mqtt_client, None, None, 0)
+                        async for message in client.messages:
+                            self.on_mqtt_message(
+                                None, None, MqttMessage.from_aiomqtt(message)
+                            )
+                    finally:
+                        mqtt_client.attach(None)
+                # The broker closed the session without an error.
+                _LOGGER.warning("MQTT connection closed by the broker")
+                self.on_mqtt_disconnect(None, None, 1)
+            except asyncio.CancelledError:
+                if connected:
+                    # Shutdown is an expected disconnect, as paho reported it.
+                    self.on_mqtt_disconnect(None, None, 0)
+                raise
             except Exception as e:
-                consecutive_failures += 1
-                # 第一次失败用 WARNING 提醒一次，之后降到 DEBUG，避免刷屏。
-                if consecutive_failures == 1:
-                    _LOGGER.warning(
-                        "Cannot reach TerraMow MQTT broker at %s:%d (%s); "
-                        "will keep retrying with backoff",
-                        self.host,
-                        MQTT_PORT,
-                        e,
-                    )
+                if connected:
+                    # A lost connection reconnects after the base delay, like
+                    # paho's loop_forever() did; on_mqtt_disconnect sets ERROR.
+                    _LOGGER.warning("MQTT connection lost: %s", e)
+                    self.on_mqtt_disconnect(None, None, 1)
                 else:
-                    _LOGGER.debug(
-                        "MQTT connection still failing (attempt %d): %s",
-                        consecutive_failures,
-                        e,
-                    )
-                # 设置错误状态
-                self.activity = LawnMowerActivity.ERROR
-                self.schedule_update_ha_state()
-                # 指数退避，封顶 MQTT_RECONNECT_MAX_DELAY；用可中断的等待以便立即停止。
-                delay = min(
-                    MQTT_RECONNECT_BASE_DELAY * (2 ** (consecutive_failures - 1)),
+                    consecutive_failures += 1
+                    # 第一次失败用 WARNING 提醒一次，之后降到 DEBUG，避免刷屏。
+                    if consecutive_failures == 1:
+                        _LOGGER.warning(
+                            "Cannot reach TerraMow MQTT broker at %s:%d (%s); "
+                            "will keep retrying with backoff",
+                            self.host,
+                            MQTT_PORT,
+                            e,
+                        )
+                    else:
+                        _LOGGER.debug(
+                            "MQTT connection still failing (attempt %d): %s",
+                            consecutive_failures,
+                            e,
+                        )
+                    # 设置错误状态
+                    self.activity = LawnMowerActivity.ERROR
+                    self.schedule_update_ha_state()
+            # 指数退避，封顶 MQTT_RECONNECT_MAX_DELAY。
+            await asyncio.sleep(
+                min(
+                    MQTT_RECONNECT_BASE_DELAY * (2 ** max(consecutive_failures - 1, 0)),
                     MQTT_RECONNECT_MAX_DELAY,
                 )
-                self._stop_event.wait(delay)
+            )
 
     def on_mqtt_connect(self, client, _userdata, _flags, rc):  # type: ignore[misc]
         """Callback when connected to MQTT Broker."""
@@ -1576,27 +1701,20 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         _LOGGER.info("Stopping MQTT client")
         self.feedback.disconnected()
         self.schedule.reset_connection()
-        self._stop_event.set()
         self._reset_map_retry()
         self._reset_path_retry()
         self._reset_history_path_retry()
         self._reset_pending_meta()
-        if self.mqtt_client:
-            # disconnect() 让 loop_forever() 返回，工作线程才能看到 stop 事件并退出。
-            self.mqtt_client.disconnect()
+        task = self._mqtt_task
+        self._mqtt_task = None
+        if task is not None:
+            # Cancelling leaves the connection's ``async with``, which sends the
+            # MQTT DISCONNECT. Await it so a reload/reconfigure never leaves a
+            # half-open connection or a still-reconnecting task behind.
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
         await self.schedule.history.async_flush()
-        # 等待工作线程真正结束，避免在 reload/reconfigure 后残留为僵尸线程
-        # （继续重连并刷日志）。在 executor 中 join，避免阻塞事件循环。
-        thread = getattr(self, "mqtt_thread", None)
-        if thread is not None and thread.is_alive():
-            await self.hass.async_add_executor_job(
-                thread.join, MQTT_THREAD_JOIN_TIMEOUT
-            )
-            if thread.is_alive():
-                _LOGGER.warning(
-                    "MQTT worker thread did not stop within %ds",
-                    MQTT_THREAD_JOIN_TIMEOUT,
-                )
 
     def _request_compatibility_info(self):
         """Request version compatibility information."""

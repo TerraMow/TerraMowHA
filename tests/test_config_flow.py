@@ -1,7 +1,10 @@
 """Tests for the TerraMow config flow."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import asyncio
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
+import aiomqtt
 import pytest
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
@@ -24,6 +27,47 @@ from custom_components.terramow.sensor import (
 )
 
 
+class _FakeConnection:
+    """Stands in for aiomqtt.Client in the connection test."""
+
+    def __init__(self, error: BaseException | None = None) -> None:
+        self.error = error
+        self.kwargs: dict = {}
+        self.exited = False
+
+    def __call__(self, **kwargs) -> "_FakeConnection":
+        self.kwargs = kwargs
+        return self
+
+    async def __aenter__(self) -> "_FakeConnection":
+        if self.error is not None:
+            raise self.error
+        return self
+
+    async def __aexit__(self, *_exc) -> None:
+        self.exited = True
+
+    # The created entry is set up right away and its mower connects through
+    # the same fake: accept subscriptions and publishes, deliver no messages.
+    async def subscribe(self, *_args, **_kwargs) -> None:
+        return None
+
+    async def publish(self, *_args, **_kwargs) -> None:
+        return None
+
+    @property
+    def messages(self):
+        async def never():
+            await asyncio.Event().wait()
+            yield  # pragma: no cover
+
+        return never()
+
+
+def _patch_connection(connection: _FakeConnection):
+    return patch("custom_components.terramow.config_flow.aiomqtt.Client", connection)
+
+
 async def test_user_flow_creates_entry(hass) -> None:
     """A reachable mower creates a config entry."""
     result = await hass.config_entries.flow.async_init(
@@ -32,21 +76,13 @@ async def test_user_flow_creates_entry(hass) -> None:
     )
     assert result["type"] is FlowResultType.FORM
 
-    client = MagicMock()
-
-    def connect(*_args) -> int:
-        client.on_connect(client, None, {}, 0)
-        return 0
-
-    client.connect.side_effect = connect
-    with patch(
-        "custom_components.terramow.config_flow.mqtt_client.Client",
-        return_value=client,
-    ):
+    connection = _FakeConnection()
+    with _patch_connection(connection):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {CONF_HOST: "192.0.2.10", CONF_PASSWORD: "secret"},
         )
+        await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "TerraMow (192.0.2.10)"
@@ -55,25 +91,31 @@ async def test_user_flow_creates_entry(hass) -> None:
         CONF_PASSWORD: "secret",
         CONF_IDENTITY_KEY: "192.0.2.10",
     }
-    client.connect.assert_called_once_with("192.0.2.10", 1883, 5)
-    client.loop_start.assert_called_once_with()
-    client.loop_stop.assert_called_once_with()
-    client.disconnect.assert_called_once_with()
+    assert connection.kwargs["hostname"] == "192.0.2.10"
+    assert connection.kwargs["port"] == 1883
+    assert connection.kwargs["username"] == "terramow"
+    assert connection.kwargs["password"] == "secret"
+    assert connection.exited
 
 
-async def test_user_flow_reports_connection_error(hass) -> None:
+@pytest.mark.parametrize(
+    "error",
+    [
+        OSError("unreachable"),
+        TimeoutError(),
+        aiomqtt.MqttError("no route"),
+        aiomqtt.MqttCodeError(3, "server unavailable"),
+        RuntimeError("unexpected"),
+    ],
+)
+async def test_user_flow_reports_connection_error(hass, error) -> None:
     """An unreachable mower leaves the form open with an error."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_USER},
     )
 
-    client = MagicMock()
-    client.connect.side_effect = OSError("unreachable")
-    with patch(
-        "custom_components.terramow.config_flow.mqtt_client.Client",
-        return_value=client,
-    ):
+    with _patch_connection(_FakeConnection(error)):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {CONF_HOST: "192.0.2.11", CONF_PASSWORD: "secret"},
@@ -83,24 +125,15 @@ async def test_user_flow_reports_connection_error(hass) -> None:
     assert result["errors"] == {"base": "cannot_connect"}
 
 
-async def test_user_flow_reports_invalid_auth(hass) -> None:
+@pytest.mark.parametrize("code", [4, 5, 134, 135])
+async def test_user_flow_reports_invalid_auth(hass, code) -> None:
     """A broker CONNACK authentication refusal is shown as invalid_auth."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_USER},
     )
 
-    client = MagicMock()
-
-    def connect(*_args) -> int:
-        client.on_connect(client, None, {}, 5)
-        return 0
-
-    client.connect.side_effect = connect
-    with patch(
-        "custom_components.terramow.config_flow.mqtt_client.Client",
-        return_value=client,
-    ):
+    with _patch_connection(_FakeConnection(aiomqtt.MqttCodeError(code, "refused"))):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {CONF_HOST: "192.0.2.12", CONF_PASSWORD: "wrong"},
@@ -108,8 +141,24 @@ async def test_user_flow_reports_invalid_auth(hass) -> None:
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "invalid_auth"}
-    client.disconnect.assert_called_once_with()
-    client.loop_stop.assert_called_once_with()
+
+
+async def test_auth_refusal_as_reason_code_object(hass) -> None:
+    """paho 2.x may wrap the CONNACK code in an object with a value."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
+    )
+    error = aiomqtt.MqttCodeError(0, "refused")
+    error.rc = SimpleNamespace(value=135)
+
+    with _patch_connection(_FakeConnection(error)):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_HOST: "192.0.2.13", CONF_PASSWORD: "wrong"},
+        )
+
+    assert result["errors"] == {"base": "invalid_auth"}
 
 
 async def _start_reconfigure(hass, entry: MockConfigEntry) -> dict:

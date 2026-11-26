@@ -37,6 +37,7 @@ jobs:
           uv pip install
           pytest-homeassistant-custom-component==${{ matrix.pytest_plugin }}
           PyTurboJPEG==1.8.3
+          aiomqtt==2.5.1
           ${{ matrix.extra_requirement }}
       - name: Run tests with branch coverage
         # The coverage floor (fail_under) lives in pyproject.toml.

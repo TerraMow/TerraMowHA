@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
-import threading
 from typing import Any
 from uuid import uuid4
 
-import paho.mqtt.client as mqtt_client
+import aiomqtt
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow as BaseConfigFlow
 
@@ -29,62 +29,43 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
+def _is_auth_failure(err: aiomqtt.MqttCodeError) -> bool:
+    """Return True when the broker refused the connection over credentials.
+
+    MQTT 3.1.1 CONNACK codes 4 (bad user name or password) and 5 (not
+    authorized). paho 2.x, which aiomqtt uses, may report them as the MQTT 5
+    reason codes 134 and 135, as ReasonCode objects with a ``value``.
+    """
+    code = getattr(err.rc, "value", err.rc)
+    return code in (4, 5, 134, 135)
+
+
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """验证用户输入并测试MQTT连接."""
+    """验证用户输入并测试MQTT连接.
 
-    def mqtt_connect() -> None:
-        """等待 broker 的 CONNACK，区分认证失败和网络失败。"""
-        client = mqtt_client.Client()
-        client.username_pw_set(MQTT_USERNAME, data[CONF_PASSWORD])
-        connected = threading.Event()
-        connack: list[int] = []
-        loop_started = False
-
-        def on_connect(
-            _client: Any,
-            _userdata: Any,
-            _flags: Any,
-            return_code: Any,
-            *_args: Any,
-        ) -> None:
-            """记录 MQTT 3.x broker 返回码，并唤醒等待线程。"""
-            connack.append(int(return_code))
-            connected.set()
-
-        client.on_connect = on_connect
-        try:
-            connect_result = client.connect(data[CONF_HOST], MQTT_PORT, 5)
-            if int(connect_result) != 0:
-                raise CannotConnect
-
-            # connect() 只建立 socket；必须运行网络循环才能收到 CONNACK。
-            client.loop_start()
-            loop_started = True
-            if not connected.wait(MQTT_CONNECT_TIMEOUT):
-                raise CannotConnect
-
-            return_code = connack[0] if connack else -1
-            if return_code in (4, 5):
-                raise InvalidAuth
-            if return_code != 0:
-                raise CannotConnect
-        except (CannotConnect, InvalidAuth):
-            raise
-        except Exception as err:
-            _LOGGER.error("MQTT connection failed: %s", type(err).__name__)
-            raise CannotConnect from err
-        finally:
-            if loop_started:
-                try:
-                    client.disconnect()
-                finally:
-                    client.loop_stop()
-
+    Waits for the broker's CONNACK, so an authentication failure
+    (InvalidAuth) is told apart from a network failure (CannotConnect).
+    """
     try:
-        # 在 executor 中运行同步 MQTT 连接测试，避免阻塞 HA 事件循环。
-        await hass.async_add_executor_job(mqtt_connect)
-    except (CannotConnect, InvalidAuth):
-        raise
+        # aiomqtt times out the connect itself; the outer timeout makes sure a
+        # half-open TCP connect can never hang the flow.
+        async with asyncio.timeout(MQTT_CONNECT_TIMEOUT * 2):
+            async with aiomqtt.Client(
+                hostname=data[CONF_HOST],
+                port=MQTT_PORT,
+                username=MQTT_USERNAME,
+                password=data[CONF_PASSWORD],
+                timeout=MQTT_CONNECT_TIMEOUT,
+            ):
+                pass  # 收到 CONNACK 即验证通过；退出时断开连接。
+    except aiomqtt.MqttCodeError as err:
+        if _is_auth_failure(err):
+            raise InvalidAuth from err
+        _LOGGER.error("MQTT connection failed: %s", type(err).__name__)
+        raise CannotConnect from err
+    except (aiomqtt.MqttError, OSError, TimeoutError) as err:
+        _LOGGER.error("MQTT connection failed: %s", type(err).__name__)
+        raise CannotConnect from err
     except Exception as err:
         _LOGGER.exception("Unexpected MQTT validation error: %s", type(err).__name__)
         raise CannotConnect from err

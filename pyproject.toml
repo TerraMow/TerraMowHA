@@ -14,7 +14,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "paho-mqtt>=1.6.1",
+    "aiomqtt>=2.0.0",
     "Pillow>=9.0.0",
 ]
 
@@ -58,13 +58,6 @@ files = ["custom_components/terramow"]
 # custom_components has no __init__.py; resolve module names from the
 # repository root so they read custom_components.terramow.*.
 explicit_package_bases = true
-
-[[tool.mypy.overrides]]
-module = [
-    "paho",
-    "paho.*",
-]
-ignore_missing_imports = true
 
 # Baseline: modules that did not pass mypy when the CI check was added.
 # Errors in them are not reported yet; every other module, including any new
