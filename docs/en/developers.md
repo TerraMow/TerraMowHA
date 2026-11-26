@@ -14,6 +14,7 @@ This document provides development information about the TerraMow Home Assistant
 - [Map Information](#map-information)
 - [Map and Path Capabilities (HA v3+)](#map-and-path-capabilities-ha-v3)
 - [Device Model](#device-model)
+- [Quality Gates](#quality-gates)
 
 <!-- /code_chunk_output -->
 
@@ -266,3 +267,27 @@ Device model is published through MQTT topic `model/name` containing the commerc
 - **Message Type**: Uses QoS 1 and retained flag
 - **Data Format**: Plain text string, e.g., "TerraMow S1200"
 - **Purpose**: Home Assistant integration uses this information to display device model
+
+## Quality Gates
+
+Every pull request runs these checks in CI, so reviews can rely on them instead of manual checks. Run them locally before pushing.
+
+### Type Checking (mypy)
+
+The `mypy` job checks `custom_components/terramow` with the `[tool.mypy]` settings in `pyproject.toml`:
+
+```bash
+mypy
+```
+
+Modules that did not pass when the check was introduced are listed in a baseline override in `pyproject.toml` (`ignore_errors = true`). Every other module, including any new one, must pass. The baseline may only shrink: once a listed module passes, remove it from the list in the same pull request.
+
+### Test Coverage Floor
+
+The tests job measures line and branch coverage of `custom_components/terramow`. The run fails if total coverage drops below the floor set by `fail_under` in `[tool.coverage.report]` in `pyproject.toml`. The floor is currently **65.5 %**, just below the lowest total of the CI matrix when the check was added (65.56 % on HA 2026.7, 68.44 % on HA 2025.3).
+
+```bash
+pytest --cov --cov-report=term-missing
+```
+
+The floor only goes up. When a pull request raises total coverage, it may raise `fail_under` to the new lowest total of the matrix (rounded down to one decimal, so run-to-run jitter does not fail the build) and update the number above. No pull request may lower it.

@@ -54,12 +54,36 @@ python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+files = ["custom_components/terramow"]
+# custom_components has no __init__.py; resolve module names from the
+# repository root so they read custom_components.terramow.*.
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = [
-    "paho.mqtt.*",
+    "paho",
+    "paho.*",
 ]
 ignore_missing_imports = true
+
+# Baseline: modules that did not pass mypy when the CI check was added.
+# Errors in them are not reported yet; every other module, including any new
+# one, must pass. The list may only shrink: fix a module, then remove it here.
+# See "Quality gates" in docs/en/developers.md.
+[[tool.mypy.overrides]]
+module = [
+    "custom_components.terramow.binary_sensor",
+    "custom_components.terramow.calendar",
+    "custom_components.terramow.camera",
+    "custom_components.terramow.config_flow",
+    "custom_components.terramow.lawn_mower",
+    "custom_components.terramow.map_sensor",
+    "custom_components.terramow.number",
+    "custom_components.terramow.schedule",
+    "custom_components.terramow.select",
+    "custom_components.terramow.sensor",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -68,3 +92,11 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["custom_components/terramow"]
+branch = true
+
+[tool.coverage.report]
+# Coverage floor: only goes up. See "Quality gates" in docs/en/developers.md.
+fail_under = 65.5
+precision = 2
+show_missing = true
+skip_empty = true
