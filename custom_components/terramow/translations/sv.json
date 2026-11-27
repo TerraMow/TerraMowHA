@@ -35,6 +35,23 @@
                 "name": "Globalt klippschema"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Gräsklipparhändelse",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Klippning startad",
+                            "paused": "Pausad",
+                            "returning": "Återvänder",
+                            "docked": "I laddstationen",
+                            "mowing_completed": "Klippning klar",
+                            "error": "Fel"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Gräsklippare"
