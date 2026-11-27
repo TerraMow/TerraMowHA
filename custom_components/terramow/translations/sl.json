@@ -43,6 +43,23 @@
                 "name": "Globalni urnik košnje"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Dogodek kosilnice",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Košnja začeta",
+                            "paused": "Začasno ustavljeno",
+                            "returning": "Vrača se",
+                            "docked": "Na postaji",
+                            "mowing_completed": "Košnja končana",
+                            "error": "Napaka"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosilnica"

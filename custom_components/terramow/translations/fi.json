@@ -43,6 +43,23 @@
                 "name": "Yleinen leikkuuaikataulu"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Leikkurin tapahtuma",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Leikkuu aloitettu",
+                            "paused": "Keskeytetty",
+                            "returning": "Palaamassa",
+                            "docked": "Latausasemalla",
+                            "mowing_completed": "Leikkuu valmis",
+                            "error": "Virhe"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Leikkuri"

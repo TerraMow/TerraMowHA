@@ -43,6 +43,23 @@
                 "name": "Global klippeplan"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Græsslåmaskine-hændelse",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Klipning startet",
+                            "paused": "Sat på pause",
+                            "returning": "Vender tilbage",
+                            "docked": "I ladestation",
+                            "mowing_completed": "Klipning fuldført",
+                            "error": "Fejl"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Græsslåmaskine"

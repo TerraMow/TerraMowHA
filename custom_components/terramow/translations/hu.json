@@ -43,6 +43,23 @@
                 "name": "Globális nyírási ütemezés"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Fűnyíró esemény",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Fűnyírás elindult",
+                            "paused": "Szüneteltetve",
+                            "returning": "Visszatér",
+                            "docked": "Dokkolóban",
+                            "mowing_completed": "Fűnyírás befejezve",
+                            "error": "Hiba"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Fűnyíró"

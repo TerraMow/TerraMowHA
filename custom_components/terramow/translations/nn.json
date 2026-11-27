@@ -43,6 +43,23 @@
                 "name": "Global klippeplan"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Gressklipperhending",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Klipping starta",
+                            "paused": "Pausa",
+                            "returning": "På veg tilbake",
+                            "docked": "I ladestasjonen",
+                            "mowing_completed": "Klipping fullført",
+                            "error": "Feil"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Gressklipper"

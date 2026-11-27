@@ -43,6 +43,23 @@
         "name": "Global mowing schedule"
       }
     },
+    "event": {
+      "mower_event": {
+        "name": "Mower event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "mowing_started": "Mowing started",
+              "paused": "Paused",
+              "returning": "Returning",
+              "docked": "Docked",
+              "mowing_completed": "Mowing completed",
+              "error": "Error"
+            }
+          }
+        }
+      }
+    },
     "lawn_mower": {
       "lawn_mower": {
         "name": "Mower"

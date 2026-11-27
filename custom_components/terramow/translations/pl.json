@@ -43,6 +43,23 @@
                 "name": "Globalny harmonogram koszenia"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Zdarzenie kosiarki",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Koszenie rozpoczęte",
+                            "paused": "Wstrzymano",
+                            "returning": "Powrót do stacji",
+                            "docked": "W stacji",
+                            "mowing_completed": "Koszenie zakończone",
+                            "error": "Błąd"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosiarka"

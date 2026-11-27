@@ -43,6 +43,23 @@
                 "name": "Globálny plán kosenia"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Udalosť kosačky",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Kosenie spustené",
+                            "paused": "Pozastavené",
+                            "returning": "Vracia sa",
+                            "docked": "V stanici",
+                            "mowing_completed": "Kosenie dokončené",
+                            "error": "Chyba"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Kosačka"

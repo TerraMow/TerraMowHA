@@ -43,6 +43,23 @@
                 "name": "Calendario di taglio globale"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Evento del rasaerba",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Taglio avviato",
+                            "paused": "In pausa",
+                            "returning": "In rientro",
+                            "docked": "Alla base",
+                            "mowing_completed": "Taglio completato",
+                            "error": "Errore"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Rasaerba"

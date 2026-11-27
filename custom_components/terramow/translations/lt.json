@@ -43,6 +43,23 @@
                 "name": "Bendras pjovimo tvarkaraštis"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Žoliapjovės įvykis",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Pjovimas pradėtas",
+                            "paused": "Pristabdyta",
+                            "returning": "Grįžta",
+                            "docked": "Bazėje",
+                            "mowing_completed": "Pjovimas baigtas",
+                            "error": "Klaida"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Žoliapjovė"

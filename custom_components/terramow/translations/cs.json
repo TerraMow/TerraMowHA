@@ -43,6 +43,23 @@
                 "name": "Globální plán sečení"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Událost sekačky",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Sečení zahájeno",
+                            "paused": "Pozastaveno",
+                            "returning": "Vrací se",
+                            "docked": "V dokovací stanici",
+                            "mowing_completed": "Sečení dokončeno",
+                            "error": "Chyba"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Sekačka"

@@ -43,6 +43,23 @@
                 "name": "Globaler Mähplan"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "Rasenmäher-Ereignis",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "Mähen gestartet",
+                            "paused": "Pausiert",
+                            "returning": "Kehrt zurück",
+                            "docked": "In der Ladestation",
+                            "mowing_completed": "Mähen abgeschlossen",
+                            "error": "Fehler"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "Rasenmäher"

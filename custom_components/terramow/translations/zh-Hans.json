@@ -43,6 +43,23 @@
                 "name": "全局割草日历"
             }
         },
+        "event": {
+            "mower_event": {
+                "name": "割草机事件",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "mowing_started": "开始割草",
+                            "paused": "已暂停",
+                            "returning": "正在返回",
+                            "docked": "已回到基站",
+                            "mowing_completed": "割草完成",
+                            "error": "故障"
+                        }
+                    }
+                }
+            }
+        },
         "lawn_mower": {
             "lawn_mower": {
                 "name": "割草机"
