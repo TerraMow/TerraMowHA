@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Nessun rasaerba TerraMow corrisponde alla destinazione."
+        },
+        "no_zones": {
+            "message": "La mappa attuale non ha zone da tagliare."
+        },
         "not_connected": {
             "message": "TerraMow non è connesso."
         },
         "reset_not_confirmed": {
             "message": "Il rasaerba non ha confermato l'azzeramento."
+        },
+        "unknown_zones": {
+            "message": "Questi ID di zona non sono sulla mappa attuale: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Taglia zone",
+            "description": "Avvia il taglio delle zone indicate della mappa attuale.",
+            "fields": {
+                "region_ids": {
+                    "name": "ID delle zone",
+                    "description": "ID delle zone da tagliare, come elencati nella selezione della zona."
+                }
+            }
         }
     }
 }

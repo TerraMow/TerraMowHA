@@ -1712,6 +1712,48 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         """Reset the base station usage counter (dp_125)."""
         await self.async_reset_counter(BASE_STATION_TIME_DP)
 
+    @property
+    def zone_ids(self) -> set[int]:
+        """IDs of the zones (sub-regions) on the current map."""
+        ids: set[int] = set()
+        for region in self._map_info.get("regions") or []:
+            if not isinstance(region, dict):
+                continue
+            for zone in region.get("sub_regions") or []:
+                if isinstance(zone, dict) and isinstance(zone.get("id"), int):
+                    ids.add(zone["id"])
+        return ids
+
+    async def async_start_select_region(self, region_ids: list[int]) -> None:
+        """Start mowing the given zones, after checking them against the map.
+
+        Uses the same dp_103 command as the zone select, with every ID in one
+        request, and waits for the device to confirm it.
+        """
+        from homeassistant.exceptions import ServiceValidationError
+
+        known = self.zone_ids
+        if not known:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="no_zones"
+            )
+        unknown = sorted(set(region_ids) - known)
+        if unknown:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_zones",
+                translation_placeholders={
+                    "zone_ids": ", ".join(str(zone_id) for zone_id in unknown)
+                },
+            )
+        await self.feedback.async_send_command(
+            103,
+            {
+                "mode": "START_MODE_SELECT_REGION_CLEAN",
+                "select_region_clean": {"region_ids": list(dict.fromkeys(region_ids))},
+            },
+        )
+
     async def async_will_remove_from_hass(self):
         """Clean up resources when the entity is removed."""
         _LOGGER.info("Stopping MQTT client")

@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Kein TerraMow-Rasenmäher passt zum Ziel."
+        },
+        "no_zones": {
+            "message": "Die aktuelle Karte hat keine Zonen zum Mähen."
+        },
         "not_connected": {
             "message": "TerraMow ist nicht verbunden."
         },
         "reset_not_confirmed": {
             "message": "Der Rasenmäher hat das Zurücksetzen nicht bestätigt."
+        },
+        "unknown_zones": {
+            "message": "Diese Zonen-IDs sind nicht auf der aktuellen Karte: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Zonen mähen",
+            "description": "Startet das Mähen der angegebenen Zonen der aktuellen Karte.",
+            "fields": {
+                "region_ids": {
+                    "name": "Zonen-IDs",
+                    "description": "IDs der zu mähenden Zonen, wie in der Zonenauswahl aufgeführt."
+                }
+            }
         }
     }
 }

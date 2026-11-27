@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Nobena kosilnica TerraMow ne ustreza cilju."
+        },
+        "no_zones": {
+            "message": "Trenutni zemljevid nima con za košnjo."
+        },
         "not_connected": {
             "message": "TerraMow ni povezana."
         },
         "reset_not_confirmed": {
             "message": "Kosilnica ni potrdila ponastavitve."
+        },
+        "unknown_zones": {
+            "message": "Teh ID-jev con ni na trenutnem zemljevidu: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Pokosi cone",
+            "description": "Zažene košnjo navedenih con trenutnega zemljevida.",
+            "fields": {
+                "region_ids": {
+                    "name": "ID-ji con",
+                    "description": "ID-ji con za košnjo, kot so navedeni v izbiri cone."
+                }
+            }
         }
     }
 }
