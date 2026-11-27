@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Ningún cortacésped TerraMow coincide con el destino."
+        },
+        "no_zones": {
+            "message": "El mapa actual no tiene zonas que segar."
+        },
         "not_connected": {
             "message": "TerraMow no está conectado."
         },
         "reset_not_confirmed": {
             "message": "El cortacésped no confirmó el restablecimiento."
+        },
+        "unknown_zones": {
+            "message": "Estos ID de zona no están en el mapa actual: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Segar zonas",
+            "description": "Inicia la siega de las zonas indicadas del mapa actual.",
+            "fields": {
+                "region_ids": {
+                    "name": "ID de zona",
+                    "description": "ID de las zonas que se van a segar, como aparecen en la selección de zona."
+                }
+            }
         }
     }
 }

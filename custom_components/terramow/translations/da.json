@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Ingen TerraMow-græsslåmaskine matcher målet."
+        },
+        "no_zones": {
+            "message": "Det aktuelle kort har ingen zoner at slå."
+        },
         "not_connected": {
             "message": "TerraMow er ikke forbundet."
         },
         "reset_not_confirmed": {
             "message": "Græsslåmaskinen bekræftede ikke nulstillingen."
+        },
+        "unknown_zones": {
+            "message": "Disse zone-id'er findes ikke på det aktuelle kort: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Slå zoner",
+            "description": "Starter klipning af de angivne zoner på det aktuelle kort.",
+            "fields": {
+                "region_ids": {
+                    "name": "Zone-id'er",
+                    "description": "Id'er for de zoner, der skal slås, som vist i zonevalget."
+                }
+            }
         }
     }
 }

@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Cíli neodpovídá žádná sekačka TerraMow."
+        },
+        "no_zones": {
+            "message": "Aktuální mapa nemá žádné zóny k sečení."
+        },
         "not_connected": {
             "message": "TerraMow není připojena."
         },
         "reset_not_confirmed": {
             "message": "Sekačka nepotvrdila vynulování."
+        },
+        "unknown_zones": {
+            "message": "Tato ID zón nejsou na aktuální mapě: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Posekat zóny",
+            "description": "Spustí sečení zadaných zón aktuální mapy.",
+            "fields": {
+                "region_ids": {
+                    "name": "ID zón",
+                    "description": "ID zón k sečení, jak je uvádí výběr zóny."
+                }
+            }
         }
     }
 }

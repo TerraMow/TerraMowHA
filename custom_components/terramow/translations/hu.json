@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Egyetlen TerraMow fűnyíró sem felel meg a célnak."
+        },
+        "no_zones": {
+            "message": "Az aktuális térképen nincs nyírható zóna."
+        },
         "not_connected": {
             "message": "A TerraMow nincs csatlakoztatva."
         },
         "reset_not_confirmed": {
             "message": "A fűnyíró nem erősítette meg a nullázást."
+        },
+        "unknown_zones": {
+            "message": "Ezek a zónaazonosítók nincsenek az aktuális térképen: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Zónák nyírása",
+            "description": "Elindítja az aktuális térkép megadott zónáinak nyírását.",
+            "fields": {
+                "region_ids": {
+                    "name": "Zónaazonosítók",
+                    "description": "A nyírandó zónák azonosítói a zónaválasztó szerint."
+                }
+            }
         }
     }
 }

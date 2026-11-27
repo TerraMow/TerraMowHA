@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Ingen TerraMow-gressklipper samsvarar med målet."
+        },
+        "no_zones": {
+            "message": "Det gjeldande kartet har ingen soner å klippe."
+        },
         "not_connected": {
             "message": "TerraMow er ikkje tilkopla."
         },
         "reset_not_confirmed": {
             "message": "Gressklipparen stadfesta ikkje nullstillinga."
+        },
+        "unknown_zones": {
+            "message": "Desse sone-ID-ane finst ikkje på det gjeldande kartet: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Klipp soner",
+            "description": "Startar klipping av dei oppgjevne sonene på det gjeldande kartet.",
+            "fields": {
+                "region_ids": {
+                    "name": "Sone-ID-ar",
+                    "description": "ID-ane til sonene som skal klippast, slik dei står i sonevalet."
+                }
+            }
         }
     }
 }

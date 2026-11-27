@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     CONF_HOST,
     CONF_PASSWORD,
+    ENTITY_MATCH_ALL,
     Platform,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_IDENTITY_KEY,
@@ -38,6 +45,61 @@ PLATFORMS: list[Platform] = [
     Platform.EVENT,
     Platform.BUTTON,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+SERVICE_START_SELECT_REGION = "start_select_region"
+ATTR_REGION_IDS = "region_ids"
+_ZONE_ID_TEXT = re.compile(r"[0-9]+", re.ASCII)
+
+
+def zone_id(value: Any) -> int:
+    """Validate one zone ID: a non-negative integer, or a string of one.
+
+    Booleans and floating-point numbers are rejected instead of being
+    truncated, so ``true`` or ``1.9`` can never select zone 1.
+    """
+    if isinstance(value, bool):
+        raise vol.Invalid("zone IDs must be whole numbers, not booleans")
+    if isinstance(value, int):
+        if value < 0:
+            raise vol.Invalid("zone IDs must not be negative")
+        return value
+    if isinstance(value, str) and _ZONE_ID_TEXT.fullmatch(value.strip()):
+        return int(value)
+    raise vol.Invalid(f"invalid zone ID: {value!r}")
+
+
+START_SELECT_REGION_SCHEMA = cv.make_entity_service_schema(
+    {
+        vol.Required(ATTR_REGION_IDS): vol.All(
+            cv.ensure_list, vol.Length(min=1), [zone_id]
+        )
+    }
+)
+
+
+def _targeted_entity_ids(hass: HomeAssistant, call: ServiceCall) -> set[str]:
+    """Entity IDs a service call targets, with devices and areas expanded.
+
+    Home Assistant moved target resolution to ``helpers.target``; the
+    ``helpers.service`` version is deprecated there but is all that older
+    cores such as 2025.3 provide.
+    """
+    try:
+        from homeassistant.helpers.target import (
+            TargetSelection,
+            async_extract_referenced_entity_ids,
+        )
+    except ImportError:
+        from homeassistant.helpers.service import (
+            async_extract_referenced_entity_ids as legacy_extract,
+        )
+
+        legacy = legacy_extract(hass, call)
+        return legacy.referenced | legacy.indirectly_referenced
+    selected = async_extract_referenced_entity_ids(hass, TargetSelection(call.data))
+    return selected.referenced | selected.indirectly_referenced
 
 
 @dataclass
@@ -127,6 +189,35 @@ class TerraMowBasicData:
                 return "Firmware HA version is higher than plugin version, recommend upgrading plugin or using corresponding firmware version"
         else:
             return "Version incompatible, cannot work properly"
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the integration's services once, independent of entries."""
+
+    async def async_start_select_region(call: ServiceCall) -> None:
+        """Start mowing the given zones on each targeted mower."""
+        match_all = call.data.get(ATTR_ENTITY_ID) == ENTITY_MATCH_ALL
+        targets = set() if match_all else _targeted_entity_ids(hass, call)
+        mowers = [
+            basic_data.lawn_mower
+            for basic_data in hass.data.get(DOMAIN, {}).values()
+            if basic_data.lawn_mower is not None
+            and (match_all or basic_data.lawn_mower.entity_id in targets)
+        ]
+        if not mowers:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="mower_not_found"
+            )
+        for mower in mowers:
+            await mower.async_start_select_region(call.data[ATTR_REGION_IDS])
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_START_SELECT_REGION,
+        async_start_select_region,
+        schema=START_SELECT_REGION_SCHEMA,
+    )
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

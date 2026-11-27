@@ -1,0 +1,11 @@
+start_select_region:
+  target:
+    entity:
+      integration: terramow
+      domain: lawn_mower
+  fields:
+    region_ids:
+      required: true
+      example: "[1, 2]"
+      selector:
+        object:

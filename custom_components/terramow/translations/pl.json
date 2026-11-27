@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Żadna kosiarka TerraMow nie pasuje do celu."
+        },
+        "no_zones": {
+            "message": "Bieżąca mapa nie ma stref do koszenia."
+        },
         "not_connected": {
             "message": "TerraMow nie jest połączona."
         },
         "reset_not_confirmed": {
             "message": "Kosiarka nie potwierdziła wyzerowania."
+        },
+        "unknown_zones": {
+            "message": "Tych identyfikatorów stref nie ma na bieżącej mapie: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Skoś strefy",
+            "description": "Rozpoczyna koszenie podanych stref bieżącej mapy.",
+            "fields": {
+                "region_ids": {
+                    "name": "Identyfikatory stref",
+                    "description": "Identyfikatory stref do skoszenia, jak w wyborze strefy."
+                }
+            }
         }
     }
 }

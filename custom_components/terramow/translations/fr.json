@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "Aucune tondeuse TerraMow ne correspond à la cible."
+        },
+        "no_zones": {
+            "message": "La carte actuelle ne contient aucune zone à tondre."
+        },
         "not_connected": {
             "message": "TerraMow n'est pas connectée."
         },
         "reset_not_confirmed": {
             "message": "La tondeuse n'a pas confirmé la réinitialisation."
+        },
+        "unknown_zones": {
+            "message": "Ces identifiants de zone ne figurent pas sur la carte actuelle : {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Tondre des zones",
+            "description": "Lance la tonte des zones indiquées de la carte actuelle.",
+            "fields": {
+                "region_ids": {
+                    "name": "Identifiants de zone",
+                    "description": "Identifiants des zones à tondre, tels qu'affichés dans la sélection de zone."
+                }
+            }
         }
     }
 }

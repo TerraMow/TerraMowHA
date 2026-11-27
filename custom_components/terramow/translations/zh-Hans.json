@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "没有与目标匹配的 TerraMow 割草机。"
+        },
+        "no_zones": {
+            "message": "当前地图没有可割草的分区。"
+        },
         "not_connected": {
             "message": "TerraMow 未连接。"
         },
         "reset_not_confirmed": {
             "message": "割草机未确认重置。"
+        },
+        "unknown_zones": {
+            "message": "这些分区 ID 不在当前地图上：{zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "分区割草",
+            "description": "开始对当前地图的指定分区割草。",
+            "fields": {
+                "region_ids": {
+                    "name": "分区 ID",
+                    "description": "要割草的分区 ID，与分区选择中列出的一致。"
+                }
+            }
         }
     }
 }

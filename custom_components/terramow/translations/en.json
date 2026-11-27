@@ -328,11 +328,32 @@
         }
     },
     "exceptions": {
+        "mower_not_found": {
+            "message": "No TerraMow mower matches the target."
+        },
+        "no_zones": {
+            "message": "The current map has no zones to mow."
+        },
         "not_connected": {
             "message": "TerraMow is not connected."
         },
         "reset_not_confirmed": {
             "message": "The mower did not confirm the reset."
+        },
+        "unknown_zones": {
+            "message": "These zone IDs are not on the current map: {zone_ids}"
+        }
+    },
+    "services": {
+        "start_select_region": {
+            "name": "Mow zones",
+            "description": "Starts mowing the given zones of the current map.",
+            "fields": {
+                "region_ids": {
+                    "name": "Zone IDs",
+                    "description": "IDs of the zones to mow, as listed in the zone select."
+                }
+            }
         }
     }
 }
