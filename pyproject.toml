@@ -14,7 +14,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "aiomqtt>=2.0.0",
+    "aiomqtt==2.5.1",
     "Pillow>=9.0.0",
 ]
 

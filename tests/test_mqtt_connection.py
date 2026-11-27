@@ -1,16 +1,27 @@
-"""aiomqtt connection task: connect, dispatch, reconnect and clean shutdown."""
+"""MQTT connection lifecycle against an in-process MQTT 3.1.1 broker.
+
+The broker runs on 127.0.0.1 and can hold back CONNACK and SUBACK, so the
+waiting phases of a connection are exercised with the real aiomqtt client
+and real sockets: cancellation while awaiting CONNACK, unload while awaiting
+SUBACK, connect timeouts, repeated reloads and late worker-thread calls.
+"""
+
+from __future__ import annotations
 
 import asyncio
-import json
+import logging
+from collections.abc import Callable
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import aiomqtt
 import pytest
+import pytest_socket
 from homeassistant.components.lawn_mower.const import LawnMowerActivity
 from homeassistant.core import HomeAssistant
 
 from custom_components.terramow import TerraMowBasicData
+from custom_components.terramow import mqtt_connection as mqtt_connection_module
 from custom_components.terramow.lawn_mower import (
     MQTT_ERR_NO_CONN,
     MQTT_ERR_SUCCESS,
@@ -18,102 +29,257 @@ from custom_components.terramow.lawn_mower import (
     MqttMessage,
     TerraMowLawnMowerEntity,
 )
+from custom_components.terramow.mqtt_connection import (
+    MQTT_SUBSCRIBE_BATCH_SIZE,
+    MqttConnection,
+    MqttSubscribeError,
+)
 
-LOST = object()  # queued into FakeClient.messages to drop the connection
+# --------------------------------------------------------------------------
+# A minimal MQTT 3.1.1 broker
+# --------------------------------------------------------------------------
 
 
-class FakeClient:
-    """Stands in for aiomqtt.Client; one instance per connection attempt."""
+def _remaining_length(length: int) -> bytes:
+    out = bytearray()
+    while True:
+        byte, length = length % 128, length // 128
+        out.append(byte | (0x80 if length else 0))
+        if not length:
+            return bytes(out)
 
-    # Per attempt: an exception to raise on connect, or None to connect.
-    connect_results: list[BaseException | None] = []
-    instances: list["FakeClient"] = []
 
-    def __init__(self, **kwargs) -> None:
-        self.kwargs = kwargs
+class BrokerConnection:
+    """One client connection as the broker sees it."""
+
+    def __init__(self, writer: asyncio.StreamWriter) -> None:
+        self.writer = writer
         self.subscribed: list[str] = []
-        self.published: list[tuple[str, str]] = []
-        self.queue: asyncio.Queue = asyncio.Queue()
-        self.exited = False
-        FakeClient.instances.append(self)
+        self.subscribe_packets = 0
+        self.published: list[tuple[str, bytes]] = []
+        self.disconnect_received = False
+        self.closed = asyncio.Event()
 
-    async def __aenter__(self) -> "FakeClient":
-        result = (
-            FakeClient.connect_results.pop(0) if FakeClient.connect_results else None
-        )
-        if result is not None:
-            raise result
-        return self
+    def send(self, topic: str, payload: bytes, retain: bool = False) -> None:
+        """Deliver a QoS 0 PUBLISH to the client."""
+        name = topic.encode()
+        body = len(name).to_bytes(2, "big") + name + payload
+        header = 0x30 | (0x01 if retain else 0)
+        self.writer.write(bytes([header]) + _remaining_length(len(body)) + body)
 
-    async def __aexit__(self, *_exc) -> None:
-        self.exited = True
 
-    async def subscribe(self, topic: str, qos: int = 0) -> None:
-        self.subscribed.append(topic)
+class FakeBroker:
+    """Accepts MQTT clients; CONNACK and SUBACK can be held back or refused."""
 
-    async def publish(self, topic: str, payload: str, qos: int = 0) -> None:
-        self.published.append((topic, payload))
+    def __init__(self) -> None:
+        self.connack_gate: asyncio.Event | None = None
+        self.suback_gate: asyncio.Event | None = None
+        self.refuse_topics: set[str] = set()
+        self.connections: list[BrokerConnection] = []
+        self.timeline: list[tuple[str, str]] = []
+        self.port = 0
+        self._server: asyncio.Server | None = None
+        self._held_replies: set[asyncio.Task[None]] = set()
 
-    @property
-    def messages(self):
-        async def iterate():
+    async def start(self) -> None:
+        self._server = await asyncio.start_server(self._handle, "127.0.0.1", 0)
+        self.port = self._server.sockets[0].getsockname()[1]
+
+    async def stop(self) -> None:
+        # Release held-back replies so no handler blocks the shutdown.
+        for task in self._held_replies:
+            task.cancel()
+        await asyncio.gather(*self._held_replies, return_exceptions=True)
+        for connection in self.connections:
+            connection.writer.close()
+        if self._server is not None:
+            self._server.close()
+            async with asyncio.timeout(5):
+                await self._server.wait_closed()
+
+    async def _handle(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
+        connection = BrokerConnection(writer)
+        self.connections.append(connection)
+        try:
             while True:
-                item = await self.queue.get()
-                if item is LOST:
-                    raise aiomqtt.MqttError("Disconnected during message iteration")
-                if item is None:
-                    return
-                yield item
+                header = (await reader.readexactly(1))[0]
+                length, multiplier = 0, 1
+                while True:
+                    byte = (await reader.readexactly(1))[0]
+                    length += (byte & 0x7F) * multiplier
+                    multiplier *= 128
+                    if not byte & 0x80:
+                        break
+                body = await reader.readexactly(length)
+                self._packet(connection, header, body)
+                await writer.drain()
+                if connection.disconnect_received:
+                    break
+        except (asyncio.IncompleteReadError, ConnectionError):
+            pass
+        finally:
+            connection.closed.set()
+            writer.close()
 
-        return iterate()
+    def _reply(
+        self,
+        connection: BrokerConnection,
+        gate: asyncio.Event | None,
+        data: bytes,
+        event: tuple[str, str] | None = None,
+    ) -> None:
+        """Send a reply now, or once its gate opens.
+
+        Held-back replies wait in their own task, so the connection keeps
+        being read and a client closing it is noticed while a reply is held.
+        """
+
+        def send() -> None:
+            if not connection.closed.is_set():
+                connection.writer.write(data)
+                if event is not None:
+                    self.timeline.append(event)
+
+        if gate is None or gate.is_set():
+            send()
+            return
+
+        async def held() -> None:
+            await gate.wait()
+            send()
+
+        task = asyncio.get_running_loop().create_task(held())
+        self._held_replies.add(task)
+        task.add_done_callback(self._held_replies.discard)
+
+    def _packet(self, connection: BrokerConnection, header: int, body: bytes) -> None:
+        packet_type = header >> 4
+        writer = connection.writer
+        if packet_type == 1:  # CONNECT
+            self._reply(connection, self.connack_gate, bytes([0x20, 0x02, 0x00, 0x00]))
+        elif packet_type == 8:  # SUBSCRIBE
+            packet_id, index, topics = body[:2], 2, []
+            while index < len(body):
+                size = int.from_bytes(body[index : index + 2], "big")
+                topics.append(body[index + 2 : index + 2 + size].decode())
+                index += 3 + size
+            connection.subscribed.extend(topics)
+            connection.subscribe_packets += 1
+            codes = bytes(0x80 if t in self.refuse_topics else 0 for t in topics)
+            body_out = packet_id + codes
+            self._reply(
+                connection,
+                self.suback_gate,
+                bytes([0x90]) + _remaining_length(len(body_out)) + body_out,
+                ("suback", ""),
+            )
+        elif packet_type == 3:  # PUBLISH
+            qos = (header >> 1) & 0x03
+            size = int.from_bytes(body[:2], "big")
+            topic = body[2 : 2 + size].decode()
+            rest = body[2 + size :]
+            if qos:
+                writer.write(b"\x40\x02" + rest[:2])
+                rest = rest[2:]
+            connection.published.append((topic, rest))
+            self.timeline.append(("publish", topic))
+        elif packet_type == 12:  # PINGREQ
+            writer.write(b"\xd0\x00")
+        elif packet_type == 14:  # DISCONNECT
+            connection.disconnect_received = True
 
 
-def _message(topic: str, payload: bytes, retain: bool = False) -> SimpleNamespace:
-    return SimpleNamespace(topic=aiomqtt.Topic(topic), payload=payload, retain=retain)
+# --------------------------------------------------------------------------
+# Fixtures and helpers
+# --------------------------------------------------------------------------
 
 
 @pytest.fixture
-def fake_client():
-    FakeClient.connect_results = []
-    FakeClient.instances = []
-    with patch(
-        "custom_components.terramow.lawn_mower.aiomqtt.Client", FakeClient
-    ) as client:
-        yield client
+def local_sockets():
+    """Allow TCP to 127.0.0.1 only, for the in-process broker."""
+    pytest_socket.enable_socket()
+    pytest_socket.socket_allow_hosts(["127.0.0.1"])
+    yield
+    pytest_socket.disable_socket(allow_unix_socket=True)
 
 
 @pytest.fixture
-def no_backoff():
-    """Make reconnect waits instant while recording the requested delays."""
-    delays: list[float] = []
-    real_sleep = asyncio.sleep
-
-    async def sleep(delay: float) -> None:
-        # The patch replaces asyncio.sleep everywhere; only record the
-        # reconnect waits, not the zero-length yields of the test itself.
-        if delay:
-            delays.append(delay)
-        await real_sleep(0)
-
-    with patch("custom_components.terramow.lawn_mower.asyncio.sleep", sleep):
-        yield delays
+async def broker(local_sockets) -> FakeBroker:
+    fake = FakeBroker()
+    await fake.start()
+    with (
+        patch("custom_components.terramow.lawn_mower.MQTT_PORT", fake.port),
+        # Fast reconnects and short aiomqtt timeouts keep the tests quick.
+        patch("custom_components.terramow.lawn_mower.MQTT_RECONNECT_BASE_DELAY", 0.05),
+        patch.object(mqtt_connection_module, "MQTT_OPERATION_TIMEOUT", 1.0),
+    ):
+        yield fake
+    await fake.stop()
 
 
-@pytest.fixture
-def mower(hass: HomeAssistant) -> TerraMowLawnMowerEntity:
-    entity = TerraMowLawnMowerEntity(TerraMowBasicData("192.0.2.40", "secret"), hass)
+def _mower(hass: HomeAssistant) -> TerraMowLawnMowerEntity:
+    entity = TerraMowLawnMowerEntity(TerraMowBasicData("127.0.0.1", "secret"), hass)
     entity.schedule_update_ha_state = MagicMock()
     return entity
 
 
-async def _settle(hass: HomeAssistant) -> None:
-    for _ in range(5):
-        await asyncio.sleep(0)
-    await hass.async_block_till_done()
+@pytest.fixture
+def mower(hass: HomeAssistant) -> TerraMowLawnMowerEntity:
+    return _mower(hass)
 
 
-async def test_connect_subscribes_and_dispatches_messages(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client
+async def _until(predicate: Callable[[], bool], timeout: float = 5.0) -> None:
+    async with asyncio.timeout(timeout):
+        while not predicate():
+            await asyncio.sleep(0.01)
+
+
+async def _stop(mower: TerraMowLawnMowerEntity, budget: float = 5.0) -> None:
+    async with asyncio.timeout(budget):
+        await mower.async_will_remove_from_hass()
+
+
+# --------------------------------------------------------------------------
+# Connection lifecycle with the real aiomqtt client
+# --------------------------------------------------------------------------
+
+
+async def test_startup_subscribes_in_acknowledged_batches(
+    hass: HomeAssistant,
+    broker: FakeBroker,
+    mower: TerraMowLawnMowerEntity,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.WARNING)
+    mower.start_mqtt_client()
+    await _until(lambda: mower.mqtt_connected)
+    await _until(lambda: ("publish", "data_point/122/app") in broker.timeline)
+
+    (connection,) = broker.connections
+    topics = mower.subscription_topics()
+    # The existing topic set, in order, in a few bounded SUBSCRIBE packets.
+    assert connection.subscribed == topics
+    assert connection.subscribe_packets == -(-len(topics) // MQTT_SUBSCRIBE_BATCH_SIZE)
+    # The session is ready, and requests data, only after the last SUBACK.
+    last_suback = max(
+        i for i, event in enumerate(broker.timeline) if event[0] == "suback"
+    )
+    first_publish = min(
+        i for i, event in enumerate(broker.timeline) if event[0] == "publish"
+    )
+    assert last_suback < first_publish
+    assert "pending" not in caplog.text
+
+    await _stop(mower)
+    assert connection.disconnect_received
+    await _until(connection.closed.is_set)
+    assert not mower.mqtt_connected
+
+
+async def test_messages_reach_registered_callbacks(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
 ) -> None:
     received: list[tuple] = []
 
@@ -123,109 +289,173 @@ async def test_connect_subscribes_and_dispatches_messages(
     mower.register_callback(42, on_dp)
     mower.register_callback(114, on_dp)
     mower.start_mqtt_client()
-    await _settle(hass)
+    await _until(lambda: mower.mqtt_connected)
 
-    client = FakeClient.instances[0]
-    assert client.kwargs["hostname"] == "192.0.2.40"
-    assert client.kwargs["username"] == "terramow"
-    assert client.kwargs["password"] == "secret"
-    assert mower.mqtt_connected
-    assert mower.mqtt_client.is_connected()
-    assert "data_point/122/robot" in client.subscribed
-    assert "data_point/200/robot" in client.subscribed
-    # The session is primed: compatibility info and the schedule are requested.
-    published = [topic for topic, _ in client.published]
-    assert "data_point/127/app" in published
-    assert "data_point/122/app" in published
-
-    client.queue.put_nowait(_message("data_point/42/robot", b'{"a": 1}'))
-    client.queue.put_nowait(_message("data_point/114/robot", b'{"b": 2}', True))
-    await _settle(hass)
+    (connection,) = broker.connections
+    connection.send("data_point/42/robot", b'{"a": 1}')
+    connection.send("data_point/114/robot", b'{"b": 2}', retain=True)
+    await _until(lambda: len(received) == 2)
     assert received == [('{"a": 1}',), ('{"b": 2}', True)]
 
-    await mower.async_will_remove_from_hass()
-    assert client.exited
-    assert mower._mqtt_task is None
+    await _stop(mower)
+
+
+async def test_cancel_while_awaiting_connack_releases_the_connection(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
+) -> None:
+    broker.connack_gate = asyncio.Event()  # never set: CONNACK stays pending
+    mower.start_mqtt_client()
+    await _until(lambda: len(broker.connections) == 1)
+    task = mower._mqtt_task
+
+    await _stop(mower, budget=3.0)
+
+    assert task is not None and task.done()
+    await _until(broker.connections[0].closed.is_set, timeout=2.0)
+    assert not mower.mqtt_connected
+
+
+async def test_connect_timeout_closes_the_attempt_and_retries(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
+) -> None:
+    broker.connack_gate = asyncio.Event()
+    mower.start_mqtt_client()
+    # aiomqtt gives up waiting for CONNACK; the attempt is closed and retried.
+    await _until(lambda: len(broker.connections) >= 2)
+    await _until(broker.connections[0].closed.is_set, timeout=2.0)
+    assert mower.activity == LawnMowerActivity.ERROR
+
+    broker.connack_gate.set()
+    await _until(lambda: mower.mqtt_connected)
+    await _stop(mower)
+    for connection in broker.connections:
+        await _until(connection.closed.is_set, timeout=2.0)
+
+
+async def test_open_budget_bounds_a_stalled_connect(
+    hass: HomeAssistant, broker: FakeBroker
+) -> None:
+    broker.connack_gate = asyncio.Event()
+    connection = MqttConnection(
+        hostname="127.0.0.1", port=broker.port, username="u", password="p"
+    )
+    with (
+        patch.object(mqtt_connection_module, "MQTT_CONNECT_TIMEOUT", 0.2),
+        pytest.raises(TimeoutError),
+    ):
+        await connection.async_open()
+
+    await _until(broker.connections[0].closed.is_set, timeout=2.0)
+    assert not connection.accepting
+
+
+async def test_unload_while_awaiting_suback(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
+) -> None:
+    broker.suback_gate = asyncio.Event()  # never set: SUBACK stays pending
+    mower.start_mqtt_client()
+    await _until(lambda: broker.connections and broker.connections[0].subscribed)
+
+    await _stop(mower, budget=3.0)
+
+    await _until(broker.connections[0].closed.is_set, timeout=2.0)
     assert not mower.mqtt_connected
     assert not mower.mqtt_client.is_connected()
 
 
-async def test_connect_failures_back_off_then_recover(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client, no_backoff
+async def test_refused_subscription_fails_the_session(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
 ) -> None:
-    FakeClient.connect_results = [OSError("down"), OSError("down"), None]
+    broker.refuse_topics = {"data_point/122/robot"}
     mower.start_mqtt_client()
-    await _settle(hass)
+    await _until(lambda: len(broker.connections) >= 2)
 
-    assert len(FakeClient.instances) == 3
-    assert no_backoff[:2] == [5, 10]
-    assert mower.mqtt_connected
-    assert mower.activity == LawnMowerActivity.DOCKED
-
-    await mower.async_will_remove_from_hass()
-
-
-async def test_failure_sets_error_activity(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client
-) -> None:
-    # Real backoff: the task waits after the failed attempt until removal.
-    FakeClient.connect_results = [aiomqtt.MqttError("refused")]
-    mower.start_mqtt_client()
-    await _settle(hass)
-
-    assert mower.activity == LawnMowerActivity.ERROR
+    await _until(broker.connections[0].closed.is_set, timeout=2.0)
     assert not mower.mqtt_connected
-
-    await mower.async_will_remove_from_hass()
+    assert mower.activity == LawnMowerActivity.ERROR
+    # Nothing was requested on a session that never became ready.
+    assert not broker.connections[0].published
+    await _stop(mower)
 
 
 async def test_lost_connection_reconnects(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client, no_backoff
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
 ) -> None:
     mower.start_mqtt_client()
-    await _settle(hass)
-    first = FakeClient.instances[0]
+    await _until(lambda: mower.mqtt_connected)
 
-    first.queue.put_nowait(LOST)
-    await _settle(hass)
+    broker.connections[0].writer.close()  # the broker drops the client
+    await _until(lambda: len(broker.connections) == 2 and mower.mqtt_connected)
 
-    assert first.exited
-    assert len(FakeClient.instances) == 2
-    assert no_backoff == [5]
-    assert mower.mqtt_connected
-    assert mower.mqtt_client.is_connected()
-
-    await mower.async_will_remove_from_hass()
+    await _stop(mower)
 
 
-async def test_broker_closing_the_session_reconnects(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client, no_backoff
+async def test_repeated_reloads_leave_no_connection_behind(
+    hass: HomeAssistant, broker: FakeBroker
+) -> None:
+    for _ in range(5):
+        mower = _mower(hass)
+        mower.start_mqtt_client()
+        await _until(lambda mower=mower: mower.mqtt_connected)
+        await _stop(mower)
+
+    assert len(broker.connections) == 5
+    for connection in broker.connections:
+        await _until(connection.closed.is_set, timeout=2.0)
+        assert connection.disconnect_received
+
+
+async def test_pending_operations_are_cancelled_on_close(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
 ) -> None:
     mower.start_mqtt_client()
-    await _settle(hass)
+    await _until(lambda: mower.mqtt_connected)
+    connection = mower.mqtt_client.connection
+    assert connection is not None
 
-    FakeClient.instances[0].queue.put_nowait(None)  # stream ends without error
-    await _settle(hass)
+    broker.suback_gate = asyncio.Event()  # the next SUBACK never arrives
+    assert mower.mqtt_client.subscribe("extra/topic").rc == MQTT_ERR_SUCCESS
+    await _until(lambda: "extra/topic" in broker.connections[0].subscribed)
+    assert connection._operations
 
-    assert len(FakeClient.instances) == 2
-    assert no_backoff == [5]
-    assert mower.mqtt_connected
+    await _stop(mower)
 
-    await mower.async_will_remove_from_hass()
+    assert not connection._operations
+    assert mower.mqtt_client.publish("t", "{}").rc == MQTT_ERR_NO_CONN
 
 
-async def test_unload_while_reconnecting_stops_the_task(
-    hass: HomeAssistant, mower: TerraMowLawnMowerEntity, fake_client
+async def test_worker_thread_submissions(
+    hass: HomeAssistant, broker: FakeBroker, mower: TerraMowLawnMowerEntity
 ) -> None:
-    FakeClient.connect_results = [OSError("down")]
     mower.start_mqtt_client()
-    await asyncio.sleep(0)
-    task = mower._mqtt_task
+    await _until(lambda: mower.mqtt_connected)
+    facade = mower.mqtt_client
 
-    await mower.async_will_remove_from_hass()
+    result = await hass.async_add_executor_job(facade.publish, "from/thread", "{}")
+    assert result.rc == MQTT_ERR_SUCCESS
+    await _until(lambda: ("publish", "from/thread") in broker.timeline)
 
-    assert task is not None and task.done()
-    assert len(FakeClient.instances) == 1
+    # A submission that reaches the event loop after its connection retired
+    # is dropped instead of running on that connection.
+    retired = facade.connection
+    assert retired is not None
+    operation = MagicMock()
+    facade.attach(None)
+    facade._start_from_thread(retired, operation, "late/topic")
+    facade.attach(retired)
+    await _stop(mower)
+    facade._start_from_thread(retired, operation, "late/topic")
+    operation.assert_not_called()
+    assert ("publish", "late/topic") not in broker.timeline
+
+
+# --------------------------------------------------------------------------
+# Units without a broker
+# --------------------------------------------------------------------------
+
+
+def _message(topic: str, payload, retain: bool = False) -> SimpleNamespace:
+    return SimpleNamespace(topic=aiomqtt.Topic(topic), payload=payload, retain=retain)
 
 
 def test_message_normalizes_aiomqtt_payloads() -> None:
@@ -242,31 +472,30 @@ async def test_facade_without_connection_reports_no_conn(hass: HomeAssistant) ->
     assert facade.subscribe("t").rc == MQTT_ERR_NO_CONN
 
 
-async def test_facade_publishes_from_a_worker_thread(hass: HomeAssistant) -> None:
-    client = FakeClient()
-    facade = MqttClient(hass)
-    facade.attach(client)
-
-    result = await hass.async_add_executor_job(facade.publish, "t", '{"x": 1}')
-    await _settle(hass)
-
-    assert result.rc == MQTT_ERR_SUCCESS
-    assert client.published == [("t", '{"x": 1}')]
-
-
-async def test_facade_logs_a_failed_operation(
+async def test_failed_operation_is_logged(
     hass: HomeAssistant, caplog: pytest.LogCaptureFixture
 ) -> None:
-    client = MagicMock()
+    connection = MqttConnection(
+        hostname="192.0.2.1", port=1883, username="u", password="p"
+    )
+    connection._open = True
 
-    async def fail(*_args, **_kwargs) -> None:
+    async def fail(_client) -> None:
         raise aiomqtt.MqttError("gone")
 
-    client.publish = fail
-    facade = MqttClient(hass)
-    facade.attach(client)
-
-    assert facade.publish("data_point/103/app", json.dumps({})).rc == MQTT_ERR_SUCCESS
+    assert connection.start_operation(fail, "data_point/103/app")
     await hass.async_block_till_done()
-
     assert "MQTT operation on data_point/103/app failed" in caplog.text
+
+
+async def test_subscribe_checks_reason_code_objects() -> None:
+    connection = MqttConnection(
+        hostname="192.0.2.1", port=1883, username="u", password="p"
+    )
+
+    async def subscribe(topics):
+        return [SimpleNamespace(value=0), SimpleNamespace(value=0x87)][: len(topics)]
+
+    connection._client.subscribe = subscribe
+    with pytest.raises(MqttSubscribeError, match="b"):
+        await connection.async_subscribe(["a", "b"])

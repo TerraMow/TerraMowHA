@@ -2942,7 +2942,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiomqtt", specifier = ">=2.0.0" },
+    { name = "aiomqtt", specifier = "==2.5.1" },
     { name = "pillow", specifier = ">=9.0.0" },
 ]
 

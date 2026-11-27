@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 from uuid import uuid4
@@ -17,9 +16,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import CONF_IDENTITY_KEY, DOMAIN, MQTT_PORT, MQTT_USERNAME
+from .mqtt_connection import MqttConnection
 
 _LOGGER = logging.getLogger(__name__)
-MQTT_CONNECT_TIMEOUT = 5
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -46,18 +45,20 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     Waits for the broker's CONNACK, so an authentication failure
     (InvalidAuth) is told apart from a network failure (CannotConnect).
     """
+    # Same connection ownership as the mower's MQTT loop: the attempt is
+    # released through one shielded close path on success, failure, timeout
+    # and cancellation alike.
+    connection = MqttConnection(
+        hostname=data[CONF_HOST],
+        port=MQTT_PORT,
+        username=MQTT_USERNAME,
+        password=data[CONF_PASSWORD],
+    )
     try:
-        # aiomqtt times out the connect itself; the outer timeout makes sure a
-        # half-open TCP connect can never hang the flow.
-        async with asyncio.timeout(MQTT_CONNECT_TIMEOUT * 2):
-            async with aiomqtt.Client(
-                hostname=data[CONF_HOST],
-                port=MQTT_PORT,
-                username=MQTT_USERNAME,
-                password=data[CONF_PASSWORD],
-                timeout=MQTT_CONNECT_TIMEOUT,
-            ):
-                pass  # 收到 CONNACK 即验证通过；退出时断开连接。
+        try:
+            await connection.async_open()  # 收到 CONNACK 即验证通过。
+        finally:
+            await connection.async_close()
     except aiomqtt.MqttCodeError as err:
         if _is_auth_failure(err):
             raise InvalidAuth from err

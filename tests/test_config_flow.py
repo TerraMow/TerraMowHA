@@ -2,7 +2,7 @@
 
 import asyncio
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiomqtt
 import pytest
@@ -34,6 +34,10 @@ class _FakeConnection:
         self.error = error
         self.kwargs: dict = {}
         self.exited = False
+        # Read by MqttConnection's close path.
+        self._client = MagicMock()
+        self._client.socket.return_value = None
+        self._misc_task = None
 
     def __call__(self, **kwargs) -> "_FakeConnection":
         self.kwargs = kwargs
@@ -49,8 +53,8 @@ class _FakeConnection:
 
     # The created entry is set up right away and its mower connects through
     # the same fake: accept subscriptions and publishes, deliver no messages.
-    async def subscribe(self, *_args, **_kwargs) -> None:
-        return None
+    async def subscribe(self, topics, *_args, **_kwargs) -> list[int]:
+        return [0] * len(topics)
 
     async def publish(self, *_args, **_kwargs) -> None:
         return None
