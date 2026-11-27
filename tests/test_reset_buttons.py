@@ -17,8 +17,16 @@ from custom_components.terramow.button import (
     TerraMowResetBladeButton,
     async_setup_entry,
 )
-from custom_components.terramow.const import DOMAIN
+from custom_components.terramow.const import (
+    BASE_STATION_MAINTENANCE_CYCLE_MINUTES,
+    BLADE_MAINTENANCE_CYCLE_MINUTES,
+    DOMAIN,
+)
 from custom_components.terramow.lawn_mower import TerraMowLawnMowerEntity
+from custom_components.terramow.sensor import (
+    RemainingBaseStationTimeSensor,
+    RemainingBladeTimeSensor,
+)
 
 
 @pytest.fixture
@@ -193,3 +201,45 @@ async def test_availability_follows_the_connection(
 
     mower.basic_data.lawn_mower = None
     assert not button.available
+
+
+@pytest.mark.parametrize(
+    ("button_class", "sensor_class", "attribute", "cycle"),
+    [
+        (
+            TerraMowResetBladeButton,
+            RemainingBladeTimeSensor,
+            "_blade_time",
+            BLADE_MAINTENANCE_CYCLE_MINUTES,
+        ),
+        (
+            TerraMowResetBaseStationButton,
+            RemainingBaseStationTimeSensor,
+            "_base_station_time",
+            BASE_STATION_MAINTENANCE_CYCLE_MINUTES,
+        ),
+    ],
+)
+async def test_reset_restores_the_maintenance_interval(
+    hass: HomeAssistant,
+    mower: TerraMowLawnMowerEntity,
+    button_class,
+    sensor_class,
+    attribute: str,
+    cycle: int,
+) -> None:
+    """确认清零后，剩余维护时间恢复且维护提醒解除。"""
+    sensor = sensor_class(mower.basic_data, hass)
+    button = button_class(mower.basic_data, hass)
+    # 从已超过维护周期的状态开始，验证按钮和现有展示之间的完整结果。
+    setattr(mower, attribute, {"int_value": cycle + 1})
+    assert sensor.native_value == 0
+    assert sensor.extra_state_attributes["needs_maintenance"] is True
+
+    await button.async_press()
+
+    assert sensor.native_value == cycle
+    attributes = sensor.extra_state_attributes
+    assert attributes["used_time"] == 0
+    assert attributes["recommended_cycle"] == cycle
+    assert attributes["needs_maintenance"] is False
