@@ -1,7 +1,7 @@
 """Tests for the TerraMow lawn mower platform."""
 
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -9,6 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.terramow import TerraMowBasicData
 from custom_components.terramow.const import DOMAIN
 from custom_components.terramow.lawn_mower import (
+    MqttClient,
     TerraMowLawnMowerEntity,
     async_setup_entry,
 )
@@ -37,11 +38,10 @@ async def test_lawn_mower_entity_is_created_without_real_network(hass, caplog) -
     assert entities[0].host == "192.0.2.30"
     start.assert_called_once_with()
 
-    with (
-        patch("custom_components.terramow.lawn_mower.mqtt_client.Client") as client,
-        patch("custom_components.terramow.lawn_mower.threading.Thread"),
-    ):
+    with patch.object(TerraMowLawnMowerEntity, "mqtt_loop", AsyncMock()) as loop:
         entities[0].start_mqtt_client()
+        await hass.async_block_till_done()
 
-    client.return_value.username_pw_set.assert_called_once_with("terramow", "secret")
+    assert isinstance(entities[0].mqtt_client, MqttClient)
+    loop.assert_called_once_with()
     assert "secret" not in caplog.text

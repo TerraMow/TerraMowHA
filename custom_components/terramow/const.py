@@ -15,8 +15,6 @@ MQTT_USERNAME = "terramow"
 MQTT_RECONNECT_BASE_DELAY = 5
 MQTT_RECONNECT_MAX_DELAY = 60
 
-# 实体移除时等待 MQTT 工作线程退出的最长时间（秒），避免线程残留为僵尸继续重连。
-MQTT_THREAD_JOIN_TIMEOUT = 10
 
 # MQTT主题
 MAP_INFO_TOPIC = "map/current/info"

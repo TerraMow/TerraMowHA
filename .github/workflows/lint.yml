@@ -30,6 +30,6 @@ jobs:
       - name: Create type-check environment
         run: uv venv --python 3.14
       - name: Install Home Assistant and mypy
-        run: uv pip install homeassistant==2026.7.2 mypy==2.4.1
+        run: uv pip install homeassistant==2026.7.2 aiomqtt==2.5.1 mypy==2.4.1
       - name: Check types
         run: .venv/bin/python -m mypy

@@ -252,7 +252,9 @@ async def test_connect_reads_schedule_without_compatibility_report(
 
     def publish(topic: str, payload: str) -> SimpleNamespace:
         assert topic == "data_point/122/app"
-        mower.mqtt_client.subscribe.assert_any_call("data_point/122/robot")
+        # mqtt_loop subscribes (and awaits every SUBACK) before on_mqtt_connect;
+        # test_mqtt_connection checks that ordering against a real broker.
+        assert "data_point/122/robot" in mower.subscription_topics()
         command = json.loads(payload)
         assert command["cmd_type"] == SCHEDULE_GET
         hass.async_create_task(
