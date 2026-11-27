@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Restablecer tiempo de uso de la base"
+            },
+            "reset_blade_time": {
+                "name": "Restablecer tiempo de uso de las cuchillas"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Calendario de corte global"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Ángulo de la segunda dirección"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow no está conectado."
+        },
+        "reset_not_confirmed": {
+            "message": "El cortacésped no confirmó el restablecimiento."
         }
     }
 }

@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Ladestation-Nutzungsdauer zurücksetzen"
+            },
+            "reset_blade_time": {
+                "name": "Messer-Nutzungsdauer zurücksetzen"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Globaler Mähplan"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Zweiter Richtungswinkel"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow ist nicht verbunden."
+        },
+        "reset_not_confirmed": {
+            "message": "Der Rasenmäher hat das Zurücksetzen nicht bestätigt."
         }
     }
 }

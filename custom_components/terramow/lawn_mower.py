@@ -26,6 +26,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import TerraMowBasicData
 from .const import (
+    BASE_STATION_TIME_DP,
+    BLADE_TIME_DP,
     COMPATIBILITY_INFO_DP,
     DOMAIN,
     MAP_INFO_TOPIC,
@@ -202,6 +204,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self._statistics_data: dict[str, Any] = {}  # 存储dp_124作业统计数据
         self._base_station_time: dict[str, Any] = {}  # 存储dp_125基站使用时间
         self._blade_time: dict[str, Any] = {}  # 存储dp_126刀盘使用时间
+        # Resets waiting for the counter (dp_125/dp_126) to report zero.
+        self._counter_reset_waiters: dict[int, asyncio.Future[None]] = {}
         self._schedule_data: dict[str, Any] = {}  # 存储dp_138即将到来的预约
         self._battery_status: dict[str, Any] = {}  # Store dp_108 battery status
         self._battery_status_fresh = False
@@ -355,8 +359,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
         self.register_callback(113, self.on_current_work_data)
         self.register_callback(154, self.on_work_mode)
         self.register_callback(124, self.on_statistics_data)
-        self.register_callback(125, self.on_base_station_time)
-        self.register_callback(126, self.on_blade_time)
+        self.register_callback(BASE_STATION_TIME_DP, self.on_base_station_time)
+        self.register_callback(BLADE_TIME_DP, self.on_blade_time)
         self.register_callback(138, self.on_schedule_data)
         self.register_callback(122, self.schedule.on_reply)
         self.register_callback(108, self.on_battery_status)
@@ -512,6 +516,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("Base station time updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_125: %s", payload)
+            return
+        self._confirm_counter_reset(BASE_STATION_TIME_DP, data)
 
     async def on_blade_time(self, payload: str):
         """Handle blade time updates (dp_126)."""
@@ -522,6 +528,8 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
             _LOGGER.info("Blade time updated: %s", data)
         except json.JSONDecodeError:
             _LOGGER.error("Invalid JSON payload for dp_126: %s", payload)
+            return
+        self._confirm_counter_reset(BLADE_TIME_DP, data)
 
     async def on_schedule_data(self, payload: str):
         """Handle schedule data updates (dp_138)."""
@@ -1505,6 +1513,63 @@ class TerraMowLawnMowerEntity(LawnMowerEntity):
                 await self.feedback.async_send_command(106, {})
             return
         await self.feedback.async_send_command(103, {"mode": "START_MODE_RETURN"})
+
+    def _confirm_counter_reset(self, dp_id: int, data: Any) -> None:
+        """Complete a pending reset once the counter reports zero."""
+        waiter = self._counter_reset_waiters.get(dp_id)
+        if (
+            waiter is not None
+            and not waiter.done()
+            and isinstance(data, dict)
+            and data.get("int_value") == 0
+        ):
+            waiter.set_result(None)
+
+    async def async_reset_counter(self, dp_id: int) -> None:
+        """Reset a maintenance counter and wait until the mower reports zero.
+
+        dp_125 and dp_126 have no command reply (no seq/ret): the device resets
+        its counter when it receives zero and then reports the new value. That
+        report is the confirmation; without it within the reply timeout the
+        reset counts as failed.
+        """
+        from homeassistant.exceptions import HomeAssistantError
+
+        from .feedback import COMMAND_REPLY_TIMEOUT
+
+        client = self.mqtt_client
+        if client is None or not client.is_connected():
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="not_connected"
+            )
+        waiter: asyncio.Future[None] = self.hass.loop.create_future()
+        self._counter_reset_waiters[dp_id] = waiter
+        try:
+            info = self.publish_data_point(dp_id, {"int_value": 0})
+            if info is None or info.rc != 0:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN, translation_key="not_connected"
+                )
+            try:
+                await asyncio.wait_for(waiter, COMMAND_REPLY_TIMEOUT)
+            except TimeoutError as err:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="reset_not_confirmed",
+                ) from err
+        finally:
+            if self._counter_reset_waiters.get(dp_id) is waiter:
+                del self._counter_reset_waiters[dp_id]
+            if not waiter.done():
+                waiter.cancel()
+
+    async def async_reset_blade_time(self) -> None:
+        """Reset the blade usage counter (dp_126)."""
+        await self.async_reset_counter(BLADE_TIME_DP)
+
+    async def async_reset_base_station_time(self) -> None:
+        """Reset the base station usage counter (dp_125)."""
+        await self.async_reset_counter(BASE_STATION_TIME_DP)
 
     async def async_will_remove_from_hass(self):
         """Clean up resources when the entity is removed."""

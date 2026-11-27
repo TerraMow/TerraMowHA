@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Bázisállomás használati idejének nullázása"
+            },
+            "reset_blade_time": {
+                "name": "Késhasználati idő nullázása"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Globális nyírási ütemezés"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Második Irány Szöge"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "A TerraMow nincs csatlakoztatva."
+        },
+        "reset_not_confirmed": {
+            "message": "A fűnyíró nem erősítette meg a nullázást."
         }
     }
 }

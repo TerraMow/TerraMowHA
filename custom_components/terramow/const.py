@@ -70,3 +70,7 @@ MIN_MOW_SPEED_VERSION_FOR_AUTO = 3
 
 # dp_155 刀盘转速默认值（与固件实际初始化路径一致）
 DEFAULT_BLADE_DISK_SPEED_TYPE = "BLADE_DISK_SPEED_TYPE_MEDIUM"
+
+# Maintenance counters (minutes); writing 0 resets them.
+BASE_STATION_TIME_DP = 125
+BLADE_TIME_DP = 126

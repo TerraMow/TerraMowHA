@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Azzera il tempo di utilizzo della base"
+            },
+            "reset_blade_time": {
+                "name": "Azzera il tempo di utilizzo delle lame"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Calendario di taglio globale"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Angolo seconda direzione"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow non è connesso."
+        },
+        "reset_not_confirmed": {
+            "message": "Il rasaerba non ha confermato l'azzeramento."
         }
     }
 }

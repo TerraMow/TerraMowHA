@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Nollställ laddstationens användningstid"
+            },
+            "reset_blade_time": {
+                "name": "Nollställ knivarnas användningstid"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Globalt klippschema"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Vinkel för andra riktningen"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow är inte ansluten."
+        },
+        "reset_not_confirmed": {
+            "message": "Gräsklipparen bekräftade inte nollställningen."
         }
     }
 }

@@ -30,6 +30,14 @@
         }
     },
     "entity": {
+        "button": {
+            "reset_base_station_time": {
+                "name": "Gebruiksduur laadstation resetten"
+            },
+            "reset_blade_time": {
+                "name": "Gebruiksduur messen resetten"
+            }
+        },
         "calendar": {
             "global_schedule": {
                 "name": "Algemeen maaischema"
@@ -317,6 +325,14 @@
             "multiple_direction_angle2": {
                 "name": "Hoek tweede richting"
             }
+        }
+    },
+    "exceptions": {
+        "not_connected": {
+            "message": "TerraMow is niet verbonden."
+        },
+        "reset_not_confirmed": {
+            "message": "De grasmaaier heeft de reset niet bevestigd."
         }
     }
 }

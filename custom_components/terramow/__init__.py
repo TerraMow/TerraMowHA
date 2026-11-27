@@ -36,6 +36,7 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.CALENDAR,
     Platform.EVENT,
+    Platform.BUTTON,
 ]
 
 
