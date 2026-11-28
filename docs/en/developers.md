@@ -9,6 +9,7 @@ This document provides development information about the TerraMow Home Assistant
 
 - [Communication Method](#communication-method)
 - [MQTT Topics Definition](#mqtt-topics-definition)
+- [Map Editing](#map-editing)
 - [Global Schedule and Calendar](#global-schedule-and-calendar)
 - [Special Topics](#special-topics)
 - [Map Information](#map-information)
@@ -38,6 +39,12 @@ The topic definitions related to Data Points are as follows:
 Where `{dp_id}` is the ID of the Data Point, an integer ranging from 0 to 200.
 
 For specific Data Point definitions, please refer to [Data Point Definition](./developers/data_point.md).
+
+## Map Editing
+
+See [Map Editing Protocol](./developers/map_edit.md) for DP120 requests and
+replies, map-level thorough corner cutting and high-grass edge trim settings,
+feature compatibility versions and state verification.
 
 ## Global Schedule and Calendar
 
@@ -105,14 +112,19 @@ Sub-regions (sub_regions) contain:
 
 #### Mowing Parameters (mow_param)
 
-Contains global and region-specific mowing parameters:
+Contains global and region-specific mowing parameters for this map:
 
 | Field Name | Type | Description |
 | ---------- | ---- | ----------- |
-| global_param | object | Global mowing parameters (WorkParam type) |
+| global_param | object | Global mowing parameters for this map (WorkParam type) |
 | regions | array | List of regions with custom parameters |
-| enable_thorough_corner_cutting | boolean | Whether to enable thorough corner cutting |
-| high_grass_edge_trim_mode | object | High grass optimization mode configuration for edge trimming |
+| enable_thorough_corner_cutting | boolean | Whether to enable thorough corner cutting for this map |
+| high_grass_edge_trim_mode | object | High grass optimization mode configuration for this map |
+
+To change the corner cutting switch or high-grass mode, use the
+[DP120 map editing commands](./developers/map_edit.md). These two fields are
+read from the map; they are not DP155 write parameters. For the current map
+body interface, see [Map and Path Capabilities](./developers/map_path.md#map-body).
 
 WorkParam object contains:
 
