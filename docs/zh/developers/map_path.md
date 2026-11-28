@@ -136,6 +136,19 @@ HTTP 正文请求要求如下：
 | 地图状态与作业上下文 | `map_state`、`total_area`、`clean_info`、`mow_param`、`type` | 展示地图状态、当前作业模式和作业参数 |
 | 备份与边界状态 | `has_backup`、`backup_info_list`、`is_boundary_locked`、`enable_advanced_edge_cutting`、`is_able_to_run_build_map` | 展示地图管理和边界能力状态 |
 
+### 地图级割草设置
+
+`mow_param` 对象中包含以下设置，归属于 `id` 指定的地图：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `mow_param.enable_thorough_corner_cutting` | 布尔值 | 是否为该地图开启角落彻底切割 |
+| `mow_param.high_grass_edge_trim_mode.mode` | 枚举字符串 | 高草沿边模式：禁用、标准或增强 |
+
+这些值属于地图，当前地图切换后，展示的设置也应随之切换。修改时使用
+[地图编辑协议](./map_edit.md)中定义的命令、枚举名和功能兼容版本，
+并通过地图 ID 一致的新快照核对结果。
+
 ### 常见几何对象
 
 地图正文里常见的空间对象包括：

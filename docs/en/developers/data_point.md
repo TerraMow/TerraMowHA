@@ -13,6 +13,7 @@ Data Point Definition
 - [Current Operation Data](#current-operation-data)
 - [Base Station Usage Time](#base-station-usage-time)
 - [Mowing Blade Disk Usage Time](#mowing-blade-disk-usage-time)
+- [Map Editing](#map-editing)
 - [Schedule Control](#schedule-control)
 - [Upcoming Schedule](#upcoming-schedule)
 - [Global Operation Parameter Settings](#global-operation-parameter-settings)
@@ -30,6 +31,7 @@ Data Point Definition
 | 108 | [Battery Status](#battery-status) | Robot→HA | Battery status information (charging state, temperature, etc.) |
 | 113 | [Current Operation Data](#current-operation-data) | Robot→HA | Current operation data (area, progress, etc.) |
 | 117 | [Map Status](#map-status) | Robot→HA | Map status (ID, state, count, etc.) |
+| 120 | [Map Editing](#map-editing) | Robot↔HA | Map editing commands and replies, including map-level mowing settings |
 | 122 | [Schedule Control](#schedule-control) | Robot↔HA | Global schedule CRUD and master/weekday switches |
 | 124 | [Operation Statistics](#operation-statistics) | Robot→HA | Operation statistics (total duration, area, count) |
 | 125 | [Base Station Usage Time](#base-station-usage-time) | Robot↔HA | Base station usage time |
@@ -205,6 +207,16 @@ Data Point Definition
   - The recommended cleaning cycle for the blade disk is 240 minutes.
   - When the robot receives a value of 0, it will reset the internal record of blade disk usage time to 0.
 
+## Map Editing
+
+- **ID**: 120
+- Data Direction: Robot↔HA
+- Thorough corner cutting and high-grass edge trim mode are settings of a
+  specific map. Send the corresponding map editing command with `seq` and
+  `map_id`; replies use `seq` and `code`.
+- For command fields, complete examples, state verification and feature
+  compatibility versions, see [Map Editing Protocol](./map_edit.md).
+
 ## Schedule Control
 
 - **ID**: 122
@@ -286,6 +298,8 @@ Data Point Definition
 
 - **ID**: 155
 - Data Direction: Robot↔HA
+- Thorough corner cutting and high-grass edge trim mode use the
+  [DP120 map editing protocol](./map_edit.md); they are not fields of DP155.
 - Field Description:
 
   | Field Name | Type | Unit | Description |

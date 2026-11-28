@@ -9,6 +9,7 @@
 
 - [通信方式](#通信方式)
 - [MQTT Topics 定义](#mqtt-topics-定义)
+- [地图编辑](#地图编辑)
 - [全局预约与日历](#全局预约与日历)
 - [特殊主题](#特殊主题)
 - [地图信息](#地图信息)
@@ -37,6 +38,11 @@ TerraMow 和 Home Assistant 之间的通信主要通过 MQTT 协议进行。为�
 其中 `{dp_id}` 是 Data Point 的 ID，类型为整数，范围为 0-200。
 
 具体 Data Point 的定义可以参考 [Data Point 定义](./developers/data_point.md)。
+
+## 地图编辑
+
+DP120 请求与回复、地图级角落彻底切割开关和高草沿边模式、功能兼容版本及结果核对，
+见[地图编辑协议](./developers/map_edit.md)。
 
 ## 全局预约与日历
 
@@ -105,14 +111,18 @@ DP122 新增、读取、修改和删除请求、ACK／回读匹配、固件要�
 
 #### 割草参数（mow_param）
 
-包含全局和区域特定的割草参数：
+包含该地图的全局和区域特定割草参数：
 
 | 字段名 | 类型 | 描述 |
 | ------ | ---- | ---- |
-| global_param | object | 全局割草参数（WorkParam类型） |
+| global_param | object | 该地图的全局割草参数（WorkParam类型） |
 | regions | array | 有定制参数的区域列表 |
-| enable_thorough_corner_cutting | boolean | 是否启用角落彻底切割功能 |
-| high_grass_edge_trim_mode | object | 边缘割草时的高草优化模式配置 |
+| enable_thorough_corner_cutting | boolean | 是否为该地图启用角落彻底切割功能 |
+| high_grass_edge_trim_mode | object | 该地图的高草沿边模式配置 |
+
+修改角落开关和高草模式时，使用 [DP120 地图编辑命令](./developers/map_edit.md)。
+这两个字段从地图中读取，不属于 DP155 的写入参数。当前地图正文接口见
+[地图与路径能力说明](./developers/map_path.md#地图正文)。
 
 WorkParam 对象包含：
 

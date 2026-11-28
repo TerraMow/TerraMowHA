@@ -136,6 +136,20 @@ Common status codes:
 | Map state and job context | `map_state`, `total_area`, `clean_info`, `mow_param`, `type` | Display map state, current job mode, and mowing parameters |
 | Backup and boundary state | `has_backup`, `backup_info_list`, `is_boundary_locked`, `enable_advanced_edge_cutting`, `is_able_to_run_build_map` | Display map management and boundary-related state |
 
+### Map-level mowing settings
+
+The `mow_param` object includes these settings for the map identified by `id`:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `mow_param.enable_thorough_corner_cutting` | Boolean | Enable or disable thorough corner cutting for this map |
+| `mow_param.high_grass_edge_trim_mode.mode` | Enum string | High-grass edge trim mode: disabled, standard or enhanced |
+
+These values belong to the map, so a current-map change also changes which
+settings should be displayed. To edit them, use the commands, enum names and
+feature compatibility versions in [Map Editing Protocol](./map_edit.md).
+Check a fresh snapshot with the matching map ID to verify the result.
+
 ### Common geometry objects
 
 Common spatial objects in the map body include:
